@@ -1,2 +1,2 @@
 # platformer-brackeys-2
-help.
+only chat alone will judge me, not you. look away.
