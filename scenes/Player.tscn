@@ -1,7 +1,8 @@
-[gd_scene load_steps=26 format=3 uid="uid://cf8mwbv72ysx5"]
+[gd_scene load_steps=30 format=3 uid="uid://cf8mwbv72ysx5"]
 
 [ext_resource type="Texture2D" uid="uid://1jcup4os5nef" path="res://assets/sprites/knight.png" id="1_okj15"]
 [ext_resource type="Script" path="res://scripts/player.gd" id="1_wlgh5"]
+[ext_resource type="Texture2D" uid="uid://b1el231v8ig0m" path="res://assets/white_circle.png" id="3_a8hje"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_b17sb"]
 atlas = ExtResource("1_okj15")
@@ -103,7 +104,7 @@ animations = [{
 "texture": SubResource("AtlasTexture_qljlw")
 }],
 "loop": true,
-"name": &"default",
+"name": &"idle",
 "speed": 5.0
 }, {
 "frames": [{
@@ -171,6 +172,21 @@ animations = [{
 [sub_resource type="CircleShape2D" id="CircleShape2D_ngcs4"]
 radius = 5.0
 
+[sub_resource type="Curve" id="Curve_rki24"]
+_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(0.893333, 0), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="CurveTexture_wkbom"]
+curve = SubResource("Curve_rki24")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_1085j"]
+spread = 35.334
+initial_velocity_min = 200.0
+initial_velocity_max = 200.0
+angular_velocity_max = 64.72
+gravity = Vector3(0, 0, 0)
+scale_curve = SubResource("CurveTexture_wkbom")
+
 [node name="Player" type="CharacterBody2D"]
 z_index = 5
 script = ExtResource("1_wlgh5")
@@ -179,10 +195,21 @@ script = ExtResource("1_wlgh5")
 texture_filter = 1
 position = Vector2(0, -12)
 sprite_frames = SubResource("SpriteFrames_sqkdx")
-animation = &"jump"
-autoplay = "default"
-frame_progress = 0.827304
+animation = &"idle"
+autoplay = "idle"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 position = Vector2(0, -5)
 shape = SubResource("CircleShape2D_ngcs4")
+
+[node name="EffectsAnchor" type="Node2D" parent="."]
+
+[node name="BoostParticles" type="GPUParticles2D" parent="EffectsAnchor"]
+emitting = false
+amount = 20
+process_material = SubResource("ParticleProcessMaterial_1085j")
+texture = ExtResource("3_a8hje")
+lifetime = 0.36
+one_shot = true
+explosiveness = 1.0
+randomness = 1.0
