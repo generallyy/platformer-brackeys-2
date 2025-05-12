@@ -1,0 +1,66 @@
+[gd_scene load_steps=6 format=3 uid="uid://cwyrcu15opvxa"]
+
+[ext_resource type="Script" path="res://scripts/main.gd" id="1_exn86"]
+[ext_resource type="PackedScene" uid="uid://cf8mwbv72ysx5" path="res://scenes/characters/Player.tscn" id="2_ed0am"]
+[ext_resource type="Script" path="res://scripts/PauseMenu.gd" id="3_7frdm"]
+[ext_resource type="SystemFont" uid="uid://crymavm3yupm0" path="res://scenes/ui/Font.tres" id="3_xxodx"]
+
+[sub_resource type="Theme" id="Theme_27rqe"]
+default_font = ExtResource("3_xxodx")
+default_font_size = 40
+
+[node name="Main" type="Node2D"]
+texture_filter = 1
+script = ExtResource("1_exn86")
+
+[node name="Player" parent="." instance=ExtResource("2_ed0am")]
+
+[node name="Camera2D" type="Camera2D" parent="Player"]
+zoom = Vector2(4, 4)
+limit_bottom = 120
+position_smoothing_enabled = true
+
+[node name="LevelContainer" type="Node" parent="."]
+
+[node name="HUD" type="CanvasLayer" parent="."]
+
+[node name="PauseMenu" type="CanvasLayer" parent="."]
+process_mode = 3
+layer = 2
+script = ExtResource("3_7frdm")
+
+[node name="CenterContainer" type="CenterContainer" parent="PauseMenu"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = SubResource("Theme_27rqe")
+
+[node name="ColorRect" type="ColorRect" parent="PauseMenu/CenterContainer"]
+layout_mode = 2
+color = Color(0.431743, 0.175123, 0.205142, 1)
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PauseMenu/CenterContainer"]
+layout_mode = 2
+
+[node name="Resume" type="Button" parent="PauseMenu/CenterContainer/VBoxContainer"]
+layout_mode = 2
+text = "RESUME"
+
+[node name="Restart" type="Button" parent="PauseMenu/CenterContainer/VBoxContainer"]
+layout_mode = 2
+text = "RESTART"
+
+[node name="Title" type="Button" parent="PauseMenu/CenterContainer/VBoxContainer"]
+layout_mode = 2
+text = "TITLE"
+
+[node name="Quit" type="Button" parent="PauseMenu/CenterContainer/VBoxContainer"]
+layout_mode = 2
+text = "QUIT"
+
+[connection signal="pressed" from="PauseMenu/CenterContainer/VBoxContainer/Resume" to="PauseMenu" method="_on_resume_pressed"]
+[connection signal="pressed" from="PauseMenu/CenterContainer/VBoxContainer/Restart" to="PauseMenu" method="_on_restart_pressed"]
+[connection signal="pressed" from="PauseMenu/CenterContainer/VBoxContainer/Title" to="PauseMenu" method="_on_title_pressed"]
+[connection signal="pressed" from="PauseMenu/CenterContainer/VBoxContainer/Quit" to="PauseMenu" method="_on_quit_pressed"]
