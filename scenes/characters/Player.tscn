@@ -1,8 +1,29 @@
-[gd_scene load_steps=30 format=3 uid="uid://cf8mwbv72ysx5"]
+[gd_scene load_steps=36 format=3 uid="uid://cf8mwbv72ysx5"]
 
 [ext_resource type="Texture2D" uid="uid://1jcup4os5nef" path="res://assets/sprites/knight.png" id="1_okj15"]
 [ext_resource type="Script" path="res://scripts/player.gd" id="1_wlgh5"]
+[ext_resource type="Texture2D" path="res://assets/sprites/knightfly.png" id="2_o2dby"]
 [ext_resource type="Texture2D" uid="uid://da6r0ki7buguf" path="res://assets/sprites/white_circle.png" id="3_a8hje"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ic5j4"]
+atlas = ExtResource("2_o2dby")
+region = Rect2(192, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_85gik"]
+atlas = ExtResource("2_o2dby")
+region = Rect2(256, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ngqqb"]
+atlas = ExtResource("2_o2dby")
+region = Rect2(320, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_uyjuh"]
+atlas = ExtResource("2_o2dby")
+region = Rect2(384, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_msqn0"]
+atlas = ExtResource("2_o2dby")
+region = Rect2(448, 0, 64, 64)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_b17sb"]
 atlas = ExtResource("1_okj15")
@@ -90,6 +111,26 @@ region = Rect2(224, 96, 32, 32)
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_sqkdx"]
 animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ic5j4")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_85gik")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ngqqb")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_uyjuh")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_msqn0")
+}],
+"loop": true,
+"name": &"dbj",
+"speed": 10.0
+}, {
 "frames": [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_b17sb")
@@ -196,8 +237,9 @@ z_index = 1
 texture_filter = 1
 position = Vector2(0, -12)
 sprite_frames = SubResource("SpriteFrames_sqkdx")
-animation = &"idle"
+animation = &"dbj"
 autoplay = "idle"
+frame_progress = 0.0795402
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 position = Vector2(0, -5)
