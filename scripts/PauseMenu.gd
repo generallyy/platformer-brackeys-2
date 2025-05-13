@@ -4,7 +4,7 @@ func _ready():
 	visible = false  # hide pause menu on start
 	
 		# Connect all buttons to handle mouse focus
-	for button in get_node("CenterContainer/VBoxContainer").get_children():
+	for button in get_node("CenterContainer/PanelContainer/VBoxContainer").get_children():
 		if button is Button:
 			button.mouse_entered.connect(func():
 				button.grab_focus()
@@ -24,7 +24,7 @@ func _unhandled_input(event):
 func pause_game():
 	get_tree().paused = true
 	visible = true
-	$CenterContainer/VBoxContainer/Resume.grab_focus()  # set default button on menu open
+	$CenterContainer/PanelContainer/VBoxContainer/Resume.grab_focus()  # set default button on menu open
 
 
 func resume_game():
