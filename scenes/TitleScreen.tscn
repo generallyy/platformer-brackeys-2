@@ -44,7 +44,7 @@ layout_mode = 2
 texture_filter = 1
 texture_repeat = 2
 layout_mode = 2
-text = "SOME GAME"
+text = "BRACKEYS-2"
 label_settings = SubResource("LabelSettings_gnf2o")
 horizontal_alignment = 1
 

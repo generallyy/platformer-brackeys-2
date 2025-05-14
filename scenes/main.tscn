@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3 uid="uid://cwyrcu15opvxa"]
+[gd_scene load_steps=8 format=3 uid="uid://cwyrcu15opvxa"]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1_exn86"]
 [ext_resource type="PackedScene" uid="uid://cf8mwbv72ysx5" path="res://scenes/characters/Player.tscn" id="2_ed0am"]
@@ -26,6 +26,10 @@ expand_margin_top = 70.0
 expand_margin_right = 70.0
 expand_margin_bottom = 70.0
 
+[sub_resource type="Theme" id="Theme_03yvu"]
+default_font = ExtResource("3_xxodx")
+default_font_size = 80
+
 [node name="Main" type="Node2D"]
 texture_filter = 1
 script = ExtResource("1_exn86")
@@ -37,7 +41,8 @@ zoom = Vector2(4, 4)
 limit_bottom = 120
 position_smoothing_enabled = true
 
-[node name="LevelContainer" type="Node" parent="."]
+[node name="LevelContainer" type="Node2D" parent="."]
+z_index = -115
 
 [node name="HUD" type="CanvasLayer" parent="."]
 
@@ -86,6 +91,30 @@ text = "TITLE"
 [node name="Quit" type="Button" parent="PauseMenu/CenterContainer/PanelContainer/VBoxContainer"]
 layout_mode = 2
 text = "QUIT"
+
+[node name="LoadingScreen" type="CanvasLayer" parent="."]
+visible = false
+
+[node name="ColorRect" type="ColorRect" parent="LoadingScreen"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.00843794, 0.00213983, 3.76021e-10, 1)
+
+[node name="CenterContainer" type="CenterContainer" parent="LoadingScreen/ColorRect"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Label" type="Label" parent="LoadingScreen/ColorRect/CenterContainer"]
+layout_mode = 2
+theme = SubResource("Theme_03yvu")
+text = "Loading..."
 
 [connection signal="pressed" from="PauseMenu/CenterContainer/PanelContainer/VBoxContainer/Resume" to="PauseMenu" method="_on_resume_pressed"]
 [connection signal="pressed" from="PauseMenu/CenterContainer/PanelContainer/VBoxContainer/Restart" to="PauseMenu" method="_on_restart_pressed"]

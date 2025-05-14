@@ -1,11 +1,11 @@
 [gd_scene load_steps=16 format=3 uid="uid://rb44y7hsn07a"]
 
 [ext_resource type="Texture2D" uid="uid://de6fdtyglanjq" path="res://assets/sprites/world_tileset.png" id="2_lc44e"]
-[ext_resource type="PackedScene" uid="uid://bss3elgcw2k64" path="res://scenes/world/platform.tscn" id="3_a3eoy"]
+[ext_resource type="PackedScene" uid="uid://bss3elgcw2k64" path="res://scenes/world/snowplatform.tscn" id="3_a3eoy"]
 [ext_resource type="Texture2D" uid="uid://cfblvi3let1yi" path="res://assets/sprites/parallax/parallax-00.png" id="4_ludr6"]
 [ext_resource type="PackedScene" uid="uid://bkev11l1s8t2u" path="res://scenes/world/killzone.tscn" id="4_t5btq"]
 [ext_resource type="Texture2D" uid="uid://cpmuib8eixpur" path="res://assets/sprites/parallax/parallax-01.png" id="5_ddl6m"]
-[ext_resource type="Script" path="res://scenes/levels/CloudLayer.gd" id="5_esope"]
+[ext_resource type="Script" path="res://scripts/CloudLayer.gd" id="5_esope"]
 [ext_resource type="Texture2D" uid="uid://b58flvpefme0d" path="res://assets/sprites/parallax/parallax-02.png" id="6_n2e4f"]
 [ext_resource type="Texture2D" uid="uid://bruufb2kueex3" path="res://assets/sprites/parallax/parallax-03.png" id="7_q28jy"]
 [ext_resource type="Texture2D" uid="uid://do6ahrv2fkehd" path="res://assets/sprites/parallax/parallax-04.png" id="8_kvop1"]
@@ -453,6 +453,9 @@ _data = {
 
 [node name="Game" type="Node2D"]
 
+[node name="PlayerSpawn" type="Marker2D" parent="."]
+position = Vector2(-20, -19)
+
 [node name="TileMap" type="TileMap" parent="."]
 texture_filter = 1
 tile_set = SubResource("TileSet_ttded")
@@ -476,9 +479,6 @@ autoplay = "move"
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Killzone"]
 position = Vector2(-52, 151)
 shape = SubResource("WorldBoundaryShape2D_1adio")
-
-[node name="PlayerSpawn" type="Marker2D" parent="."]
-position = Vector2(-20, -19)
 
 [node name="ParallaxBackground" type="ParallaxBackground" parent="."]
 scale = Vector2(0.5, 0.5)
@@ -519,7 +519,7 @@ motion_mirroring = Vector2(1440, 0)
 [node name="Sprite2D" type="Sprite2D" parent="ParallaxBackground/parallax-02"]
 texture_filter = 1
 texture_repeat = 2
-position = Vector2(-34, 76)
+position = Vector2(-36, 58)
 texture = ExtResource("6_n2e4f")
 region_enabled = true
 region_rect = Rect2(0, 0, 1960, 360)
@@ -532,7 +532,7 @@ motion_mirroring = Vector2(1440, 0)
 [node name="Sprite2D" type="Sprite2D" parent="ParallaxBackground/parallax-03"]
 texture_filter = 1
 texture_repeat = 2
-position = Vector2(-34, 72)
+position = Vector2(-36, 100.5)
 texture = ExtResource("7_q28jy")
 region_enabled = true
 region_rect = Rect2(0, 0, 1960, 361)
@@ -540,14 +540,14 @@ region_rect = Rect2(0, 0, 1960, 361)
 [node name="Sprite2D2" type="Sprite2D" parent="ParallaxBackground/parallax-03"]
 texture_filter = 1
 texture_repeat = 2
-position = Vector2(-36, 267.25)
+position = Vector2(-38, 295.75)
 scale = Vector2(1, 2.57407)
 texture = ExtResource("7_q28jy")
 region_enabled = true
 region_rect = Rect2(0, 334, 1960, 27)
 
 [node name="ParallaxForeground" type="ParallaxBackground" parent="."]
-layer = 50
+layer = 0
 scale = Vector2(0.5, 0.5)
 transform = Transform2D(0.5, 0, 0, 0.5, 0, 0)
 
@@ -559,7 +559,7 @@ motion_scale = Vector2(2, 2)
 motion_mirroring = Vector2(1440, 0)
 
 [node name="Sprite2D" type="Sprite2D" parent="ParallaxForeground/parallax-o4"]
-position = Vector2(-220, 2)
+position = Vector2(-220, 40)
 texture = ExtResource("8_kvop1")
 region_enabled = true
 region_rect = Rect2(0, 0, 1800, 512)

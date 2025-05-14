@@ -1,11 +1,18 @@
-[gd_scene load_steps=9 format=3 uid="uid://rb44y7hsn07a"]
+[gd_scene load_steps=15 format=3 uid="uid://dedncck66f1ak"]
 
-[ext_resource type="PackedScene" uid="uid://cf8mwbv72ysx5" path="res://scenes/characters/Player.tscn" id="1_bjj4n"]
-[ext_resource type="Texture2D" uid="uid://de6fdtyglanjq" path="res://assets/sprites/world_tileset.png" id="2_iay74"]
-[ext_resource type="PackedScene" uid="uid://bss3elgcw2k64" path="res://scenes/world/snowplatform.tscn" id="3_a2qkt"]
+[ext_resource type="Texture2D" uid="uid://de6fdtyglanjq" path="res://assets/sprites/world_tileset.png" id="1_s87cq"]
+[ext_resource type="PackedScene" uid="uid://bkev11l1s8t2u" path="res://scenes/world/killzone.tscn" id="3_2u0cu"]
+[ext_resource type="Texture2D" uid="uid://cfblvi3let1yi" path="res://assets/sprites/parallax/parallax-00.png" id="4_5028q"]
+[ext_resource type="Script" path="res://scripts/CloudLayer.gd" id="5_syv5r"]
+[ext_resource type="Texture2D" uid="uid://cpmuib8eixpur" path="res://assets/sprites/parallax/parallax-01.png" id="6_ci07s"]
+[ext_resource type="Texture2D" uid="uid://b58flvpefme0d" path="res://assets/sprites/parallax/parallax-02.png" id="7_jxkhi"]
+[ext_resource type="Texture2D" uid="uid://bruufb2kueex3" path="res://assets/sprites/parallax/parallax-03.png" id="8_ct2kw"]
+[ext_resource type="Texture2D" uid="uid://do6ahrv2fkehd" path="res://assets/sprites/parallax/parallax-04.png" id="9_b156j"]
+[ext_resource type="PackedScene" uid="uid://dwr8yn0wl1rns" path="res://scenes/world/grassplatform.tscn" id="9_s74l8"]
+[ext_resource type="Script" path="res://scripts/LevelTransition.gd" id="10_3wsgm"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_q4vnh"]
-texture = ExtResource("2_iay74")
+texture = ExtResource("1_s87cq")
 0:0/0 = 0
 0:0/0/physics_layer_0/linear_velocity = Vector2(0, 0)
 0:0/0/physics_layer_0/angular_velocity = 0.0
@@ -406,65 +413,132 @@ texture = ExtResource("2_iay74")
 physics_layer_0/collision_layer = 1
 sources/0 = SubResource("TileSetAtlasSource_q4vnh")
 
-[sub_resource type="Animation" id="Animation_tdesf"]
-resource_name = "move"
-loop_mode = 2
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath(".:position")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0, 1),
-"transitions": PackedFloat32Array(1, 1),
-"update": 0,
-"values": [Vector2(-145, -60), Vector2(-47, -60)]
-}
+[sub_resource type="WorldBoundaryShape2D" id="WorldBoundaryShape2D_1adio"]
 
-[sub_resource type="Animation" id="Animation_2r32b"]
-length = 0.001
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath(".:position")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [Vector2(-145, -60)]
-}
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_bas28"]
+size = Vector2(62, 20)
 
-[sub_resource type="AnimationLibrary" id="AnimationLibrary_a2a71"]
-_data = {
-"RESET": SubResource("Animation_2r32b"),
-"move": SubResource("Animation_tdesf")
-}
+[node name="Level0" type="Node2D"]
 
-[node name="Game" type="Node2D"]
-
-[node name="Player" parent="." instance=ExtResource("1_bjj4n")]
-
-[node name="Camera2D" type="Camera2D" parent="Player"]
-zoom = Vector2(4, 4)
-position_smoothing_enabled = true
+[node name="PlayerSpawn" type="Marker2D" parent="."]
+position = Vector2(192, -10)
 
 [node name="TileMap" type="TileMap" parent="."]
 texture_filter = 1
 tile_set = SubResource("TileSet_ttded")
 format = 2
-layer_0/tile_data = PackedInt32Array(65534, 0, 0, 65535, 0, 0, 1, 0, 0, 0, 0, 0, 2, 0, 0, 65533, 0, 0, 65532, 0, 0, -65534, 0, 0, -131070, 0, 0, -131069, 0, 0, -196605, 0, 0, -196604, 0, 0, -196603, 0, 0, 7, 0, 0, -131066, 0, 0, -65530, 0, 0, -65529, 0, 0, 65531, 720896, 0, 65530, 655360, 0, 65529, 655360, 0, 65528, 655360, 0, 65527, 655360, 0, 65526, 655360, 0, 65525, 655360, 0, 65524, 589824, 0, 65523, 393216, 0, 65522, 393216, 0, 65521, 393216, 0, 65520, 393216, 0, 65519, 393216, 0, -17, 393216, 0, -18, 393216, 0, -19, 393216, 0, -65555, 393216, 0, 65518, 524288, 1, 65517, 393216, 1, 131053, 524288, 1, 131054, 393216, 1, 131055, 524288, 1, 131056, 524288, 0, 131057, 393216, 1, 131058, 524288, 0, 131059, 393216, 1)
+layer_0/name = "mid"
+layer_0/tile_data = PackedInt32Array(3, 0, 1, 4, 0, 1, 5, 0, 0, -65531, 0, 0, -65530, 0, 0, -65529, 0, 0, -65528, 0, 0, 9, 0, 0, 8, 0, 0, 7, 0, 0, 6, 0, 0, 10, 0, 0, 11, 0, 0, 12, 0, 0, 13, 0, 0, 14, 0, 0, 15, 0, 0, 16, 0, 0, 17, 0, 0, 65553, 0, 1, 65552, 0, 1, 65551, 0, 1, 65550, 0, 1, 65549, 0, 1, 65548, 0, 1, 65547, 0, 1, 65546, 0, 1, 65545, 0, 1, 65544, 0, 1, 65543, 0, 1, 65542, 0, 1, 65541, 0, 1, 65540, 0, 1, 65539, 0, 1, -196590, 0, 536870913, 18, 0, 1, -262126, 0, 536870913, -327662, 0, 536870913, -393198, 0, 536870913, -458734, 0, 536870913, -524270, 0, 536870913, -589806, 0, 536870913, 19, 0, 536870913, 20, 0, 536870913, 21, 458752, 0, 22, 458752, 0, 23, 458752, 0, 65556, 458752, 0, 65557, 458752, 0, 131093, 458752, 0, 65558, 458752, 0, 65555, 458752, 0, 131094, 458752, 0, 65559, 458752, 0, 65560, 458752, 0, 131096, 458752, 0, 65561, 458752, 0, 131097, 458752, 0, 131095, 458752, 0, 24, 458752, 0, 25, 458752, 0, 26, 458752, 0, 27, 458752, 0, 65563, 458752, 0, 65562, 458752, 0, 28, 458752, 0, 196632, 458752, 0, 196631, 458752, 0, 2, 0, 1, -65534, 0, 1, -131070, 0, 1, -196606, 0, 1, -262142, 0, 1, -327678, 0, 1, -393214, 0, 1, -458750, 0, 1, -524286, 0, 1, -589822, 0, 1, -655358, 0, 1, 65538, 0, 1, 131080, 0, 1, 131079, 0, 1, 131078, 0, 1, 131077, 0, 1, 131087, 0, 1, 131086, 0, 1, 131085, 0, 1, 131084, 0, 1, 131083, 0, 1, 131082, 0, 1, 131081, 0, 1, 131076, 0, 1, 196615, 0, 1, 196616, 0, 1, 196617, 0, 1, 196619, 0, 1, 196620, 0, 1, 196621, 0, 1, 196622, 0, 1, 196618, 0, 1)
+layer_1/name = "background"
+layer_1/z_index = -1
+layer_1/tile_data = PackedInt32Array(-65514, 393216, 5, -65509, 393216, 5, -131050, 393216, 4, -196586, 393216, 4, -131045, 393216, 4, -196581, 393216, 4, -262122, 393216, 3, -262117, 393216, 3)
 
-[node name="Platform" parent="." instance=ExtResource("3_a2qkt")]
-position = Vector2(-183, -33)
+[node name="Killzone" parent="." instance=ExtResource("3_2u0cu")]
 
-[node name="Platform2" parent="." instance=ExtResource("3_a2qkt")]
-position = Vector2(-145, -60)
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Killzone"]
+position = Vector2(129, 115)
+shape = SubResource("WorldBoundaryShape2D_1adio")
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="Platform2"]
-libraries = {
-"": SubResource("AnimationLibrary_a2a71")
-}
-autoplay = "move"
+[node name="ParallaxBackground" type="ParallaxBackground" parent="."]
+visible = false
+scale = Vector2(0.5, 0.5)
+transform = Transform2D(0.5, 0, 0, 0.5, 0, 0)
+
+[node name="parallax-00" type="ParallaxLayer" parent="ParallaxBackground"]
+position = Vector2(-106, 10)
+motion_scale = Vector2(0.1, 0.1)
+motion_mirroring = Vector2(1440, 0)
+
+[node name="Sprite2D" type="Sprite2D" parent="ParallaxBackground/parallax-00"]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(-37, 58)
+texture = ExtResource("4_5028q")
+region_enabled = true
+region_rect = Rect2(0, 0, 1960, 360)
+
+[node name="parallax-01" type="ParallaxLayer" parent="ParallaxBackground"]
+position = Vector2(-106, 10)
+motion_scale = Vector2(0.3, 0.3)
+motion_mirroring = Vector2(1440, 0)
+script = ExtResource("5_syv5r")
+
+[node name="Sprite2D" type="Sprite2D" parent="ParallaxBackground/parallax-01"]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(-37, 58)
+texture = ExtResource("6_ci07s")
+region_enabled = true
+region_rect = Rect2(0, 0, 1960, 360)
+
+[node name="parallax-02" type="ParallaxLayer" parent="ParallaxBackground"]
+position = Vector2(-106, 10)
+motion_scale = Vector2(0.46, 0.46)
+motion_mirroring = Vector2(1440, 0)
+
+[node name="Sprite2D" type="Sprite2D" parent="ParallaxBackground/parallax-02"]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(-36, 58)
+texture = ExtResource("7_jxkhi")
+region_enabled = true
+region_rect = Rect2(0, 0, 1960, 360)
+
+[node name="parallax-03" type="ParallaxLayer" parent="ParallaxBackground"]
+position = Vector2(-106, -34)
+motion_scale = Vector2(0.7, 0.7)
+motion_mirroring = Vector2(1440, 0)
+
+[node name="Sprite2D" type="Sprite2D" parent="ParallaxBackground/parallax-03"]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(-36, 100.5)
+texture = ExtResource("8_ct2kw")
+region_enabled = true
+region_rect = Rect2(0, 0, 1960, 361)
+
+[node name="Sprite2D2" type="Sprite2D" parent="ParallaxBackground/parallax-03"]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(-38, 295.75)
+scale = Vector2(1, 2.57407)
+texture = ExtResource("8_ct2kw")
+region_enabled = true
+region_rect = Rect2(0, 334, 1960, 27)
+
+[node name="ParallaxForeground" type="ParallaxBackground" parent="."]
+layer = 0
+visible = false
+scale = Vector2(0.5, 0.5)
+transform = Transform2D(0.5, 0, 0, 0.5, 0, 0)
+
+[node name="parallax-o4" type="ParallaxLayer" parent="ParallaxForeground"]
+texture_filter = 1
+texture_repeat = 2
+position = Vector2(-2, 0)
+motion_scale = Vector2(2, 2)
+motion_mirroring = Vector2(1440, 0)
+
+[node name="Sprite2D" type="Sprite2D" parent="ParallaxForeground/parallax-o4"]
+position = Vector2(-220, 40)
+texture = ExtResource("9_b156j")
+region_enabled = true
+region_rect = Rect2(0, 0, 1800, 512)
+
+[node name="Platform" parent="." instance=ExtResource("9_s74l8")]
+position = Vector2(273, -129)
+
+[node name="Platform2" parent="." instance=ExtResource("9_s74l8")]
+position = Vector2(96, -62)
+
+[node name="Platform3" parent="." instance=ExtResource("9_s74l8")]
+position = Vector2(273, -33)
+
+[node name="LevelTransition" type="Area2D" parent="."]
+script = ExtResource("10_3wsgm")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="LevelTransition"]
+position = Vector2(400, -9)
+shape = SubResource("RectangleShape2D_bas28")
+
+[connection signal="body_entered" from="LevelTransition" to="LevelTransition" method="_on_body_entered"]

@@ -13,9 +13,7 @@ const BOOST_SPEED = 300.0	# constant horizontal speed
 
 var has_dbj = false
 var is_dbj = false
-var dbj_timer = 0
-const DBJ_DURATION = .5
-const DBJ_SPEED = -300	#double jump
+const DBJ_SPEED = -350	#double jump
 
 var is_frozen = false
 var freeze_timer = 0.0
@@ -26,6 +24,7 @@ var gravity = ProjectSettings.get_setting("physics/2d/default_gravity")
 
 var facing_direction = 1 	# right = 1, left = -1
 @onready var animated_sprite = $AnimatedSprite2D
+@onready var animation_player = $AnimationPlayer
 
 func _physics_process(delta):
 	# Get the input direction and handle the movement/deceleration.
@@ -40,8 +39,6 @@ func _physics_process(delta):
 	if Input.is_action_just_pressed("jump"):
 		if is_on_floor():
 			velocity.y = JUMP_VELOCITY
-			has_air_boosted = false
-			has_dbj = false
 		elif not has_dbj:
 			start_dbj();
 			
@@ -53,7 +50,10 @@ func _physics_process(delta):
 		
 	update_air_boost(delta)
 	update_freeze(delta)
-	update_dbj(delta)
+	
+	if is_on_floor():
+		has_air_boosted = false
+		has_dbj = false
 	
 	if is_frozen:
 		return		# skips movement physics
@@ -79,29 +79,26 @@ func update_animation():
 			animated_sprite.play("idle")
 		else:
 			animated_sprite.play("run")
-	elif is_dbj:
-		animated_sprite.play("dbj")
-	else:
+	elif not is_dbj:
 		animated_sprite.play("jump")
 		
 func start_dbj():
 	if not has_dbj and not is_on_floor():
-		is_dbj = true
 		has_dbj = true
-		dbj_timer = DBJ_DURATION
-		velocity.y = DBJ_SPEED
-		#$EffectsAnchor.position.y = 10
-		#$EffectsAnchor/BoostParticles.process_material.direction = Vector3(0, 1, 0)
-		#effect_boost()
-	
-func update_dbj(delta):
-	if is_dbj:
-		dbj_timer -= delta
-		#velocity.y = DBJ_SPEED  # Optional: freeze vertical motion
-		if dbj_timer <= 0:
-			is_dbj = false
+		is_dbj = true
 
-		
+		animation_player.play("dbj")
+	
+func run_dbj(_delta):
+	velocity.y = DBJ_SPEED
+	$EffectsAnchor.position.y = 10
+	$EffectsAnchor/BoostParticles.process_material.direction = Vector3(0, 1, 0)
+	effect_boost()
+
+func end_dbj():
+	is_dbj = false
+
+
 func start_air_boost():
 	if not has_air_boosted and not is_on_floor():
 		is_boosting = true
@@ -120,8 +117,8 @@ func update_air_boost(delta):
 		if boost_timer <= 0:
 			is_boosting = false
 			velocity.x -= facing_direction * BOOST_SPEED
-			start_freeze(FREEZE_DURATION)
-			
+			#start_freeze(FREEZE_DURATION)
+
 func start_freeze(duration: float):
 	is_frozen = true
 	freeze_timer = duration
