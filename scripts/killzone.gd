@@ -1,12 +1,6 @@
 extends Area2D
 
-@onready var timer = $Timer
-
-func _on_body_entered(_body):
-	#unused(body) (not used but you can find a replicant)
-	print("You died.")
-	timer.start()
-
-
-func _on_timer_timeout():
-	get_tree().reload_current_scene()
+func _on_body_entered(body):
+	if body.name == "Player":
+		#print("You died.")	it's kinda funny but eh whatever
+		body.die() 		# now we can have the player die properly

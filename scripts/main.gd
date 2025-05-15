@@ -4,7 +4,6 @@ extends Node2D
 @onready var level_container = $LevelContainer
 @onready var loading_screen = $LoadingScreen
 
-
 func _ready():
 	load_level("res://scenes/levels/Level0.tscn")
 	pause_menu.visible = false
@@ -37,3 +36,10 @@ func load_level(path: String):
 func free_children(node: Node):
 	for child in node.get_children():
 		child.queue_free()
+
+func respawn_player():
+	var spawn = level_container.get_child(0).get_node_or_null("PlayerSpawn")
+	if spawn:
+		$Player.position = spawn.global_position
+		$Player.velocity = Vector2.ZERO
+		$Player/Camera2D.reset_smoothing()

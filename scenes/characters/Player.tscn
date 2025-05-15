@@ -286,6 +286,8 @@ position = Vector2(0, -12)
 sprite_frames = SubResource("SpriteFrames_sqkdx")
 animation = &"dbj"
 autoplay = "idle"
+frame = 3
+frame_progress = 0.915111
 
 [node name="EffectsAnchor" type="Node2D" parent="."]
 

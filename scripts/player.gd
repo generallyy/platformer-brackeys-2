@@ -81,7 +81,18 @@ func update_animation():
 			animated_sprite.play("run")
 	elif not is_dbj:
 		animated_sprite.play("jump")
-		
+
+func die():
+	# could play an animation or smtg (oh wait i so could though but im lazy)
+	velocity = Vector2.ZERO
+	hide()
+	
+	await get_tree().create_timer(.5).timeout
+	
+	var main = get_tree().get_root().get_node("Main")
+	main.respawn_player()
+	show()
+
 func start_dbj():
 	if not has_dbj and not is_on_floor():
 		has_dbj = true
