@@ -25,6 +25,11 @@ var gravity = ProjectSettings.get_setting("physics/2d/default_gravity")
 var facing_direction = 1 	# right = 1, left = -1
 @onready var animated_sprite = $AnimatedSprite2D
 @onready var animation_player = $AnimationPlayer
+@onready var audio_stream_player = $AudioStreamPlayer
+
+@onready var dbj_sfx = preload("res://assets/sounds/dbj.wav")
+@onready var boost_jump_sfx = preload("res://assets/sounds/boost.wav")
+@onready var jump_sfx = preload("res://assets/sounds/my_jump.wav")
 
 func _physics_process(delta):
 	# Get the input direction and handle the movement/deceleration.
@@ -39,6 +44,8 @@ func _physics_process(delta):
 	if Input.is_action_just_pressed("jump"):
 		if is_on_floor():
 			velocity.y = JUMP_VELOCITY
+			audio_stream_player.stream = jump_sfx
+			audio_stream_player.play()
 		elif not has_dbj:
 			start_dbj();
 			
@@ -102,6 +109,8 @@ func start_dbj():
 	
 func run_dbj(_delta):
 	velocity.y = DBJ_SPEED
+	audio_stream_player.stream = dbj_sfx
+	audio_stream_player.play()
 	$EffectsAnchor.position.y = 10
 	$EffectsAnchor/BoostParticles.process_material.direction = Vector3(0, 1, 0)
 	effect_boost()
@@ -115,6 +124,9 @@ func start_air_boost():
 		is_boosting = true
 		boost_timer = BOOST_DURATION
 		has_air_boosted = true
+		
+		audio_stream_player.stream = boost_jump_sfx
+		audio_stream_player.play()
 		
 		$EffectsAnchor.position.x = -facing_direction * 10
 		$EffectsAnchor/BoostParticles.process_material.direction = Vector3(-facing_direction, 0, 0)

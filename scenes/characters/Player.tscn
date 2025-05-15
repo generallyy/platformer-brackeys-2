@@ -305,3 +305,5 @@ randomness = 1.0
 libraries = {
 "": SubResource("AnimationLibrary_y5ki7")
 }
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]

@@ -92,6 +92,21 @@ text = "TITLE"
 layout_mode = 2
 text = "QUIT"
 
+[node name="HBoxContainer" type="HBoxContainer" parent="PauseMenu/CenterContainer/PanelContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="PauseMenu/CenterContainer/PanelContainer/VBoxContainer/HBoxContainer"]
+texture_filter = 2
+layout_mode = 2
+text = "🔊"
+
+[node name="HSlider" type="HSlider" parent="PauseMenu/CenterContainer/PanelContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 1
+min_value = -40.0
+max_value = 0.0
+
 [node name="LoadingScreen" type="CanvasLayer" parent="."]
 visible = false
 
@@ -120,3 +135,4 @@ text = "Loading..."
 [connection signal="pressed" from="PauseMenu/CenterContainer/PanelContainer/VBoxContainer/Restart" to="PauseMenu" method="_on_restart_pressed"]
 [connection signal="pressed" from="PauseMenu/CenterContainer/PanelContainer/VBoxContainer/Title" to="PauseMenu" method="_on_title_pressed"]
 [connection signal="pressed" from="PauseMenu/CenterContainer/PanelContainer/VBoxContainer/Quit" to="PauseMenu" method="_on_quit_pressed"]
+[connection signal="value_changed" from="PauseMenu/CenterContainer/PanelContainer/VBoxContainer/HBoxContainer/HSlider" to="PauseMenu" method="_on_h_slider_value_changed"]

@@ -1,7 +1,7 @@
 extends Control
 
 func _ready():
-		$CenterContainer/VBoxContainer/HBoxContainer/StartButton.grab_focus()  # set default button on menu open
+	$CenterContainer/VBoxContainer/HBoxContainer/StartButton.grab_focus()  # set default button on menu open
 
 func _input(event):
 	if event.is_action_pressed("submit"):
@@ -10,10 +10,13 @@ func _input(event):
 			focused.emit_signal("pressed")
 
 
+
 func _on_start_button_pressed():
+	UiAudio.play_click()
 	get_tree().change_scene_to_file("res://scenes/Main.tscn")
 
 
 func _on_quit_button_pressed():
+	UiAudio.play_click()
 	get_tree().quit() # Replace with function body.
 	

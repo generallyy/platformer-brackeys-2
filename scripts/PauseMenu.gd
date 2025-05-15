@@ -8,7 +8,11 @@ func _ready():
 		if button is Button:
 			button.mouse_entered.connect(func():
 				button.grab_focus()
+				UiAudio.play_click()
 			)
+			button.focus_entered.connect(func():
+				UiAudio.play_click()
+				)
 
 func _unhandled_input(event):
 	if event.is_action_pressed("pause"):
@@ -20,6 +24,7 @@ func _unhandled_input(event):
 		var focused = get_viewport().gui_get_focus_owner()
 		if focused and focused is Button:
 			focused.emit_signal("pressed")
+			UiAudio.play_click()
 
 func pause_game():
 	get_tree().paused = true
@@ -48,3 +53,10 @@ func _on_title_pressed():
 
 func _on_quit_pressed():
 	get_tree().quit()
+
+func _on_h_slider_value_changed(value):
+	if value <= -39:
+		AudioServer.set_bus_volume_db(0, -90)
+	else:
+		AudioServer.set_bus_volume_db(0, value)
+
