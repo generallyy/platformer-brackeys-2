@@ -10,6 +10,7 @@
 [ext_resource type="Texture2D" uid="uid://bruufb2kueex3" path="res://assets/sprites/parallax/parallax-03.png" id="7_q28jy"]
 [ext_resource type="Texture2D" uid="uid://do6ahrv2fkehd" path="res://assets/sprites/parallax/parallax-04.png" id="8_kvop1"]
 [ext_resource type="FontFile" uid="uid://dcpum57vlyv7c" path="res://assets/fonts/PixelOperator8.ttf" id="10_up73x"]
+[ext_resource type="PackedScene" uid="uid://wnkhtabf75dx" path="res://scenes/characters/Enemy.tscn" id="11_lha2r"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_q4vnh"]
 texture = ExtResource("2_lc44e")
@@ -377,3 +378,6 @@ offset_bottom = -96.0
 text = "you like da movement?"
 label_settings = SubResource("LabelSettings_yuese")
 horizontal_alignment = 1
+
+[node name="Enemy" parent="." unique_id=1424475405 instance=ExtResource("11_lha2r")]
+position = Vector2(-327, -30)

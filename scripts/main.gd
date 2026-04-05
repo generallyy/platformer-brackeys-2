@@ -8,6 +8,7 @@ var current_level_path := "res://scenes/levels/Level0.tscn"
 @onready var pause_menu = $PauseMenu
 @onready var level_container = $LevelContainer
 @onready var loading_screen = $LoadingScreen
+@onready var hud = $HUD
 
 func _ready():
 	pause_menu.visible = false
@@ -27,15 +28,18 @@ func _on_peer_connected(_id: int):
 	pass  # client initiates via _request_state
 
 func _on_peer_disconnected(id: int):
+	for p in spawned_players.values():
+		p.remove_sync_peer(id)
 	_rpc_despawn.rpc(id)
 
 # Client asks server for current state on join
 @rpc("any_peer", "reliable")
 func _request_state():
 	var caller = multiplayer.get_remote_sender_id()
-	# Tell new client to spawn every already-existing player
+	# Tell new client to spawn every already-existing player, then start syncing to them
 	for existing_id in spawned_players:
 		_rpc_spawn.rpc_id(caller, existing_id)
+		spawned_players[existing_id].add_sync_peer(caller)
 	# Tell everyone (including server) to spawn the new player
 	_rpc_spawn.rpc(caller)
 	# Send current level to new client
@@ -69,6 +73,7 @@ func _spawn_player(peer_id: int):
 		cam.position_smoothing_enabled = true
 		p.add_child(cam)
 		cam.make_current()
+		p.health_changed.connect(hud.update_hearts)
 
 @rpc("authority", "call_local", "reliable")
 func load_level(path: String):

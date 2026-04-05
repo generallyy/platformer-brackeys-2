@@ -1,7 +1,8 @@
-[gd_scene load_steps=7 format=3 uid="uid://cwyrcu15opvxa"]
+[gd_scene load_steps=8 format=3 uid="uid://cwyrcu15opvxa"]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1_exn86"]
 [ext_resource type="Script" path="res://scripts/PauseMenu.gd" id="3_7frdm"]
+[ext_resource type="Script" path="res://scripts/HUD.gd" id="8_hudsc"]
 [ext_resource type="SystemFont" uid="uid://crymavm3yupm0" path="res://scenes/ui/Font.tres" id="3_xxodx"]
 
 [sub_resource type="Theme" id="Theme_27rqe"]
@@ -37,6 +38,7 @@ script = ExtResource("1_exn86")
 z_index = -115
 
 [node name="HUD" type="CanvasLayer" parent="."]
+script = ExtResource("8_hudsc")
 
 [node name="PauseMenu" type="CanvasLayer" parent="."]
 process_mode = 3
@@ -79,6 +81,10 @@ text = "RESTART"
 [node name="Title" type="Button" parent="PauseMenu/CenterContainer/PanelContainer/VBoxContainer"]
 layout_mode = 2
 text = "TITLE"
+
+[node name="Keybinds" type="Button" parent="PauseMenu/CenterContainer/PanelContainer/VBoxContainer"]
+layout_mode = 2
+text = "KEYBINDS"
 
 [node name="Quit" type="Button" parent="PauseMenu/CenterContainer/PanelContainer/VBoxContainer"]
 layout_mode = 2
@@ -126,5 +132,6 @@ text = "Loading..."
 [connection signal="pressed" from="PauseMenu/CenterContainer/PanelContainer/VBoxContainer/Resume" to="PauseMenu" method="_on_resume_pressed"]
 [connection signal="pressed" from="PauseMenu/CenterContainer/PanelContainer/VBoxContainer/Restart" to="PauseMenu" method="_on_restart_pressed"]
 [connection signal="pressed" from="PauseMenu/CenterContainer/PanelContainer/VBoxContainer/Title" to="PauseMenu" method="_on_title_pressed"]
+[connection signal="pressed" from="PauseMenu/CenterContainer/PanelContainer/VBoxContainer/Keybinds" to="PauseMenu" method="_on_keybinds_pressed"]
 [connection signal="pressed" from="PauseMenu/CenterContainer/PanelContainer/VBoxContainer/Quit" to="PauseMenu" method="_on_quit_pressed"]
 [connection signal="value_changed" from="PauseMenu/CenterContainer/PanelContainer/VBoxContainer/HBoxContainer/HSlider" to="PauseMenu" method="_on_h_slider_value_changed"]

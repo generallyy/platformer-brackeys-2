@@ -1,0 +1,76 @@
+[gd_scene format=3 uid="uid://wnkhtabf75dx"]
+
+[ext_resource type="Script" uid="uid://vi28vgir3pek" path="res://scripts/enemy.gd" id="1_enemy"]
+[ext_resource type="Texture2D" uid="uid://d0xeuxrbjuvvg" path="res://assets/sprites/slime_green.png" id="2_enemy"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_tfno1"]
+atlas = ExtResource("2_enemy")
+region = Rect2(0, 24, 24, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_y5r6l"]
+atlas = ExtResource("2_enemy")
+region = Rect2(24, 24, 24, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bakb1"]
+atlas = ExtResource("2_enemy")
+region = Rect2(48, 24, 24, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_yk30n"]
+atlas = ExtResource("2_enemy")
+region = Rect2(72, 24, 24, 24)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_t7io4"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_tfno1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_y5r6l")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_bakb1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_yk30n")
+}],
+"loop": true,
+"name": &"default",
+"speed": 6.0
+}]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_body"]
+size = Vector2(16, 12)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_hurtbox"]
+size = Vector2(16, 12)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_playerhurt"]
+size = Vector2(18, 14)
+
+[node name="Enemy" type="StaticBody2D" unique_id=1085588655 groups=["enemy"]]
+script = ExtResource("1_enemy")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1616279196]
+texture_filter = 1
+position = Vector2(-1, -12)
+sprite_frames = SubResource("SpriteFrames_t7io4")
+frame_progress = 0.3028178
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1355351709]
+position = Vector2(-1, -6)
+shape = SubResource("RectangleShape2D_body")
+
+[node name="Hurtbox" type="Area2D" parent="." unique_id=142611857 groups=["enemy_hurtbox"]]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hurtbox" unique_id=987250902]
+position = Vector2(-1, -6)
+shape = SubResource("RectangleShape2D_hurtbox")
+
+[node name="PlayerHurtbox" type="Area2D" parent="." unique_id=1184362422]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="PlayerHurtbox" unique_id=739532327]
+position = Vector2(-1, -7)
+shape = SubResource("RectangleShape2D_playerhurt")
+
+[connection signal="body_entered" from="PlayerHurtbox" to="." method="_on_player_hurtbox_body_entered"]
