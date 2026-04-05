@@ -1,7 +1,7 @@
-[gd_scene load_steps=38 format=3 uid="uid://cf8mwbv72ysx5"]
+[gd_scene format=3 uid="uid://cf8mwbv72ysx5"]
 
 [ext_resource type="Texture2D" uid="uid://1jcup4os5nef" path="res://assets/sprites/knight.png" id="1_okj15"]
-[ext_resource type="Script" path="res://scripts/player.gd" id="1_wlgh5"]
+[ext_resource type="Script" uid="uid://8y0ak4ctjdvg" path="res://scripts/player.gd" id="1_wlgh5"]
 [ext_resource type="Texture2D" uid="uid://d4no0dlt7wndt" path="res://assets/sprites/knightfly.png" id="2_o2dby"]
 [ext_resource type="Texture2D" uid="uid://da6r0ki7buguf" path="res://assets/sprites/white_circle.png" id="3_a8hje"]
 
@@ -268,18 +268,18 @@ tracks/1/keys = {
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_y5ki7"]
 _data = {
-"dbj": SubResource("Animation_f5hmw")
+&"dbj": SubResource("Animation_f5hmw")
 }
 
-[node name="Player" type="CharacterBody2D"]
+[node name="Player" type="CharacterBody2D" unique_id=1990097403]
 z_index = 5
 script = ExtResource("1_wlgh5")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1972804155]
 position = Vector2(0, -5)
 shape = SubResource("CircleShape2D_ngcs4")
 
-[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1279863303]
 z_index = 1
 texture_filter = 1
 position = Vector2(0, -12)
@@ -289,21 +289,19 @@ autoplay = "idle"
 frame = 3
 frame_progress = 0.915111
 
-[node name="EffectsAnchor" type="Node2D" parent="."]
+[node name="EffectsAnchor" type="Node2D" parent="." unique_id=1762507634]
 
-[node name="BoostParticles" type="GPUParticles2D" parent="EffectsAnchor"]
+[node name="BoostParticles" type="GPUParticles2D" parent="EffectsAnchor" unique_id=678770384]
 emitting = false
 amount = 20
-process_material = SubResource("ParticleProcessMaterial_1085j")
 texture = ExtResource("3_a8hje")
 lifetime = 0.36
 one_shot = true
 explosiveness = 1.0
 randomness = 1.0
+process_material = SubResource("ParticleProcessMaterial_1085j")
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
-libraries = {
-"": SubResource("AnimationLibrary_y5ki7")
-}
+[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=1206090654]
+libraries/ = SubResource("AnimationLibrary_y5ki7")
 
-[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="." unique_id=1552145014]

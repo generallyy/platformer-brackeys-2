@@ -13,7 +13,7 @@ func _input(event):
 
 func _on_start_button_pressed():
 	UiAudio.play_click()
-	get_tree().change_scene_to_file("res://scenes/Main.tscn")
+	get_tree().change_scene_to_file("res://scenes/ui/LobbyScreen.tscn")
 
 
 func _on_quit_button_pressed():

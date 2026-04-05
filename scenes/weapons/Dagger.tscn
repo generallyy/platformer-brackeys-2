@@ -1,0 +1,24 @@
+[gd_scene format=3 uid="uid://bxtrgcftx5ab5"]
+
+[ext_resource type="Script" uid="uid://diqec2ewvj3ej" path="res://scripts/dagger.gd" id="1_dagger"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_dagger"]
+size = Vector2(10, 3)
+
+[node name="Dagger" type="Area2D" unique_id=2115045818]
+script = ExtResource("1_dagger")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=933818220]
+position = Vector2(5, 0)
+shape = SubResource("RectangleShape2D_dagger")
+
+[node name="Visual" type="Line2D" parent="." unique_id=1600157901]
+points = PackedVector2Array(0, 0, 10, 0)
+width = 3.0
+default_color = Color(0.784314, 0.627451, 0.12549, 1)
+
+[node name="VisibleOnScreenNotifier2D" type="VisibleOnScreenNotifier2D" parent="." unique_id=1675428949]
+
+[connection signal="area_entered" from="." to="." method="_on_area_entered"]
+[connection signal="body_entered" from="." to="." method="_on_body_entered"]
+[connection signal="screen_exited" from="VisibleOnScreenNotifier2D" to="." method="_on_screen_exited"]
