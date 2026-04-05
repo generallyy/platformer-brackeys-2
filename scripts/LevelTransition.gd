@@ -11,4 +11,7 @@ func _on_body_entered(body):
 		return
 	_triggered = true
 	var main = get_tree().get_root().get_node("Main")
-	main.load_level.rpc("res://scenes/levels/Level1.tscn")
+	if NetworkManager.is_active():
+		main.load_level.rpc("res://scenes/levels/Level1.tscn")
+	else:
+		main.load_level("res://scenes/levels/Level1.tscn")

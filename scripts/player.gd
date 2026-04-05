@@ -32,7 +32,7 @@ var facing_direction = 1 	# right = 1, left = -1
 @onready var jump_sfx = preload("res://assets/sounds/my_jump.wav")
 
 func _physics_process(delta):
-	if not is_multiplayer_authority():
+	if NetworkManager.is_active() and not is_multiplayer_authority():
 		return
 	# Get the input direction and handle the movement/deceleration.
 	# As good practice, you should replace UI actions with custom gameplay actions.
@@ -111,12 +111,12 @@ func die():
 	await get_tree().create_timer(.5).timeout
 	
 	var main = get_tree().get_root().get_node("Main")
-	main.respawn_player_by_id(multiplayer.get_unique_id())
-	show()
+	var peer_id = multiplayer.get_unique_id() if NetworkManager.is_active() else 1
+	main.respawn_player_by_id(peer_id)
 
 func start_dbj():
 	if not has_dbj and not is_on_floor():
-		has_dbj = true
+		#has_dbj = true
 		is_dbj = true
 
 		animation_player.play("dbj")
