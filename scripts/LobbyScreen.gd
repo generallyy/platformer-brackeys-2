@@ -48,6 +48,7 @@ func _process(delta):
 			get_tree().change_scene_to_file("res://scenes/Main.tscn")
 		MultiplayerPeer.CONNECTION_DISCONNECTED:
 			_fail("Disconnected.")
+			return
 	_connect_timer += delta
 	if _connect_timer >= CONNECT_TIMEOUT:
 		NetworkManager.close()

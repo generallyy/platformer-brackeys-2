@@ -7,6 +7,8 @@ const PLAYIT_HOST := "remember-absorption.gl.at.ply.gg"
 
 var is_host := false
 var _active := false
+var _on_mp_connection_failed: Callable
+var _on_mp_server_disconnected: Callable
 
 signal connection_failed
 signal server_disconnected
@@ -36,21 +38,19 @@ func join_game(address: String) -> Error:
 	if err != OK:
 		return err
 	multiplayer.multiplayer_peer = peer
-	multiplayer.connection_failed.connect(func():
-		connection_failed.emit()
-		multiplayer.multiplayer_peer = null
-		_active = false
-	)
-	multiplayer.server_disconnected.connect(func():
-		server_disconnected.emit()
-		multiplayer.multiplayer_peer = null
-		_active = false
-	)
+	_on_mp_connection_failed = _handle_connection_failed
+	_on_mp_server_disconnected = _handle_server_disconnected
+	multiplayer.connection_failed.connect(_on_mp_connection_failed)
+	multiplayer.server_disconnected.connect(_on_mp_server_disconnected)
 	is_host = false
 	_active = true
 	return OK
 
 func close():
+	if _on_mp_connection_failed.is_valid() and multiplayer.connection_failed.is_connected(_on_mp_connection_failed):
+		multiplayer.connection_failed.disconnect(_on_mp_connection_failed)
+	if _on_mp_server_disconnected.is_valid() and multiplayer.server_disconnected.is_connected(_on_mp_server_disconnected):
+		multiplayer.server_disconnected.disconnect(_on_mp_server_disconnected)
 	if multiplayer.multiplayer_peer:
 		multiplayer.multiplayer_peer.close()
 	multiplayer.multiplayer_peer = null
@@ -59,3 +59,13 @@ func close():
 
 func is_active() -> bool:
 	return _active
+
+func _handle_connection_failed():
+	connection_failed.emit()
+	multiplayer.multiplayer_peer = null
+	_active = false
+
+func _handle_server_disconnected():
+	server_disconnected.emit()
+	multiplayer.multiplayer_peer = null
+	_active = false
