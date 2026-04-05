@@ -32,6 +32,8 @@ var facing_direction = 1 	# right = 1, left = -1
 @onready var jump_sfx = preload("res://assets/sounds/my_jump.wav")
 
 func _physics_process(delta):
+	if not is_multiplayer_authority():
+		return
 	# Get the input direction and handle the movement/deceleration.
 	# As good practice, you should replace UI actions with custom gameplay actions.
 	var direction = Input.get_axis("move_left", "move_right")
@@ -74,7 +76,19 @@ func _physics_process(delta):
 	
 		
 	move_and_slide()
-	
+
+	if NetworkManager.is_active():
+		_sync_state.rpc(global_position, animated_sprite.flip_h, animated_sprite.animation)
+
+@rpc("any_peer", "unreliable_ordered")
+func _sync_state(pos: Vector2, flip: bool, anim: String):
+	if is_multiplayer_authority():
+		return
+	global_position = pos
+	animated_sprite.flip_h = flip
+	if animated_sprite.animation != anim:
+		animated_sprite.play(anim)
+
 func update_direction(direction: float):
 	if direction != 0:
 		facing_direction = sign(direction)
@@ -97,7 +111,7 @@ func die():
 	await get_tree().create_timer(.5).timeout
 	
 	var main = get_tree().get_root().get_node("Main")
-	main.respawn_player()
+	main.respawn_player_by_id(multiplayer.get_unique_id())
 	show()
 
 func start_dbj():

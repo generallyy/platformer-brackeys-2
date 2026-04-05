@@ -1,8 +1,14 @@
 extends Area2D
 
+var _triggered := false
 
 func _on_body_entered(body):
-	if body.name == "Player":
-		var main = get_tree().get_root().get_node("Main")
-		main.call_deferred("load_level", "res://scenes/levels/Level1.tscn")
-
+	if _triggered:
+		return
+	if not (body is CharacterBody2D and body.has_method("die")):
+		return
+	if NetworkManager.is_active() and not multiplayer.is_server():
+		return
+	_triggered = true
+	var main = get_tree().get_root().get_node("Main")
+	main.load_level.rpc("res://scenes/levels/Level1.tscn")

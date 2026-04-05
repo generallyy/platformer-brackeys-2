@@ -42,7 +42,7 @@ func _on_resume_pressed():
 
 func _on_restart_pressed():
 	get_tree().paused = false
-	get_node("/root/Main").respawn_player()
+	get_node("/root/Main").respawn_player_by_id(multiplayer.get_unique_id())
 	visible = false
 
 

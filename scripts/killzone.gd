@@ -1,6 +1,6 @@
 extends Area2D
 
 func _on_body_entered(body):
-	if body.name == "Player":
-		#print("You died.")	it's kinda funny but eh whatever
-		body.die() 		# now we can have the player die properly
+	if body is CharacterBody2D and body.has_method("die"):
+		if body.is_multiplayer_authority():
+			body.die()

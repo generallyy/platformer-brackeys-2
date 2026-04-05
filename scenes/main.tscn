@@ -1,7 +1,6 @@
-[gd_scene load_steps=8 format=3 uid="uid://cwyrcu15opvxa"]
+[gd_scene load_steps=7 format=3 uid="uid://cwyrcu15opvxa"]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1_exn86"]
-[ext_resource type="PackedScene" uid="uid://cf8mwbv72ysx5" path="res://scenes/characters/Player.tscn" id="2_ed0am"]
 [ext_resource type="Script" path="res://scripts/PauseMenu.gd" id="3_7frdm"]
 [ext_resource type="SystemFont" uid="uid://crymavm3yupm0" path="res://scenes/ui/Font.tres" id="3_xxodx"]
 
@@ -33,13 +32,6 @@ default_font_size = 80
 [node name="Main" type="Node2D"]
 texture_filter = 1
 script = ExtResource("1_exn86")
-
-[node name="Player" parent="." instance=ExtResource("2_ed0am")]
-
-[node name="Camera2D" type="Camera2D" parent="Player"]
-zoom = Vector2(4, 4)
-limit_bottom = 120
-position_smoothing_enabled = true
 
 [node name="LevelContainer" type="Node2D" parent="."]
 z_index = -115
