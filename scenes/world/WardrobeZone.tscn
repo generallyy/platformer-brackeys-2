@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://dibn4hrst430e"]
+[gd_scene format=3 uid="uid://cshsgwdi7vy0x"]
 
 [ext_resource type="Script" uid="uid://cxv1xvyajivc7" path="res://scripts/wardrobe_zone.gd" id="1_script"]
 [ext_resource type="Theme" uid="uid://swm642j7u26w" path="res://assets/fonts/pixel_theme.tres" id="2_theme"]
@@ -168,3 +168,4 @@ text = "Press C to Change!"
 horizontal_alignment = 1
 
 [connection signal="body_entered" from="." to="." method="_on_body_entered"]
+[connection signal="body_exited" from="." to="." method="_on_body_exited"]
