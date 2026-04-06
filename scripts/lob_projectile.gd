@@ -10,7 +10,7 @@ var _gravity: float
 
 func _init() -> void:
 	WEAPON_NAME = "Lob"
-	WEAPON_COOLDOWN = 0.8
+	WEAPON_COOLDOWN = 0.1
 
 func _ready() -> void:
 	_gravity = ProjectSettings.get_setting("physics/2d/default_gravity")
