@@ -675,6 +675,7 @@ texture = SubResource("GradientTexture2D_7o2uh")
 script = ExtResource("12_q2wfm")
 
 [node name="Label2" type="Label" parent="." unique_id=1252420099]
+visible = false
 texture_filter = 1
 offset_left = 207.0
 offset_top = -45.0
