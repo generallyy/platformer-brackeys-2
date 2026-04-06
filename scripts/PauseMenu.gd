@@ -6,6 +6,8 @@ const ACTIONS := {
 	"jump": "Jump",
 	"f": "Boost",
 	"attack": "Attack",
+	"melee": "Melee",
+	"interact": "Interact / Equip",
 }
 
 var _keybinds_panel: Control

@@ -1,10 +1,15 @@
 extends CharacterBody2D
 
 const DAGGER_SCENE = preload("res://scenes/weapons/Dagger.tscn")
+const MELEE_SCENE  = preload("res://scenes/weapons/MeleeHitbox.tscn")
 
 const SPEED = 200.0
 const JUMP_VELOCITY = -300.0
 const MAX_HEALTH = 3
+const WEAPON_SPAWN_OFFSET := Vector2(8, -5)
+const IFRAMES_BLINK_INTERVAL := 0.2
+const IFRAMES_BLINK_THRESHOLD := 0.1
+const RESPAWN_DELAY := 0.25 
 
 var health := MAX_HEALTH
 
@@ -28,6 +33,18 @@ const FREEZE_DURATION = 0.2 # SECONDS
 var is_knocked_back := false
 var _knockback_timer := 0.0
 const KNOCKBACK_DURATION := 0.35
+
+var _melee_cooldown := 0.0
+const MELEE_COOLDOWN := 0.4
+
+# Currently equipped projectile weapon (changed at weapon stations)
+var equipped_projectile_scene: PackedScene
+var _projectile_cooldown := 0.0
+var _equipped_cooldown_max := 0.0
+var _equipped_throw_count := 1
+var _equipped_max_simultaneous := 1
+var _equipped_returns := false
+var _active_projectile_count := 0
 
 var is_invuln := false
 var _invuln_timer := 0.0
@@ -55,6 +72,7 @@ func remove_sync_peer(peer_id: int) -> void:
 
 func _ready() -> void:
 	add_to_group("player")
+	equip_weapon(DAGGER_SCENE)
 
 func _physics_process(delta):
 	if NetworkManager.is_active() and not is_multiplayer_authority():
@@ -64,7 +82,7 @@ func _physics_process(delta):
 	# tick invuln
 	if is_invuln:
 		_invuln_timer -= delta
-		animated_sprite.visible = fmod(_invuln_timer, 0.2) > 0.1
+		animated_sprite.visible = fmod(_invuln_timer, IFRAMES_BLINK_INTERVAL) > IFRAMES_BLINK_THRESHOLD
 		if _invuln_timer <= 0.0:
 			is_invuln = false
 			animated_sprite.visible = true
@@ -81,6 +99,9 @@ func _physics_process(delta):
 	update_direction(direction)
 	update_animation()
 
+	_melee_cooldown      = max(0.0, _melee_cooldown - delta)
+	_projectile_cooldown = max(0.0, _projectile_cooldown - delta)
+
 	if not is_knocked_back:
 		# Handle jump.
 		if Input.is_action_just_pressed("jump"):
@@ -93,8 +114,14 @@ func _physics_process(delta):
 
 		if Input.is_action_just_pressed("f") and not is_on_floor() and not has_air_boosted:
 			start_air_boost()
-		if Input.is_action_just_pressed("attack"):
-			_throw_dagger()
+		var _can_throw := _projectile_cooldown <= 0.0 and (not _equipped_returns or _active_projectile_count < _equipped_max_simultaneous)
+		if Input.is_action_just_pressed("attack") and _can_throw:
+			_throw_weapon(equipped_projectile_scene, facing_direction)
+			if _equipped_returns:
+				_active_projectile_count += 1
+			_projectile_cooldown = _equipped_cooldown_max
+		if Input.is_action_just_pressed("melee") and _melee_cooldown <= 0.0:
+			_do_melee()
 
 	# Add the gravity.
 	if not is_on_floor() and not is_boosting:
@@ -168,32 +195,71 @@ func take_damage(amount: int, knockback: Vector2 = Vector2.ZERO) -> void:
 	is_invuln = true
 	_invuln_timer = INVULN_DURATION
 
-func _throw_dagger() -> void:
-	var spawn_pos := global_position + Vector2(facing_direction * 8, -5)
+func equip_weapon(scene: PackedScene, cooldown: float = 0.0) -> void:
+	equipped_projectile_scene = scene
+	_equipped_cooldown_max = cooldown
+	_projectile_cooldown = 0.0
+	_active_projectile_count = 0
+	var temp := scene.instantiate()
+	_equipped_throw_count = temp.THROW_COUNT
+	_equipped_max_simultaneous = temp.MAX_SIMULTANEOUS
+	_equipped_returns = temp.RETURNS
+	temp.free()
+
+func _throw_weapon(scene: PackedScene, dir: int, extra_offset: Vector2 = Vector2.ZERO) -> void:
+	var spawn_pos := global_position + WEAPON_SPAWN_OFFSET * Vector2(dir, 1) + extra_offset
 	var pid := multiplayer.get_unique_id() if NetworkManager.is_active() else -1
 	if NetworkManager.is_active():
-		_rpc_throw_dagger.rpc(facing_direction, spawn_pos, pid)
+		_rpc_throw_weapon.rpc(scene.resource_path, dir, spawn_pos, pid)
 	else:
-		_do_spawn_dagger(facing_direction, spawn_pos, pid)
+		_do_spawn_weapon(scene, dir, spawn_pos, pid)
 
 @rpc("authority", "call_local", "reliable")
-func _rpc_throw_dagger(dir: int, pos: Vector2, thrower_id: int) -> void:
-	_do_spawn_dagger(dir, pos, thrower_id)
+func _rpc_throw_weapon(scene_path: String, dir: int, pos: Vector2, thrower_id: int) -> void:
+	_do_spawn_weapon(load(scene_path), dir, pos, thrower_id)
 
-func _do_spawn_dagger(dir: int, pos: Vector2, thrower_id: int) -> void:
-	var d = DAGGER_SCENE.instantiate()
-	d.direction = dir
-	d.scale.x = dir
-	d.thrower_peer_id = thrower_id
-	get_parent().add_child(d)
-	d.global_position = pos
+func _do_spawn_weapon(scene: PackedScene, dir: int, pos: Vector2, thrower_id: int) -> void:
+	var p = scene.instantiate()
+	p.direction = dir
+	p.scale.x = dir
+	p.thrower_peer_id = thrower_id
+	if not NetworkManager.is_active():
+		p.owner_node = self
+	get_parent().add_child(p)
+	p.global_position = pos
+	if _equipped_returns and (not NetworkManager.is_active() or is_multiplayer_authority()):
+		p.tree_exiting.connect(_on_projectile_returned)
+
+func _on_projectile_returned() -> void:
+	_active_projectile_count = max(0, _active_projectile_count - 1)
+	_projectile_cooldown = _equipped_cooldown_max
+
+func _do_melee() -> void:
+	_melee_cooldown = MELEE_COOLDOWN
+	var pid := multiplayer.get_unique_id() if NetworkManager.is_active() else -1
+	if NetworkManager.is_active():
+		_rpc_throw_melee.rpc(facing_direction, pid)
+	else:
+		_do_spawn_melee(facing_direction, pid)
+
+@rpc("authority", "call_local", "reliable")
+func _rpc_throw_melee(dir: int, thrower_id: int) -> void:
+	_do_spawn_melee(dir, thrower_id)
+
+func _do_spawn_melee(dir: int, thrower_id: int) -> void:
+	var m = MELEE_SCENE.instantiate()
+	m.direction = dir
+	m.scale.x = dir
+	m.thrower_peer_id = thrower_id
+	add_child(m)
+	m.position = WEAPON_SPAWN_OFFSET * Vector2(dir, 1)
 
 func die():
-	# could play an animation or smtg (oh wait i so could though but im lazy)
+	# TODO: play death animation
 	velocity = Vector2.ZERO
 	hide()
 
-	await get_tree().create_timer(.5).timeout
+	await get_tree().create_timer(RESPAWN_DELAY).timeout
 
 	health = MAX_HEALTH
 	health_changed.emit(health)
@@ -203,7 +269,7 @@ func die():
 
 func start_dbj():
 	if not has_dbj and not is_on_floor():
-		#has_dbj = true
+		has_dbj = true
 		is_dbj = true
 
 		animation_player.play("dbj")
@@ -245,7 +311,6 @@ func update_air_boost(delta):
 		if boost_timer <= 0:
 			is_boosting = false
 			velocity.x -= facing_direction * BOOST_SPEED
-			#start_freeze(FREEZE_DURATION)
 
 func start_freeze(duration: float):
 	is_frozen = true
@@ -268,4 +333,3 @@ func _rpc_effect_boost(anchor_x: float, anchor_y: float, dir: Vector3) -> void:
 func effect_boost():
 	$EffectsAnchor/BoostParticles.restart()
 	$EffectsAnchor/BoostParticles.emitting = true
-	#$BoostSound.play()

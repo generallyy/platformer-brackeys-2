@@ -1,0 +1,55 @@
+[gd_scene format=3 uid="uid://crlksus2t2r7g"]
+
+[ext_resource type="Script" uid="uid://c025p5p65guvp" path="res://scripts/weapon_station.gd" id="1_script"]
+[ext_resource type="Theme" uid="uid://swm642j7u26w" path="res://assets/fonts/pixel_theme.tres" id="2_bfrtd"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_zone"]
+size = Vector2(28, 24)
+
+[node name="WeaponStation" type="Area2D" unique_id=183721799]
+script = ExtResource("1_script")
+
+[node name="Polygon2D" type="Polygon2D" parent="." unique_id=238251854]
+position = Vector2(-50, -19)
+color = Color(0.15686275, 0.14901961, 0.5568628, 1)
+polygon = PackedVector2Array(35, -1, 66, -1, 66, -25, 34, -22)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=662837153]
+position = Vector2(0, -12)
+shape = SubResource("RectangleShape2D_zone")
+
+[node name="Pedestal" type="Polygon2D" parent="." unique_id=1510131008]
+position = Vector2(0, -2)
+color = Color(0.4, 0.35, 0.3, 1)
+polygon = PackedVector2Array(-8, 0, 8, 0, 6, -10, -6, -10)
+
+[node name="PedestalTop" type="Polygon2D" parent="." unique_id=1203530448]
+position = Vector2(0, -12)
+color = Color(0.55, 0.48, 0.4, 1)
+polygon = PackedVector2Array(-7, 0, 7, 0, 7, -3, -7, -3)
+
+[node name="NameLabel" type="Label" parent="." unique_id=1205127466]
+offset_left = -44.0
+offset_top = -66.0
+offset_right = 44.0
+offset_bottom = -43.0
+theme = ExtResource("2_bfrtd")
+text = "Weapon"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PromptLabel" type="Label" parent="." unique_id=1693773167]
+visible = false
+offset_left = -28.0
+offset_top = -41.0
+offset_right = 28.0
+offset_bottom = -18.0
+theme = ExtResource("2_bfrtd")
+text = "C — Equip"
+horizontal_alignment = 1
+
+[node name="WeaponIcon" type="Sprite2D" parent="." unique_id=1458863472]
+position = Vector2(0, -50)
+
+[connection signal="body_entered" from="." to="." method="_on_body_entered"]
+[connection signal="body_exited" from="." to="." method="_on_body_exited"]
