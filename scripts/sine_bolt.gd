@@ -4,7 +4,7 @@ extends ProjectileBase
 const SPEED := 100.0
 const AMPLITUDE := 24.0
 const FREQUENCY := 1
-const MAX_LIFETIME := 1.8
+const MAX_LIFETIME := 4
 @onready var visual = $Visual
 
 func _init() -> void:

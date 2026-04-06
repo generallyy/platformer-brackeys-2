@@ -1,10 +1,10 @@
-[gd_scene load_steps=9 format=3 uid="uid://cwyrcu15opvxa"]
+[gd_scene format=3 uid="uid://cwyrcu15opvxa"]
 
-[ext_resource type="Script" path="res://scripts/main.gd" id="1_exn86"]
-[ext_resource type="PackedScene" path="res://scenes/ui/WardrobeMenu.tscn" id="2_wardrobe"]
-[ext_resource type="Script" path="res://scripts/PauseMenu.gd" id="3_7frdm"]
-[ext_resource type="Script" path="res://scripts/HUD.gd" id="8_hudsc"]
+[ext_resource type="Script" uid="uid://bll64vmi1miib" path="res://scripts/main.gd" id="1_exn86"]
+[ext_resource type="PackedScene" uid="uid://dg30pfci4cpnd" path="res://scenes/ui/WardrobeMenu.tscn" id="2_wardrobe"]
+[ext_resource type="Script" uid="uid://cbcey5h2tbcht" path="res://scripts/PauseMenu.gd" id="3_7frdm"]
 [ext_resource type="SystemFont" uid="uid://crymavm3yupm0" path="res://scenes/ui/Font.tres" id="3_xxodx"]
+[ext_resource type="Script" uid="uid://dvcw37gjvs81r" path="res://scripts/HUD.gd" id="8_hudsc"]
 
 [sub_resource type="Theme" id="Theme_27rqe"]
 default_font = ExtResource("3_xxodx")
@@ -31,24 +31,24 @@ expand_margin_bottom = 70.0
 default_font = ExtResource("3_xxodx")
 default_font_size = 80
 
-[node name="Main" type="Node2D"]
+[node name="Main" type="Node2D" unique_id=1378921661]
 texture_filter = 1
 script = ExtResource("1_exn86")
 
-[node name="LevelContainer" type="Node2D" parent="."]
+[node name="LevelContainer" type="Node2D" parent="." unique_id=2078966969]
 z_index = -115
 
-[node name="HUD" type="CanvasLayer" parent="."]
+[node name="HUD" type="CanvasLayer" parent="." unique_id=1023307081]
 script = ExtResource("8_hudsc")
 
-[node name="PauseMenu" type="CanvasLayer" parent="."]
+[node name="WardrobeMenu" parent="." unique_id=2125863574 instance=ExtResource("2_wardrobe")]
+
+[node name="PauseMenu" type="CanvasLayer" parent="." unique_id=1678797512]
 process_mode = 3
 layer = 2
 script = ExtResource("3_7frdm")
 
-[node name="WardrobeMenu" parent="." instance=ExtResource("2_wardrobe")]
-
-[node name="ColorRect" type="ColorRect" parent="PauseMenu"]
+[node name="ColorRect" type="ColorRect" parent="PauseMenu" unique_id=413221137]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -56,7 +56,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.101961, 0.101961, 0.101961, 0.356863)
 
-[node name="CenterContainer" type="CenterContainer" parent="PauseMenu"]
+[node name="CenterContainer" type="CenterContainer" parent="PauseMenu" unique_id=864098775]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -66,52 +66,52 @@ grow_horizontal = 2
 grow_vertical = 2
 theme = SubResource("Theme_27rqe")
 
-[node name="PanelContainer" type="PanelContainer" parent="PauseMenu/CenterContainer"]
+[node name="PanelContainer" type="PanelContainer" parent="PauseMenu/CenterContainer" unique_id=2002907725]
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_w7i0f")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="PauseMenu/CenterContainer/PanelContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="PauseMenu/CenterContainer/PanelContainer" unique_id=696854177]
 layout_mode = 2
 
-[node name="Resume" type="Button" parent="PauseMenu/CenterContainer/PanelContainer/VBoxContainer"]
+[node name="Resume" type="Button" parent="PauseMenu/CenterContainer/PanelContainer/VBoxContainer" unique_id=762986903]
 layout_mode = 2
 text = "RESUME"
 
-[node name="Restart" type="Button" parent="PauseMenu/CenterContainer/PanelContainer/VBoxContainer"]
+[node name="Restart" type="Button" parent="PauseMenu/CenterContainer/PanelContainer/VBoxContainer" unique_id=587080837]
 layout_mode = 2
 text = "RESTART"
 
-[node name="Title" type="Button" parent="PauseMenu/CenterContainer/PanelContainer/VBoxContainer"]
+[node name="Title" type="Button" parent="PauseMenu/CenterContainer/PanelContainer/VBoxContainer" unique_id=557476786]
 layout_mode = 2
 text = "TITLE"
 
-[node name="Keybinds" type="Button" parent="PauseMenu/CenterContainer/PanelContainer/VBoxContainer"]
+[node name="Keybinds" type="Button" parent="PauseMenu/CenterContainer/PanelContainer/VBoxContainer" unique_id=709852834]
 layout_mode = 2
 text = "KEYBINDS"
 
-[node name="Quit" type="Button" parent="PauseMenu/CenterContainer/PanelContainer/VBoxContainer"]
+[node name="Quit" type="Button" parent="PauseMenu/CenterContainer/PanelContainer/VBoxContainer" unique_id=1764489245]
 layout_mode = 2
 text = "QUIT"
 
-[node name="HBoxContainer" type="HBoxContainer" parent="PauseMenu/CenterContainer/PanelContainer/VBoxContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="PauseMenu/CenterContainer/PanelContainer/VBoxContainer" unique_id=1070403504]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="PauseMenu/CenterContainer/PanelContainer/VBoxContainer/HBoxContainer"]
+[node name="Label" type="Label" parent="PauseMenu/CenterContainer/PanelContainer/VBoxContainer/HBoxContainer" unique_id=1276151076]
 texture_filter = 2
 layout_mode = 2
 text = "🔊"
 
-[node name="HSlider" type="HSlider" parent="PauseMenu/CenterContainer/PanelContainer/VBoxContainer/HBoxContainer"]
+[node name="HSlider" type="HSlider" parent="PauseMenu/CenterContainer/PanelContainer/VBoxContainer/HBoxContainer" unique_id=583168976]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 1
 min_value = -40.0
 max_value = 0.0
 
-[node name="LoadingScreen" type="CanvasLayer" parent="."]
+[node name="LoadingScreen" type="CanvasLayer" parent="." unique_id=2092700025]
 visible = false
 
-[node name="ColorRect" type="ColorRect" parent="LoadingScreen"]
+[node name="ColorRect" type="ColorRect" parent="LoadingScreen" unique_id=1808285892]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -119,7 +119,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.00843794, 0.00213983, 3.76021e-10, 1)
 
-[node name="CenterContainer" type="CenterContainer" parent="LoadingScreen/ColorRect"]
+[node name="CenterContainer" type="CenterContainer" parent="LoadingScreen/ColorRect" unique_id=984032826]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -127,7 +127,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Label" type="Label" parent="LoadingScreen/ColorRect/CenterContainer"]
+[node name="Label" type="Label" parent="LoadingScreen/ColorRect/CenterContainer" unique_id=704589070]
 layout_mode = 2
 theme = SubResource("Theme_03yvu")
 text = "Loading..."

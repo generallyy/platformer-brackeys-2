@@ -1,10 +1,7 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene format=3 uid="uid://dibn4hrst430e"]
 
-[ext_resource type="Script" path="res://scripts/wardrobe_zone.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://cxv1xvyajivc7" path="res://scripts/wardrobe_zone.gd" id="1_script"]
 [ext_resource type="Theme" uid="uid://swm642j7u26w" path="res://assets/fonts/pixel_theme.tres" id="2_theme"]
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_zone"]
-size = Vector2(116, 36)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_backdrop"]
 bg_color = Color(0.160784, 0.117647, 0.207843, 0.95)
@@ -30,14 +27,6 @@ border_width_right = 2
 border_width_bottom = 2
 border_color = Color(0.188235, 0.109804, 0.0470588, 1)
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_floor"]
-bg_color = Color(0.25098, 0.192157, 0.305882, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.917647, 0.709804, 0.223529, 1)
-
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cape_left"]
 bg_color = Color(0.745098, 0.2, 0.243137, 1)
 border_width_left = 2
@@ -62,6 +51,17 @@ border_width_right = 2
 border_width_bottom = 2
 border_color = Color(1, 0.47451, 0.827451, 1)
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_floor"]
+bg_color = Color(0.25098, 0.192157, 0.305882, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.917647, 0.709804, 0.223529, 1)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_zone"]
+size = Vector2(116, 36)
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sign"]
 bg_color = Color(0.917647, 0.709804, 0.223529, 1)
 border_width_left = 2
@@ -70,10 +70,10 @@ border_width_right = 2
 border_width_bottom = 2
 border_color = Color(0.227451, 0.14902, 0.0784314, 1)
 
-[node name="WardrobeZone" type="Area2D"]
+[node name="WardrobeZone" type="Area2D" unique_id=1286011394]
 script = ExtResource("1_script")
 
-[node name="Backdrop" type="Panel" parent="."]
+[node name="Backdrop" type="Panel" parent="." unique_id=1623319867]
 offset_left = -60.0
 offset_top = -76.0
 offset_right = 60.0
@@ -81,7 +81,7 @@ offset_bottom = 8.0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_backdrop")
 
-[node name="Canopy" type="Panel" parent="."]
+[node name="Canopy" type="Panel" parent="." unique_id=1403446138]
 offset_left = -66.0
 offset_top = -88.0
 offset_right = 66.0
@@ -89,7 +89,7 @@ offset_bottom = -70.0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_canopy")
 
-[node name="PostLeft" type="Panel" parent="."]
+[node name="PostLeft" type="Panel" parent="." unique_id=535253179]
 offset_left = -64.0
 offset_top = -70.0
 offset_right = -52.0
@@ -97,7 +97,7 @@ offset_bottom = 8.0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_post")
 
-[node name="PostRight" type="Panel" parent="."]
+[node name="PostRight" type="Panel" parent="." unique_id=299741641]
 offset_left = 52.0
 offset_top = -70.0
 offset_right = 64.0
@@ -105,7 +105,7 @@ offset_bottom = 8.0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_post")
 
-[node name="CapeLeft" type="Panel" parent="."]
+[node name="CapeLeft" type="Panel" parent="." unique_id=1494208038]
 offset_left = -42.0
 offset_top = -56.0
 offset_right = -18.0
@@ -113,7 +113,7 @@ offset_bottom = -12.0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_cape_left")
 
-[node name="CapeMiddle" type="Panel" parent="."]
+[node name="CapeMiddle" type="Panel" parent="." unique_id=421549340]
 offset_left = -12.0
 offset_top = -56.0
 offset_right = 12.0
@@ -121,7 +121,7 @@ offset_bottom = -12.0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_cape_middle")
 
-[node name="CapeRight" type="Panel" parent="."]
+[node name="CapeRight" type="Panel" parent="." unique_id=1100359275]
 offset_left = 18.0
 offset_top = -56.0
 offset_right = 42.0
@@ -129,7 +129,7 @@ offset_bottom = -12.0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_cape_right")
 
-[node name="Floor" type="Panel" parent="."]
+[node name="Floor" type="Panel" parent="." unique_id=803869125]
 offset_left = -58.0
 offset_top = -14.0
 offset_right = 58.0
@@ -137,11 +137,11 @@ offset_bottom = 8.0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_floor")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2(0, -3)
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1283131954]
+position = Vector2(0, -10)
 shape = SubResource("RectangleShape2D_zone")
 
-[node name="Sign" type="Panel" parent="."]
+[node name="Sign" type="Panel" parent="." unique_id=1337087492]
 offset_left = -36.0
 offset_top = -105.0
 offset_right = 36.0
@@ -149,22 +149,22 @@ offset_bottom = -79.0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_sign")
 
-[node name="Label" type="Label" parent="."]
+[node name="Label" type="Label" parent="." unique_id=1938948705]
 offset_left = -56.0
-offset_top = -104.0
+offset_top = -97.0
 offset_right = 56.0
-offset_bottom = -80.0
+offset_bottom = -73.0
 theme = ExtResource("2_theme")
 text = "WARDROBE"
 horizontal_alignment = 1
 
-[node name="Label2" type="Label" parent="."]
+[node name="PromptLabel" type="Label" parent="." unique_id=222089250]
 offset_left = -58.0
 offset_top = -32.0
 offset_right = 58.0
 offset_bottom = -14.0
 theme = ExtResource("2_theme")
-text = "Step in to change"
+text = "Press C to Change!"
 horizontal_alignment = 1
 
 [connection signal="body_entered" from="." to="." method="_on_body_entered"]
