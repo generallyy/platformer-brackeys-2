@@ -16,6 +16,8 @@
 [ext_resource type="PackedScene" uid="uid://cboomerang001" path="res://scenes/weapons/Boomerang.tscn" id="14_p5s5a"]
 [ext_resource type="PackedScene" uid="uid://cd5byj5c1sivn" path="res://scenes/weapons/LobProjectile.tscn" id="15_njy47"]
 [ext_resource type="PackedScene" uid="uid://bxtrgcftx5ab5" path="res://scenes/weapons/Dagger.tscn" id="16_j7nyf"]
+[ext_resource type="PackedScene" path="res://scenes/world/Checkpoint.tscn" id="17_chkpt"]
+[ext_resource type="PackedScene" path="res://scenes/world/MovingSnowPlatform.tscn" id="18_move"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_q4vnh"]
 texture = ExtResource("2_lc44e")
@@ -333,7 +335,7 @@ motion_mirroring = Vector2(1440, 0)
 position = Vector2(-538, -50)
 texture = ExtResource("8_kvop1")
 region_enabled = true
-region_rect = Rect2(0, 0, 2200, 512)
+region_rect = Rect2(0, 0, 7800, 512)
 
 [node name="Label" type="Label" parent="." unique_id=414449294]
 texture_filter = 1
@@ -408,3 +410,317 @@ weapon_scene = ExtResource("15_njy47")
 [node name="Dagger" parent="Stations" unique_id=1778249542 instance=ExtResource("7_n5pya")]
 position = Vector2(-539, -191)
 weapon_scene = ExtResource("16_j7nyf")
+
+[node name="Part2" type="Node2D" parent="."]
+position = Vector2(860, -228)
+
+[node name="IntroLabel" type="Label" parent="Part2"]
+texture_filter = 1
+offset_left = -84.0
+offset_top = -116.0
+offset_right = 236.0
+offset_bottom = -81.0
+text = "phase 2: ride the movers"
+label_settings = SubResource("LabelSettings_yuese")
+horizontal_alignment = 1
+
+[node name="CheckpointA" parent="Part2" instance=ExtResource("17_chkpt")]
+position = Vector2(0, 0)
+
+[node name="Warmup1" parent="Part2" instance=ExtResource("3_a3eoy")]
+position = Vector2(62, -6)
+
+[node name="Warmup2" parent="Part2" instance=ExtResource("3_a3eoy")]
+position = Vector2(144, -16)
+
+[node name="LiftA" parent="Part2" instance=ExtResource("18_move")]
+position = Vector2(242, -16)
+travel_offset = Vector2(0, -84)
+cycle_duration = 2.3
+phase_offset = 0.12
+
+[node name="Rest1" parent="Part2" instance=ExtResource("3_a3eoy")]
+position = Vector2(350, -98)
+
+[node name="Enemy2" parent="Part2" instance=ExtResource("11_lha2r")]
+position = Vector2(350, -110)
+
+[node name="SlideA" parent="Part2" instance=ExtResource("18_move")]
+position = Vector2(456, -98)
+travel_offset = Vector2(92, 0)
+cycle_duration = 2.6
+phase_offset = 0.36
+
+[node name="Landing1" parent="Part2" instance=ExtResource("3_a3eoy")]
+position = Vector2(612, -98)
+
+[node name="CheckpointB" parent="Part2" instance=ExtResource("17_chkpt")]
+position = Vector2(690, -92)
+
+[node name="LoadoutLabel" type="Label" parent="Part2"]
+texture_filter = 1
+offset_left = 710.0
+offset_top = -190.0
+offset_right = 1060.0
+offset_bottom = -155.0
+text = "pick a toy, then commit"
+label_settings = SubResource("LabelSettings_yuese")
+horizontal_alignment = 1
+
+[node name="LoadoutShelf1" parent="Part2" instance=ExtResource("3_a3eoy")]
+position = Vector2(792, -78)
+
+[node name="LoadoutShelf2" parent="Part2" instance=ExtResource("3_a3eoy")]
+position = Vector2(852, -78)
+
+[node name="LoadoutShelf3" parent="Part2" instance=ExtResource("3_a3eoy")]
+position = Vector2(912, -78)
+
+[node name="LoadoutShelf4" parent="Part2" instance=ExtResource("3_a3eoy")]
+position = Vector2(972, -78)
+
+[node name="LoadoutStations" type="Node2D" parent="Part2"]
+
+[node name="Bolt3" parent="Part2/LoadoutStations" instance=ExtResource("7_n5pya")]
+position = Vector2(792, -118)
+weapon_scene = ExtResource("8_kypp1")
+
+[node name="Boomerang2" parent="Part2/LoadoutStations" instance=ExtResource("7_n5pya")]
+position = Vector2(852, -118)
+weapon_scene = ExtResource("14_p5s5a")
+
+[node name="Lob2" parent="Part2/LoadoutStations" instance=ExtResource("7_n5pya")]
+position = Vector2(912, -118)
+weapon_scene = ExtResource("15_njy47")
+
+[node name="Dagger2" parent="Part2/LoadoutStations" instance=ExtResource("7_n5pya")]
+position = Vector2(972, -118)
+weapon_scene = ExtResource("16_j7nyf")
+
+[node name="Combat1" parent="Part2" instance=ExtResource("3_a3eoy")]
+position = Vector2(1114, -40)
+
+[node name="Combat2" parent="Part2" instance=ExtResource("3_a3eoy")]
+position = Vector2(1218, -116)
+
+[node name="Combat3" parent="Part2" instance=ExtResource("3_a3eoy")]
+position = Vector2(1332, -58)
+
+[node name="Combat4" parent="Part2" instance=ExtResource("3_a3eoy")]
+position = Vector2(1450, -138)
+
+[node name="Combat5" parent="Part2" instance=ExtResource("3_a3eoy")]
+position = Vector2(1576, -76)
+
+[node name="Enemy3" parent="Part2" instance=ExtResource("11_lha2r")]
+position = Vector2(1218, -128)
+
+[node name="Enemy4" parent="Part2" instance=ExtResource("11_lha2r")]
+position = Vector2(1450, -150)
+
+[node name="Enemy5" parent="Part2" instance=ExtResource("11_lha2r")]
+position = Vector2(1576, -88)
+
+[node name="BridgeMover" parent="Part2" instance=ExtResource("18_move")]
+position = Vector2(1708, -76)
+travel_offset = Vector2(104, 0)
+cycle_duration = 2.2
+phase_offset = 0.18
+
+[node name="Perch1" parent="Part2" instance=ExtResource("3_a3eoy")]
+position = Vector2(1888, -154)
+
+[node name="CheckpointC" parent="Part2" instance=ExtResource("17_chkpt")]
+position = Vector2(1972, -148)
+
+[node name="ClimbLabel" type="Label" parent="Part2"]
+texture_filter = 1
+offset_left = 2040.0
+offset_top = -358.0
+offset_right = 2360.0
+offset_bottom = -323.0
+text = "climb or panic"
+label_settings = SubResource("LabelSettings_yuese")
+horizontal_alignment = 1
+
+[node name="LiftB" parent="Part2" instance=ExtResource("18_move")]
+position = Vector2(2092, -160)
+travel_offset = Vector2(0, -104)
+cycle_duration = 2.1
+phase_offset = 0.08
+
+[node name="Tower1" parent="Part2" instance=ExtResource("3_a3eoy")]
+position = Vector2(2210, -264)
+
+[node name="LiftC" parent="Part2" instance=ExtResource("18_move")]
+position = Vector2(2326, -314)
+travel_offset = Vector2(88, -54)
+cycle_duration = 2.8
+phase_offset = 0.52
+
+[node name="Tower2" parent="Part2" instance=ExtResource("3_a3eoy")]
+position = Vector2(2470, -372)
+
+[node name="Enemy6" parent="Part2" instance=ExtResource("11_lha2r")]
+position = Vector2(2470, -384)
+
+[node name="Tower3" parent="Part2" instance=ExtResource("3_a3eoy")]
+position = Vector2(2590, -304)
+
+[node name="UpperShelf1" parent="Part2" instance=ExtResource("3_a3eoy")]
+position = Vector2(2464, -430)
+
+[node name="UpperShelf2" parent="Part2" instance=ExtResource("3_a3eoy")]
+position = Vector2(2528, -430)
+
+[node name="UpperStations" type="Node2D" parent="Part2"]
+
+[node name="Boomerang3" parent="Part2/UpperStations" instance=ExtResource("7_n5pya")]
+position = Vector2(2464, -470)
+weapon_scene = ExtResource("14_p5s5a")
+
+[node name="Lob3" parent="Part2/UpperStations" instance=ExtResource("7_n5pya")]
+position = Vector2(2528, -470)
+weapon_scene = ExtResource("15_njy47")
+
+[node name="CheckpointD" parent="Part2" instance=ExtResource("17_chkpt")]
+position = Vector2(2700, -298)
+
+[node name="DescentLabel" type="Label" parent="Part2"]
+texture_filter = 1
+offset_left = 2808.0
+offset_top = -292.0
+offset_right = 3138.0
+offset_bottom = -257.0
+text = "downhill violence"
+label_settings = SubResource("LabelSettings_yuese")
+horizontal_alignment = 1
+
+[node name="Descent1" parent="Part2" instance=ExtResource("3_a3eoy")]
+position = Vector2(2824, -238)
+
+[node name="Descent2" parent="Part2" instance=ExtResource("3_a3eoy")]
+position = Vector2(2944, -182)
+
+[node name="Descent3" parent="Part2" instance=ExtResource("3_a3eoy")]
+position = Vector2(3068, -228)
+
+[node name="Descent4" parent="Part2" instance=ExtResource("3_a3eoy")]
+position = Vector2(3190, -146)
+
+[node name="Descent5" parent="Part2" instance=ExtResource("3_a3eoy")]
+position = Vector2(3316, -188)
+
+[node name="Descent6" parent="Part2" instance=ExtResource("3_a3eoy")]
+position = Vector2(3442, -126)
+
+[node name="Enemy7" parent="Part2" instance=ExtResource("11_lha2r")]
+position = Vector2(2944, -194)
+
+[node name="Enemy8" parent="Part2" instance=ExtResource("11_lha2r")]
+position = Vector2(3190, -158)
+
+[node name="Enemy9" parent="Part2" instance=ExtResource("11_lha2r")]
+position = Vector2(3442, -138)
+
+[node name="ZipMover" parent="Part2" instance=ExtResource("18_move")]
+position = Vector2(3572, -126)
+travel_offset = Vector2(74, -70)
+cycle_duration = 2.6
+phase_offset = 0.55
+
+[node name="Rest2" parent="Part2" instance=ExtResource("3_a3eoy")]
+position = Vector2(3708, -198)
+
+[node name="Enemy10" parent="Part2" instance=ExtResource("11_lha2r")]
+position = Vector2(3708, -210)
+
+[node name="CheckpointE" parent="Part2" instance=ExtResource("17_chkpt")]
+position = Vector2(3800, -192)
+
+[node name="RushLabel" type="Label" parent="Part2"]
+texture_filter = 1
+offset_left = 3890.0
+offset_top = -288.0
+offset_right = 4240.0
+offset_bottom = -253.0
+text = "last rush"
+label_settings = SubResource("LabelSettings_yuese")
+horizontal_alignment = 1
+
+[node name="Final1" parent="Part2" instance=ExtResource("3_a3eoy")]
+position = Vector2(3920, -174)
+
+[node name="Final2" parent="Part2" instance=ExtResource("3_a3eoy")]
+position = Vector2(4048, -174)
+
+[node name="Final3" parent="Part2" instance=ExtResource("3_a3eoy")]
+position = Vector2(4176, -136)
+
+[node name="Final4" parent="Part2" instance=ExtResource("3_a3eoy")]
+position = Vector2(4304, -174)
+
+[node name="Final5" parent="Part2" instance=ExtResource("3_a3eoy")]
+position = Vector2(4432, -174)
+
+[node name="Final6" parent="Part2" instance=ExtResource("3_a3eoy")]
+position = Vector2(4560, -136)
+
+[node name="Final7" parent="Part2" instance=ExtResource("3_a3eoy")]
+position = Vector2(4688, -174)
+
+[node name="Final8" parent="Part2" instance=ExtResource("3_a3eoy")]
+position = Vector2(4816, -174)
+
+[node name="Final9" parent="Part2" instance=ExtResource("3_a3eoy")]
+position = Vector2(4944, -232)
+
+[node name="Final10" parent="Part2" instance=ExtResource("3_a3eoy")]
+position = Vector2(5072, -290)
+
+[node name="Final11" parent="Part2" instance=ExtResource("3_a3eoy")]
+position = Vector2(5200, -232)
+
+[node name="Final12" parent="Part2" instance=ExtResource("3_a3eoy")]
+position = Vector2(5328, -170)
+
+[node name="Enemy11" parent="Part2" instance=ExtResource("11_lha2r")]
+position = Vector2(4048, -186)
+
+[node name="Enemy12" parent="Part2" instance=ExtResource("11_lha2r")]
+position = Vector2(4304, -186)
+
+[node name="Enemy13" parent="Part2" instance=ExtResource("11_lha2r")]
+position = Vector2(4688, -186)
+
+[node name="Enemy14" parent="Part2" instance=ExtResource("11_lha2r")]
+position = Vector2(5072, -302)
+
+[node name="FinalStations" type="Node2D" parent="Part2"]
+
+[node name="Bolt4" parent="Part2/FinalStations" instance=ExtResource("7_n5pya")]
+position = Vector2(4432, -214)
+weapon_scene = ExtResource("8_kypp1")
+
+[node name="Dagger3" parent="Part2/FinalStations" instance=ExtResource("7_n5pya")]
+position = Vector2(4496, -214)
+weapon_scene = ExtResource("16_j7nyf")
+
+[node name="CheckpointF" parent="Part2" instance=ExtResource("17_chkpt")]
+position = Vector2(5408, -164)
+
+[node name="Victory1" parent="Part2" instance=ExtResource("3_a3eoy")]
+position = Vector2(5488, -164)
+
+[node name="Victory2" parent="Part2" instance=ExtResource("3_a3eoy")]
+position = Vector2(5616, -164)
+
+[node name="OutroLabel" type="Label" parent="Part2"]
+texture_filter = 1
+offset_left = 5450.0
+offset_top = -260.0
+offset_right = 5810.0
+offset_bottom = -225.0
+text = "still Level 1. somehow."
+label_settings = SubResource("LabelSettings_yuese")
+horizontal_alignment = 1

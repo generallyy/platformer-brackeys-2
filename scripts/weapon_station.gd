@@ -7,6 +7,11 @@ var _weapon_cooldown: float = 0.0
 var _player_nearby: Node = null
 
 func _ready() -> void:
+	if weapon_scene == null:
+		push_error("%s has no weapon_scene assigned" % name)
+		$NameLabel.text = "Broken Station"
+		$PromptLabel.visible = false
+		return
 	# Read name and cooldown directly from the weapon scene
 	var temp := weapon_scene.instantiate()
 	_weapon_name = temp.WEAPON_NAME
@@ -23,6 +28,8 @@ func _ready() -> void:
 	icon.queue_free()
 
 func _process(_delta: float) -> void:
+	if weapon_scene == null:
+		return
 	if _player_nearby and Input.is_action_just_pressed("interact"):
 		_player_nearby.equip_weapon(weapon_scene, _weapon_cooldown)
 		$PromptLabel.text = "Equipped!"

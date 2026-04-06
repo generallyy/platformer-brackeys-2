@@ -1,6 +1,7 @@
-[gd_scene load_steps=8 format=3 uid="uid://cwyrcu15opvxa"]
+[gd_scene load_steps=9 format=3 uid="uid://cwyrcu15opvxa"]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1_exn86"]
+[ext_resource type="PackedScene" path="res://scenes/ui/WardrobeMenu.tscn" id="2_wardrobe"]
 [ext_resource type="Script" path="res://scripts/PauseMenu.gd" id="3_7frdm"]
 [ext_resource type="Script" path="res://scripts/HUD.gd" id="8_hudsc"]
 [ext_resource type="SystemFont" uid="uid://crymavm3yupm0" path="res://scenes/ui/Font.tres" id="3_xxodx"]
@@ -44,6 +45,8 @@ script = ExtResource("8_hudsc")
 process_mode = 3
 layer = 2
 script = ExtResource("3_7frdm")
+
+[node name="WardrobeMenu" parent="." instance=ExtResource("2_wardrobe")]
 
 [node name="ColorRect" type="ColorRect" parent="PauseMenu"]
 anchors_preset = 15

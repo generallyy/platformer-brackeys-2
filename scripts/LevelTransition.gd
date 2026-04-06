@@ -2,7 +2,7 @@ extends Area2D
 
 var _triggered := false
 
-func _on_body_entered(body):
+func _on_body_entered(body) -> void:
 	if _triggered:
 		return
 	if not (body is CharacterBody2D and body.has_method("die")):
@@ -14,4 +14,4 @@ func _on_body_entered(body):
 	if NetworkManager.is_active():
 		main.load_level.rpc("res://scenes/levels/Level1.tscn")
 	else:
-		main.load_level("res://scenes/levels/Level1.tscn")
+		await main.load_level("res://scenes/levels/Level1.tscn")
