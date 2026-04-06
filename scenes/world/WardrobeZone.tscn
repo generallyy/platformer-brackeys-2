@@ -1,0 +1,170 @@
+[gd_scene load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://scripts/wardrobe_zone.gd" id="1_script"]
+[ext_resource type="Theme" uid="uid://swm642j7u26w" path="res://assets/fonts/pixel_theme.tres" id="2_theme"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_zone"]
+size = Vector2(116, 36)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_backdrop"]
+bg_color = Color(0.160784, 0.117647, 0.207843, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.917647, 0.709804, 0.223529, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_canopy"]
+bg_color = Color(0.364706, 0.239216, 0.133333, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.188235, 0.109804, 0.0470588, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_post"]
+bg_color = Color(0.309804, 0.207843, 0.109804, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.188235, 0.109804, 0.0470588, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_floor"]
+bg_color = Color(0.25098, 0.192157, 0.305882, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.917647, 0.709804, 0.223529, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cape_left"]
+bg_color = Color(0.745098, 0.2, 0.243137, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.968627, 0.733333, 0.203922, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cape_middle"]
+bg_color = Color(0.176471, 0.568627, 0.905882, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.862745, 0.960784, 1, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cape_right"]
+bg_color = Color(0.482353, 0.25098, 0.803922, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.47451, 0.827451, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sign"]
+bg_color = Color(0.917647, 0.709804, 0.223529, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.227451, 0.14902, 0.0784314, 1)
+
+[node name="WardrobeZone" type="Area2D"]
+script = ExtResource("1_script")
+
+[node name="Backdrop" type="Panel" parent="."]
+offset_left = -60.0
+offset_top = -76.0
+offset_right = 60.0
+offset_bottom = 8.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_backdrop")
+
+[node name="Canopy" type="Panel" parent="."]
+offset_left = -66.0
+offset_top = -88.0
+offset_right = 66.0
+offset_bottom = -70.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_canopy")
+
+[node name="PostLeft" type="Panel" parent="."]
+offset_left = -64.0
+offset_top = -70.0
+offset_right = -52.0
+offset_bottom = 8.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_post")
+
+[node name="PostRight" type="Panel" parent="."]
+offset_left = 52.0
+offset_top = -70.0
+offset_right = 64.0
+offset_bottom = 8.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_post")
+
+[node name="CapeLeft" type="Panel" parent="."]
+offset_left = -42.0
+offset_top = -56.0
+offset_right = -18.0
+offset_bottom = -12.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_cape_left")
+
+[node name="CapeMiddle" type="Panel" parent="."]
+offset_left = -12.0
+offset_top = -56.0
+offset_right = 12.0
+offset_bottom = -12.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_cape_middle")
+
+[node name="CapeRight" type="Panel" parent="."]
+offset_left = 18.0
+offset_top = -56.0
+offset_right = 42.0
+offset_bottom = -12.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_cape_right")
+
+[node name="Floor" type="Panel" parent="."]
+offset_left = -58.0
+offset_top = -14.0
+offset_right = 58.0
+offset_bottom = 8.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_floor")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -3)
+shape = SubResource("RectangleShape2D_zone")
+
+[node name="Sign" type="Panel" parent="."]
+offset_left = -36.0
+offset_top = -105.0
+offset_right = 36.0
+offset_bottom = -79.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_sign")
+
+[node name="Label" type="Label" parent="."]
+offset_left = -56.0
+offset_top = -104.0
+offset_right = 56.0
+offset_bottom = -80.0
+theme = ExtResource("2_theme")
+text = "WARDROBE"
+horizontal_alignment = 1
+
+[node name="Label2" type="Label" parent="."]
+offset_left = -58.0
+offset_top = -32.0
+offset_right = 58.0
+offset_bottom = -14.0
+theme = ExtResource("2_theme")
+text = "Step in to change"
+horizontal_alignment = 1
+
+[connection signal="body_entered" from="." to="." method="_on_body_entered"]
