@@ -1,0 +1,25 @@
+[gd_scene format=3 uid="uid://csinebolt1234"]
+
+[ext_resource type="Script" uid="uid://c2dwmujrpfwsa" path="res://scripts/sine_bolt.gd" id="1_script"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_sine"]
+size = Vector2(8, 4)
+
+[node name="SineBolt" type="Area2D" unique_id=436934892]
+script = ExtResource("1_script")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=2037143507]
+shape = SubResource("RectangleShape2D_sine")
+
+[node name="VisibleOnScreenNotifier2D" type="VisibleOnScreenNotifier2D" parent="." unique_id=1071980613]
+
+[node name="Visual" type="Sprite2D" parent="." unique_id=2126986630]
+
+[node name="Visual" type="Line2D" parent="Visual" unique_id=572745586]
+points = PackedVector2Array(-4, 0, 4, 0)
+width = 6.0
+default_color = Color(0.4, 0.2, 0.9, 1)
+
+[connection signal="area_entered" from="." to="." method="_on_area_entered"]
+[connection signal="body_entered" from="." to="." method="_on_body_entered"]
+[connection signal="screen_exited" from="VisibleOnScreenNotifier2D" to="." method="_on_screen_exited"]

@@ -1,0 +1,26 @@
+[gd_scene format=3 uid="uid://cboomerang001"]
+
+[ext_resource type="Script" uid="uid://bq5o6vx7qbr4q" path="res://scripts/boomerang.gd" id="1_script"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_boom"]
+size = Vector2(12, 6)
+
+[node name="Boomerang" type="Area2D" unique_id=1937309247]
+script = ExtResource("1_script")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=888305933]
+shape = SubResource("RectangleShape2D_boom")
+
+[node name="VisibleOnScreenNotifier2D" type="VisibleOnScreenNotifier2D" parent="." unique_id=122691799]
+
+[node name="Visual" type="Sprite2D" parent="." unique_id=411285707]
+
+[node name="Visual" type="Line2D" parent="Visual" unique_id=168341883]
+position = Vector2(-6, 0)
+points = PackedVector2Array(0, -3, 6, 0, 12, -3)
+width = 3.0
+default_color = Color(0.1, 0.8, 0.7, 1)
+
+[connection signal="area_entered" from="." to="." method="_on_area_entered"]
+[connection signal="body_entered" from="." to="." method="_on_body_entered"]
+[connection signal="screen_exited" from="VisibleOnScreenNotifier2D" to="." method="_on_screen_exited"]

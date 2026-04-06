@@ -1,0 +1,20 @@
+[gd_scene format=3 uid="uid://cv44xjelti8oy"]
+
+[ext_resource type="Script" path="res://scripts/melee_hitbox.gd" id="1_melee"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_melee"]
+size = Vector2(28, 18)
+
+[node name="MeleeHitbox" type="Area2D"]
+script = ExtResource("1_melee")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(18, 0)
+shape = SubResource("RectangleShape2D_melee")
+
+[node name="Visual" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(4, -10, 32, -6, 34, 6, 4, 10)
+color = Color(1, 1, 0.6, 0.45)
+
+[connection signal="body_entered" from="." to="." method="_on_body_entered"]
+[connection signal="area_entered" from="." to="." method="_on_area_entered"]
