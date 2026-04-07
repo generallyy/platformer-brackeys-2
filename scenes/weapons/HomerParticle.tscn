@@ -24,3 +24,7 @@ polygon = PackedVector2Array(-2, 0, 0, -2, 2, 0, 0, 2)
 top_level = true
 width = 1.5
 gradient = SubResource("Gradient_trail")
+
+[connection signal="area_entered" from="." to="." method="_on_area_entered"]
+[connection signal="body_entered" from="." to="." method="_on_body_entered"]
+[connection signal="screen_exited" from="VisibleOnScreenNotifier2D" to="." method="_on_screen_exited"]

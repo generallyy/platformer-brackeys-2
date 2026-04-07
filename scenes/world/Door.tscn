@@ -25,6 +25,7 @@ position = Vector2(0, -10)
 shape = SubResource("RectangleShape2D_1ccb6")
 
 [node name="PromptLabel" type="Label" parent="." unique_id=66439834]
+visible = false
 texture_filter = 1
 offset_left = -87.0
 offset_top = -36.0
