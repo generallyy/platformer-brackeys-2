@@ -46,9 +46,9 @@ func _die() -> void:
 	_dead = true
 	animated_sprite.visible = true
 	visible = false
-	collision_layer = 0               # player walks through
-	$Hurtbox.monitorable = false      # weapons can't hit it
-	$PlayerHurtbox.monitoring = false # it can't hit the player
+	set_deferred("collision_layer", 0)
+	$Hurtbox.set_deferred("monitorable", false)
+	$PlayerHurtbox.set_deferred("monitoring", false)
 	await get_tree().create_timer(RESPAWN_DELAY).timeout
 	health = MAX_HEALTH
 	_blink_timer = 0.0

@@ -130,7 +130,7 @@ func _load_keybinds() -> void:
 		if cfg.has_section_key("keybinds", action):
 			var keycode: int = cfg.get_value("keybinds", action)
 			var event := InputEventKey.new()
-			event.physical_keycode = keycode
+			event.physical_keycode = keycode as Key
 			InputMap.action_erase_events(action)
 			InputMap.action_add_event(action, event)
 	for action in _action_buttons:

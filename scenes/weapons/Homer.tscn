@@ -1,0 +1,25 @@
+[gd_scene format=3 uid="uid://bhomrweapn01"]
+
+[ext_resource type="Script" uid="uid://blelwbdlp43od" path="res://scripts/homer.gd" id="1_hscript"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_homer"]
+radius = 2.0
+
+[node name="Homer" type="Area2D" unique_id=300000001]
+script = ExtResource("1_hscript")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=300000002]
+shape = SubResource("CircleShape2D_homer")
+
+[node name="VisibleOnScreenNotifier2D" type="VisibleOnScreenNotifier2D" parent="." unique_id=300000003]
+
+[node name="Visual" type="Sprite2D" parent="." unique_id=300000004]
+
+[node name="Visual" type="Line2D" parent="Visual" unique_id=300000005]
+points = PackedVector2Array(5, 0, 4, 4, 0, 5, -4, 4, -5, 0, -4, -4, 0, -5, 4, -4, 5, 0)
+width = 2.0
+default_color = Color(0.79607844, 0, 0.20392157, 1)
+
+[connection signal="area_entered" from="." to="." method="_on_area_entered"]
+[connection signal="body_entered" from="." to="." method="_on_body_entered"]
+[connection signal="screen_exited" from="VisibleOnScreenNotifier2D" to="." method="_on_screen_exited"]

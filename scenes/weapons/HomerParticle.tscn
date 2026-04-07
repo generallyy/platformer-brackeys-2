@@ -1,0 +1,26 @@
+[gd_scene format=3 uid="uid://bhomrprtcl01"]
+
+[ext_resource type="Script" uid="uid://8pyb8w6ye5j8" path="res://scripts/homer_particle.gd" id="1_hpscript"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_hpart"]
+radius = 3.0
+
+[sub_resource type="Gradient" id="Gradient_trail"]
+colors = PackedColorArray(0.2, 0.85, 1, 0, 0.79607844, 0, 0.20392157, 1)
+
+[node name="HomerParticle" type="Area2D" unique_id=300100001]
+script = ExtResource("1_hpscript")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=300100002]
+shape = SubResource("CircleShape2D_hpart")
+
+[node name="VisibleOnScreenNotifier2D" type="VisibleOnScreenNotifier2D" parent="." unique_id=300100003]
+
+[node name="Dot" type="Polygon2D" parent="." unique_id=300100004]
+color = Color(0.7974846, 0, 0.20379385, 1)
+polygon = PackedVector2Array(-2, 0, 0, -2, 2, 0, 0, 2)
+
+[node name="Trail" type="Line2D" parent="." unique_id=300100005]
+top_level = true
+width = 1.5
+gradient = SubResource("Gradient_trail")
