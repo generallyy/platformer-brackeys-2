@@ -1,0 +1,40 @@
+[gd_scene format=3 uid="uid://r58dyaaue84q"]
+
+[ext_resource type="Script" uid="uid://dtfth0l3rcqxg" path="res://scripts/Door.gd" id="1_1ccb6"]
+[ext_resource type="Theme" uid="uid://swm642j7u26w" path="res://assets/fonts/pixel_theme.tres" id="2_omjrn"]
+
+[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_1ccb6"]
+load_path = "res://.godot/imported/lamp_post_final.png-da4f92d977958454049010375f595d32.ctex"
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_1ccb6"]
+size = Vector2(13, 19.5)
+
+[node name="Door" type="Area2D" unique_id=45088523]
+script = ExtResource("1_1ccb6")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=590088173]
+position = Vector2(-1.6666665, -22.876337)
+scale = Vector2(0.43333334, 0.3466112)
+texture = SubResource("CompressedTexture2D_1ccb6")
+offset = Vector2(5, 37)
+region_enabled = true
+region_rect = Rect2(84.82402, 133.33391, 30.933334, 58.708878)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1823448278]
+position = Vector2(0, -10)
+shape = SubResource("RectangleShape2D_1ccb6")
+
+[node name="PromptLabel" type="Label" parent="." unique_id=66439834]
+texture_filter = 1
+offset_left = -87.0
+offset_top = -36.0
+offset_right = 88.0
+offset_bottom = -13.0
+theme = ExtResource("2_omjrn")
+theme_override_font_sizes/font_size = 8
+text = "hello"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[connection signal="body_entered" from="." to="." method="_on_body_entered"]
+[connection signal="body_exited" from="." to="." method="_on_body_exited"]

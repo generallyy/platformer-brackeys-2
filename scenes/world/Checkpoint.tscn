@@ -1,28 +1,28 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene format=3 uid="uid://brcunvxow50lq"]
 
-[ext_resource type="Script" path="res://scripts/checkpoint.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://kujkwdktl066" path="res://scripts/checkpoint.gd" id="1_script"]
 [ext_resource type="Theme" uid="uid://swm642j7u26w" path="res://assets/fonts/pixel_theme.tres" id="2_theme"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_zone"]
 size = Vector2(24, 48)
 
-[node name="Checkpoint" type="Area2D"]
+[node name="Checkpoint" type="Area2D" unique_id=1127554574]
 script = ExtResource("1_script")
 
-[node name="Pole" type="Polygon2D" parent="."]
+[node name="Pole" type="Polygon2D" parent="." unique_id=1509744786]
 color = Color(0.4, 0.35, 0.3, 1)
 polygon = PackedVector2Array(-2, 0, 2, 0, 2, -34, -2, -34)
 
-[node name="Flag" type="Polygon2D" parent="."]
+[node name="Flag" type="Polygon2D" parent="." unique_id=1915287905]
 position = Vector2(2, -32)
 color = Color(0.95, 0.85, 0.2, 1)
 polygon = PackedVector2Array(0, 0, 16, 4, 0, 10)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=2106880590]
 position = Vector2(0, -20)
 shape = SubResource("RectangleShape2D_zone")
 
-[node name="PromptLabel" type="Label" parent="."]
+[node name="PromptLabel" type="Label" parent="." unique_id=1052958701]
 offset_left = -48.0
 offset_top = -66.0
 offset_right = 48.0

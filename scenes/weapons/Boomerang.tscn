@@ -19,7 +19,7 @@ shape = SubResource("RectangleShape2D_boom")
 position = Vector2(-6, 0)
 points = PackedVector2Array(0, -3, 6, 0, 12, -3)
 width = 3.0
-default_color = Color(0.1, 0.8, 0.7, 1)
+default_color = Color(0.97225934, 0.5662989, 0.46462673, 1)
 
 [connection signal="area_entered" from="." to="." method="_on_area_entered"]
 [connection signal="body_entered" from="." to="." method="_on_body_entered"]

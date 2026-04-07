@@ -468,11 +468,6 @@ gradient = SubResource("Gradient_ssbg5")
 fill = 1
 fill_from = Vector2(0.508547, 0.508547)
 
-[sub_resource type="LabelSettings" id="LabelSettings_1i7yg"]
-font = ExtResource("13_2ggwp")
-font_size = 32
-font_color = Color(0.913824, 0.623501, 0.573327, 1)
-
 [node name="Level0" type="Node2D" unique_id=2093286285]
 
 [node name="PlayerSpawn" type="Marker2D" parent="." unique_id=517972277]
@@ -480,10 +475,11 @@ position = Vector2(192, -10)
 
 [node name="TileMap" type="TileMap" parent="." unique_id=931298346]
 texture_filter = 1
+position = Vector2(-1, 0)
 tile_set = SubResource("TileSet_ttded")
 format = 2
 layer_0/name = "mid"
-layer_0/tile_data = PackedInt32Array(3, 0, 1, 4, 0, 1, 5, 0, 0, -65531, 0, 0, -65530, 0, 0, -65529, 0, 0, -65528, 0, 0, 9, 0, 0, 8, 0, 0, 7, 0, 0, 6, 0, 0, 10, 0, 0, 11, 0, 0, 12, 0, 0, 13, 0, 0, 14, 0, 0, 15, 0, 0, 16, 0, 0, 17, 0, 0, 65553, 0, 1, 65552, 0, 1, 65551, 0, 1, 65550, 0, 1, 65549, 0, 1, 65548, 0, 1, 65547, 0, 1, 65546, 0, 1, 65545, 0, 1, 65544, 0, 1, 65543, 0, 1, 65542, 0, 1, 65541, 0, 1, 65540, 0, 1, 65539, 0, 1, -196590, 0, 536870913, 18, 0, 1, -262126, 0, 536870913, -327662, 0, 536870913, -393198, 0, 536870913, -458734, 0, 536870913, -524270, 0, 536870913, -589806, 0, 536870913, 19, 0, 536870913, 20, 0, 536870913, 21, 458752, 0, 22, 458752, 0, 23, 458752, 0, 65556, 458752, 0, 65557, 458752, 0, 131093, 458752, 0, 65558, 458752, 0, 65555, 458752, 0, 131094, 458752, 0, 65559, 458752, 0, 65560, 458752, 0, 131096, 458752, 0, 65561, 458752, 0, 131097, 458752, 0, 131095, 458752, 0, 24, 458752, 0, 25, 458752, 0, 26, 458752, 0, 27, 458752, 0, 65563, 458752, 0, 65562, 458752, 0, 28, 458752, 0, 196632, 458752, 0, 196631, 458752, 0, 2, 0, 1, -327678, 0, 1, -393214, 0, 1, -458750, 0, 1, -524286, 0, 1, -589822, 0, 1, -655358, 0, 1, 65538, 0, 1, 131080, 0, 1, 131079, 0, 1, 131078, 0, 1, 131077, 0, 1, 131087, 0, 1, 131086, 0, 1, 131085, 0, 1, 131084, 0, 1, 131083, 0, 1, 131082, 0, 1, 131081, 0, 1, 131076, 0, 1, 196615, 0, 1, 196616, 0, 1, 196617, 0, 1, 196619, 0, 1, 196620, 0, 1, 196621, 0, 1, 196622, 0, 1, 196618, 0, 1, -655342, 0, 1, -917502, 0, 1, -983036, 0, 1, -983035, 0, 1, -1048569, 0, 1, -1114103, 0, 1, -1114101, 0, 1, -1048563, 0, 1, -983024, 0, 1, -917486, 0, 1, -851949, 0, 1, -786411, 0, 1, -720875, 0, 1, -720874, 0, 1, -589826, 0, 1, -589825, 0, 1, -655360, 0, 1, -851967, 0, 1, -655359, 0, 1, -851966, 0, 1, -917501, 0, 1, -655357, 0, 1, -917500, 0, 1, -655356, 0, 1, -917499, 0, 1, -655355, 0, 1, -983034, 0, 1, -655354, 0, 1, -983033, 0, 1, -1048568, 0, 1, -1048567, 0, 1, -1114102, 0, 1, -1048565, 0, 1, -1048564, 0, 1, -983027, 0, 1, -983026, 0, 1, -983025, 0, 1, -917488, 0, 1, -917487, 0, 1, -851950, 0, 1, -786413, 0, 1, -655341, 0, 1, -786412, 0, 1, -655340, 0, 1, -655339, 0, 1, -655338, 0, 1, -262163, 458752, 0, -262162, 458752, 0, -262165, 458752, 0, -262164, 458752, 0)
+layer_0/tile_data = PackedInt32Array(3, 0, 1, 4, 0, 1, 5, 0, 0, -65531, 0, 0, -65530, 0, 0, -65529, 0, 0, -65528, 0, 0, 9, 0, 0, 8, 0, 0, 7, 0, 0, 6, 0, 0, 10, 0, 0, 11, 0, 0, 12, 0, 0, 13, 0, 0, 14, 0, 0, 15, 0, 0, 16, 0, 0, 17, 0, 0, 65553, 0, 1, 65552, 0, 1, 65551, 0, 1, 65550, 0, 1, 65549, 0, 1, 65548, 0, 1, 65547, 0, 1, 65546, 0, 1, 65545, 0, 1, 65544, 0, 1, 65543, 0, 1, 65542, 0, 1, 65541, 0, 1, 65540, 0, 1, 65539, 0, 1, -196590, 0, 536870913, 18, 0, 1, -262126, 0, 536870913, -327662, 0, 536870913, -393198, 0, 536870913, -458734, 0, 536870913, -524270, 0, 536870913, -589806, 0, 536870913, 19, 0, 536870913, 20, 0, 536870913, 21, 458752, 0, 22, 458752, 0, 23, 458752, 0, 65556, 458752, 0, 65557, 458752, 0, 131093, 458752, 0, 65558, 458752, 0, 65555, 458752, 0, 131094, 458752, 0, 65559, 458752, 0, 65560, 458752, 0, 131096, 458752, 0, 65561, 458752, 0, 131097, 458752, 0, 131095, 458752, 0, 24, 458752, 0, 25, 458752, 0, 26, 458752, 0, 27, 458752, 0, 65563, 458752, 0, 65562, 458752, 0, 28, 458752, 0, 196632, 458752, 0, 196631, 458752, 0, 2, 0, 1, -327678, 0, 1, -393214, 0, 1, -458750, 0, 1, -524286, 0, 1, -589822, 0, 1, -655358, 0, 1, 65538, 0, 1, 131080, 0, 1, 131079, 0, 1, 131078, 0, 1, 131077, 0, 1, 131087, 0, 1, 131086, 0, 1, 131085, 0, 1, 131084, 0, 1, 131083, 0, 1, 131082, 0, 1, 131081, 0, 1, 131076, 0, 1, 196615, 0, 1, 196616, 0, 1, 196617, 0, 1, 196619, 0, 1, 196620, 0, 1, 196621, 0, 1, 196622, 0, 1, 196618, 0, 1, -655342, 0, 1, -917502, 0, 1, -983036, 0, 1, -983035, 0, 1, -1048569, 0, 1, -1114103, 0, 1, -1114101, 0, 1, -1048563, 0, 1, -983024, 0, 1, -917486, 0, 1, -851949, 0, 1, -786411, 0, 1, -720875, 0, 1, -720874, 0, 1, -589826, 0, 1, -589825, 0, 1, -655360, 0, 1, -851967, 0, 1, -655359, 0, 1, -851966, 0, 1, -917501, 0, 1, -655357, 0, 1, -917500, 0, 1, -655356, 0, 1, -917499, 0, 1, -655355, 0, 1, -983034, 0, 1, -655354, 0, 1, -983033, 0, 1, -1048568, 0, 1, -1048567, 0, 1, -1114102, 0, 1, -1048565, 0, 1, -1048564, 0, 1, -983027, 0, 1, -983026, 0, 1, -983025, 0, 1, -917488, 0, 1, -917487, 0, 1, -851950, 0, 1, -786413, 0, 1, -655341, 0, 1, -786412, 0, 1, -655340, 0, 1, -655339, 0, 1, -655338, 0, 1, -262163, 458752, 0, -262162, 458752, 0, -262165, 458752, 0, -262164, 458752, 0, 1, 0, 1, 0, 0, 1, 65535, 0, 1, 65534, 0, 1, 65533, 0, 1, 65532, 0, 1, 65531, 0, 1, 65530, 0, 1, 65529, 0, 1, 65528, 0, 1, 65525, 0, 1, 65526, 0, 1, 65527, 0, 1)
 layer_1/name = "background"
 layer_1/z_index = -2
 layer_1/tile_data = PackedInt32Array(-65514, 393216, 5, -65509, 393216, 5, -131050, 393216, 4, -196586, 393216, 4, -131045, 393216, 4, -196581, 393216, 4, -262122, 393216, 3, -262117, 393216, 3)
@@ -596,47 +592,16 @@ texture = ExtResource("9_b156j")
 region_enabled = true
 region_rect = Rect2(0, 0, 1800, 512)
 
-[node name="Platform" parent="." unique_id=1141192420 instance=ExtResource("9_s74l8")]
+[node name="Platforms" type="Node2D" parent="." unique_id=435369333]
+
+[node name="Platform" parent="Platforms" unique_id=1141192420 instance=ExtResource("9_s74l8")]
 position = Vector2(273, -129)
 
-[node name="Platform2" parent="." unique_id=127936963 instance=ExtResource("9_s74l8")]
+[node name="Platform2" parent="Platforms" unique_id=127936963 instance=ExtResource("9_s74l8")]
 position = Vector2(90, -55)
 
-[node name="Platform3" parent="." unique_id=1869830612 instance=ExtResource("9_s74l8")]
+[node name="Platform3" parent="Platforms" unique_id=1869830612 instance=ExtResource("9_s74l8")]
 position = Vector2(273, -33)
-
-[node name="WardrobePlatform1" parent="." unique_id=1252420102 instance=ExtResource("9_s74l8")]
-position = Vector2(-142, 8)
-
-[node name="WardrobePlatform2" parent="." unique_id=1252420103 instance=ExtResource("9_s74l8")]
-position = Vector2(-110, 8)
-
-[node name="WardrobePlatform3" parent="." unique_id=1252420104 instance=ExtResource("9_s74l8")]
-position = Vector2(-78, 8)
-
-[node name="WardrobeBridge1" parent="." unique_id=1252420105 instance=ExtResource("9_s74l8")]
-position = Vector2(-46, 8)
-
-[node name="WardrobeBridge2" parent="." unique_id=1252420106 instance=ExtResource("9_s74l8")]
-position = Vector2(-14, 8)
-
-[node name="WardrobeBridge3" parent="." unique_id=1252420107 instance=ExtResource("9_s74l8")]
-position = Vector2(18, 8)
-
-[node name="WardrobeBridge4" parent="." unique_id=1252420108 instance=ExtResource("9_s74l8")]
-position = Vector2(50, 8)
-
-[node name="WardrobeBridge5" parent="." unique_id=1252420109 instance=ExtResource("9_s74l8")]
-position = Vector2(82, 8)
-
-[node name="WardrobeBridge6" parent="." unique_id=1252420110 instance=ExtResource("9_s74l8")]
-position = Vector2(114, 8)
-
-[node name="WardrobeStep1" parent="." unique_id=1252420111 instance=ExtResource("9_s74l8")]
-position = Vector2(146, -8)
-
-[node name="WardrobeStep2" parent="." unique_id=1252420112 instance=ExtResource("9_s74l8")]
-position = Vector2(178, -24)
 
 [node name="LevelTransition" type="Area2D" parent="." unique_id=494563370]
 script = ExtResource("10_3wsgm")
@@ -657,7 +622,8 @@ offset_top = -143.0
 offset_right = 346.0
 offset_bottom = -108.0
 text = "Use Arrows, F, 
-and Space :D"
+and Space :D
+(tbh idk anymore)"
 label_settings = SubResource("LabelSettings_los8d")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=494210809]
@@ -675,28 +641,14 @@ range_z_max = 15
 texture = SubResource("GradientTexture2D_7o2uh")
 script = ExtResource("12_q2wfm")
 
-[node name="Label2" type="Label" parent="." unique_id=1252420099]
-visible = false
-texture_filter = 1
-offset_left = 207.0
-offset_top = -45.0
-offset_right = 247.0
-offset_bottom = -7.0
-text = "â†’"
-label_settings = SubResource("LabelSettings_1i7yg")
-
 [node name="Label3" type="Label" parent="." unique_id=1252420100]
-visible = false
 texture_filter = 1
-offset_left = -48.0
-offset_top = -48.0
-offset_right = 84.0
-offset_bottom = -20.0
+offset_left = -41.0
+offset_top = -45.0
+offset_right = 105.0
+offset_bottom = -17.0
 text = "wardrobe <-"
 label_settings = SubResource("LabelSettings_los8d")
-
-[node name="WardrobeZone" parent="." unique_id=1252420101 instance=ExtResource("14_wardrobe")]
-position = Vector2(-110, -1)
 
 [node name="Parallax-03" type="Sprite2D" parent="." unique_id=1370210090]
 position = Vector2(-347.5, 17)
@@ -704,5 +656,8 @@ scale = Vector2(1.68592, 0.871795)
 texture = ExtResource("8_ct2kw")
 region_enabled = true
 region_rect = Rect2(718, 320, 277, 39)
+
+[node name="WardrobeZone" parent="." unique_id=1252420101 instance=ExtResource("14_wardrobe")]
+position = Vector2(-110, -1)
 
 [connection signal="body_entered" from="LevelTransition" to="LevelTransition" method="_on_body_entered"]

@@ -5,4 +5,8 @@
 [node name="LevelTransition" type="Area2D" unique_id=1128739818]
 script = ExtResource("1_rg3br")
 
+[node name="PromptLabel" type="Label" parent="." unique_id=361261699]
+offset_right = 40.0
+offset_bottom = 23.0
+
 [connection signal="body_entered" from="." to="." method="_on_body_entered"]
