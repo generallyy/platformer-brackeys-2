@@ -14,7 +14,7 @@
 [ext_resource type="Texture2D" uid="uid://lijs37noiyl5" path="res://assets/sprites/lamp_post_final.png" id="11_gikfp"]
 [ext_resource type="Script" uid="uid://83nlb7ghun66" path="res://scripts/light.gd" id="12_q2wfm"]
 [ext_resource type="FontFile" uid="uid://dcpum57vlyv7c" path="res://assets/fonts/PixelOperator8.ttf" id="13_2ggwp"]
-[ext_resource type="PackedScene" path="res://scenes/world/WardrobeZone.tscn" id="14_wardrobe"]
+[ext_resource type="PackedScene" uid="uid://cshsgwdi7vy0x" path="res://scenes/world/WardrobeZone.tscn" id="14_wardrobe"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_q4vnh"]
 texture = ExtResource("1_s87cq")
@@ -640,6 +640,7 @@ position = Vector2(178, -24)
 
 [node name="LevelTransition" type="Area2D" parent="." unique_id=494563370]
 script = ExtResource("10_3wsgm")
+target_level_path = "uid://rb44y7hsn07a"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="LevelTransition" unique_id=1307556385]
 position = Vector2(400, -9)
@@ -705,5 +706,3 @@ region_enabled = true
 region_rect = Rect2(718, 320, 277, 39)
 
 [connection signal="body_entered" from="LevelTransition" to="LevelTransition" method="_on_body_entered"]
-
-
