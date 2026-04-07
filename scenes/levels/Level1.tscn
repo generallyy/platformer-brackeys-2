@@ -230,7 +230,7 @@ font = ExtResource("10_up73x")
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_bspq0"]
 size = Vector2(295, 20)
 
-[node name="Game" type="Node2D" unique_id=420162433]
+[node name="Level1" type="Node2D" unique_id=420162433]
 
 [node name="PlayerSpawn" type="Marker2D" parent="." unique_id=1576000477]
 position = Vector2(-20, -19)
