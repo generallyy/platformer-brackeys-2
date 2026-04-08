@@ -3,6 +3,7 @@ extends Node2D
 const PLAYER_SCENE = preload("res://scenes/characters/Player.tscn")
 
 var spawned_players: Dictionary = {}
+var _player_numbers: Dictionary = {}  # peer_id -> display number (1, 2, 3...)
 var current_level_path := "res://scenes/levels/Level0.tscn"
 var _respawn_points: Dictionary = {}
 var _wardrobe_player: Node = null
@@ -12,10 +13,14 @@ var _wardrobe_player: Node = null
 @onready var loading_screen = $LoadingScreen
 @onready var hud = $HUD
 @onready var wardrobe_menu = $WardrobeMenu
+@onready var game_mode = $GameMode
 
 func _ready() -> void:
 	pause_menu.visible = false
 	wardrobe_menu.visible = false
+	game_mode.round_started.connect(_on_round_started)
+	game_mode.round_ended.connect(_on_round_ended)
+	game_mode.game_over.connect(_on_game_over)
 	if NetworkManager.is_active():
 		multiplayer.peer_connected.connect(_on_peer_connected)
 		multiplayer.peer_disconnected.connect(_on_peer_disconnected)
@@ -60,9 +65,13 @@ func _rpc_despawn(peer_id: int):
 		spawned_players[peer_id].queue_free()
 		spawned_players.erase(peer_id)
 
+func get_player_number(peer_id: int) -> int:
+	return _player_numbers.get(peer_id, peer_id)
+
 func _spawn_player(peer_id: int):
 	if peer_id in spawned_players:
 		return
+	_player_numbers[peer_id] = _player_numbers.size() + 1
 	var p = PLAYER_SCENE.instantiate()
 	p.name = "Player_%d" % peer_id
 	p.set_multiplayer_authority(peer_id)
@@ -82,6 +91,19 @@ func _spawn_player(peer_id: int):
 		p.add_child(cam)
 		cam.make_current()
 		p.health_changed.connect(hud.update_hearts)
+
+func request_load_level(path: String) -> void:
+	if NetworkManager.is_active() and not multiplayer.is_server():
+		_req_load_level.rpc_id(1, path)
+		return
+	if NetworkManager.is_active():
+		load_level.rpc(path)
+	else:
+		await load_level(path)
+
+@rpc("any_peer", "reliable")
+func _req_load_level(path: String) -> void:
+	load_level.rpc(path)
 
 @rpc("authority", "call_local", "reliable")
 func load_level(path: String) -> void:
@@ -104,9 +126,11 @@ func _load_level_local(path: String) -> bool:
 	var spawn = _get_spawn()
 	if spawn == null:
 		push_error("No PlayerSpawn found in level: %s" % path)
+	var spawn_pos: Vector2 = spawn.global_position if spawn else Vector2.ZERO
+	var idx := 0
 	for p in spawned_players.values():
 		if spawn:
-			p.global_position = spawn.global_position
+			p.global_position = spawn_pos + _spawn_offset(idx)
 			p.set_physics_process(true)
 		else:
 			p.set_physics_process(false)
@@ -114,8 +138,11 @@ func _load_level_local(path: String) -> bool:
 		var cam = p.get_node_or_null("Camera2D")
 		if cam:
 			cam.reset_smoothing()
+		idx += 1
 	await get_tree().create_timer(0.5).timeout
 	loading_screen.visible = false
+	if not NetworkManager.is_active() or multiplayer.is_server():
+		game_mode.start_game()
 	return true
 
 func _get_spawn():
@@ -200,6 +227,57 @@ func _apply_player_outfit(peer_id: int, outfit_id: int) -> void:
 func _sync_player_outfit(peer_id: int, outfit_id: int) -> void:
 	if peer_id in spawned_players:
 		spawned_players[peer_id].set_outfit_from_sync(outfit_id)
+
+func goal_reached(peer_id: int) -> void:
+	if NetworkManager.is_active() and not multiplayer.is_server():
+		_req_goal_reached.rpc_id(1, peer_id)
+		return
+	game_mode.goal_reached(peer_id)
+
+@rpc("any_peer", "reliable")
+func _req_goal_reached(peer_id: int) -> void:
+	if multiplayer.get_remote_sender_id() != peer_id:
+		return
+	game_mode.goal_reached(peer_id)
+
+func respawn_all_at_spawn() -> void:
+	_respawn_points.clear()
+	var spawn: Marker2D = _get_spawn()
+	var pos: Vector2 = spawn.global_position if spawn else Vector2.ZERO
+	if NetworkManager.is_active():
+		_sync_respawn_all.rpc(pos)
+	else:
+		_sync_respawn_all(pos)
+
+@rpc("authority", "call_local", "reliable")
+func _sync_respawn_all(pos: Vector2) -> void:
+	var idx := 0
+	for p in spawned_players.values():
+		p.global_position = pos + _spawn_offset(idx)
+		p.velocity = Vector2.ZERO
+		p.health = p.MAX_HEALTH
+		p.health_changed.emit(p.health)
+		p.set_physics_process(true)
+		p.show()
+		idx += 1
+	if level_container.get_child_count() > 0:
+		var goal = level_container.get_child(0).get_node_or_null("GoalZone")
+		if goal:
+			goal.reset_for_new_round()
+
+func _on_round_started(round_number: int) -> void:
+	hud.show_announcement("GO!" if round_number == 1 else "Round %d — GO!" % round_number)
+
+func _on_round_ended(scorer_peer_id: int, scores: Dictionary) -> void:
+	hud.update_scores(scores, _player_numbers)
+	hud.show_announcement("Player %d scored!  [%d / %d]" % [get_player_number(scorer_peer_id), scores[scorer_peer_id], game_mode.POINTS_TO_WIN])
+
+func _on_game_over(winner_peer_id: int, scores: Dictionary) -> void:
+	hud.update_scores(scores, _player_numbers)
+	hud.show_announcement("Player %d wins!" % get_player_number(winner_peer_id), 0.0)
+
+func _spawn_offset(index: int) -> Vector2:
+	return Vector2(0, -index * 20)
 
 func free_children(node: Node):
 	for child in node.get_children():

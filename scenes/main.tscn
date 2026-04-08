@@ -5,6 +5,7 @@
 [ext_resource type="Script" uid="uid://cbcey5h2tbcht" path="res://scripts/PauseMenu.gd" id="3_7frdm"]
 [ext_resource type="SystemFont" uid="uid://crymavm3yupm0" path="res://scenes/ui/Font.tres" id="3_xxodx"]
 [ext_resource type="Script" uid="uid://dvcw37gjvs81r" path="res://scripts/HUD.gd" id="8_hudsc"]
+[ext_resource type="Script" path="res://scripts/game_mode.gd" id="9_gamemd"]
 
 [sub_resource type="Theme" id="Theme_27rqe"]
 default_font = ExtResource("3_xxodx")
@@ -35,13 +36,14 @@ default_font_size = 80
 texture_filter = 1
 script = ExtResource("1_exn86")
 
+[node name="GameMode" type="Node" parent="." unique_id=1000000099]
+script = ExtResource("9_gamemd")
+
 [node name="LevelContainer" type="Node2D" parent="." unique_id=2078966969]
 z_index = -115
 
 [node name="HUD" type="CanvasLayer" parent="." unique_id=1023307081]
 script = ExtResource("8_hudsc")
-
-[node name="WardrobeMenu" parent="." unique_id=2125863574 instance=ExtResource("2_wardrobe")]
 
 [node name="PauseMenu" type="CanvasLayer" parent="." unique_id=1678797512]
 process_mode = 3
@@ -107,6 +109,8 @@ size_flags_horizontal = 3
 size_flags_vertical = 1
 min_value = -40.0
 max_value = 0.0
+
+[node name="WardrobeMenu" parent="." unique_id=2125863574 instance=ExtResource("2_wardrobe")]
 
 [node name="LoadingScreen" type="CanvasLayer" parent="." unique_id=2092700025]
 visible = false

@@ -16,6 +16,7 @@
 [ext_resource type="FontFile" uid="uid://dcpum57vlyv7c" path="res://assets/fonts/PixelOperator8.ttf" id="13_2ggwp"]
 [ext_resource type="PackedScene" uid="uid://cshsgwdi7vy0x" path="res://scenes/world/WardrobeZone.tscn" id="14_wardrobe"]
 [ext_resource type="PackedScene" uid="uid://drj4jecr8s6x8" path="res://scenes/world/Box.tscn" id="15_auvjl"]
+[ext_resource type="PackedScene" path="res://scenes/world/GoalZone.tscn" id="16_goalzn"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_q4vnh"]
 texture = ExtResource("1_s87cq")
@@ -666,5 +667,8 @@ region_rect = Rect2(718, 320, 277, 39)
 
 [node name="WardrobeZone" parent="." unique_id=1252420101 instance=ExtResource("14_wardrobe")]
 position = Vector2(-106, -9)
+
+[node name="GoalZone" parent="." unique_id=1000000010 instance=ExtResource("16_goalzn")]
+position = Vector2(274, -46)
 
 [connection signal="body_entered" from="LevelTransition" to="LevelTransition" method="_on_body_entered"]
