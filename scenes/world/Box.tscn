@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://drj4jecr8s6x8"]
 
 [ext_resource type="Texture2D" uid="uid://ph2eo4oneqcc" path="res://icon.svg" id="1_1h214"]
-[ext_resource type="Script" uid="uid://cr10vufbjiasv" path="res://scenes/world/Box.gd" id="1_mwvjj"]
+[ext_resource type="Script" uid="uid://cr10vufbjiasv" path="res://scripts/Box.gd" id="1_mwvjj"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_nfa14"]
 

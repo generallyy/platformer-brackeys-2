@@ -80,8 +80,6 @@ func _on_area_entered(area: Area2D) -> void:
 		area.get_parent().take_damage(damage)
 		_on_hit_character(area.get_parent())
 
-func _on_screen_exited() -> void:
-	_despawn()
 
 func _despawn() -> void:
 	if not _active:

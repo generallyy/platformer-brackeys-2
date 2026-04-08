@@ -1,11 +1,13 @@
-[gd_scene format=3 uid="uid://d15xchk33ihme"]
+[gd_scene format=3 uid="uid://djmyjt6r4opt4"]
 
-[ext_resource type="Texture2D" uid="uid://de6fdtyglanjq" path="res://assets/sprites/world_tileset.png" id="1_uw6xe"]
-[ext_resource type="PackedScene" uid="uid://bkev11l1s8t2u" path="res://scenes/world/killzone.tscn" id="2_oblk4"]
-[ext_resource type="PackedScene" uid="uid://r58dyaaue84q" path="res://scenes/world/Door.tscn" id="3_a3cud"]
+[ext_resource type="Texture2D" uid="uid://de6fdtyglanjq" path="res://assets/sprites/world_tileset.png" id="1_ovtbk"]
+[ext_resource type="PackedScene" uid="uid://bkev11l1s8t2u" path="res://scenes/world/killzone.tscn" id="2_j0i6o"]
+[ext_resource type="PackedScene" uid="uid://c7k0nwhuq35hj" path="res://scenes/world/GoalZone.tscn" id="3_j0i6o"]
+[ext_resource type="PackedScene" uid="uid://r58dyaaue84q" path="res://scenes/world/Door.tscn" id="4_3x7br"]
+[ext_resource type="PackedScene" uid="uid://dl2oximo51wsm" path="res://scenes/ui/LevelSettings.tscn" id="5_0w6la"]
 
-[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_a3cud"]
-texture = ExtResource("1_uw6xe")
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_vea18"]
+texture = ExtResource("1_ovtbk")
 0:0/0 = 0
 0:0/0/physics_layer_0/polygon_0/points = PackedVector2Array(-8, -8, 8, -8, 8, 8, -8, 8)
 1:0/0 = 0
@@ -164,29 +166,36 @@ texture = ExtResource("1_uw6xe")
 5:4/0 = 0
 5:5/0 = 0
 
-[sub_resource type="TileSet" id="TileSet_a3cud"]
+[sub_resource type="TileSet" id="TileSet_3x7br"]
 physics_layer_0/collision_layer = 1
-sources/0 = SubResource("TileSetAtlasSource_a3cud")
+sources/0 = SubResource("TileSetAtlasSource_vea18")
 
-[sub_resource type="WorldBoundaryShape2D" id="WorldBoundaryShape2D_a3cud"]
+[sub_resource type="WorldBoundaryShape2D" id="WorldBoundaryShape2D_0w6la"]
 
-[node name="Level2" type="Node2D" unique_id=2065984965]
+[node name="Map1" type="Node2D" unique_id=679177179]
 
-[node name="PlayerSpawn" type="Marker2D" parent="." unique_id=2062548546]
-position = Vector2(0, -62)
-
-[node name="TileMap" type="TileMap" parent="." unique_id=2121979546]
+[node name="TileMap" type="TileMap" parent="." unique_id=1613549162]
 texture_filter = 1
-tile_set = SubResource("TileSet_a3cud")
+tile_set = SubResource("TileSet_3x7br")
 format = 2
-layer_0/tile_data = PackedInt32Array(65527, 393216, 1, 65528, 393216, 1, 65529, 393216, 1, 65530, 393216, 1, 65531, 393216, 1, 65532, 393216, 1, 65533, 524288, 0, 65534, 393216, 1, 65535, 393216, 1, 0, 524288, 0, 1, 524288, 0, 2, 393216, 1, 3, 393216, 1, 4, 393216, 1, 5, 393216, 1, 6, 393216, 1, 7, 524288, 1, 8, 524288, 0, 9, 524288, 0, 65526, 393216, 1, 131063, 393216, 1, 131064, 393216, 1, 131065, 393216, 1, 131066, 524288, 1, 131067, 524288, 0, 131068, 524288, 0, 131069, 524288, 0, 131070, 393216, 1, 131071, 393216, 1, 65536, 393216, 1, 65537, 393216, 1, 65538, 524288, 0, 65539, 393216, 1, 65540, 393216, 1, 65541, 393216, 1, 65542, 524288, 1, 65543, 524288, 0, 65544, 524288, 0, 196601, 393216, 1, 196602, 393216, 1, 196603, 393216, 1, 196604, 524288, 1, 196605, 393216, 1, 196606, 524288, 1, 196607, 524288, 0, 131072, 393216, 1, 131073, 393216, 1, 131074, 524288, 1, 131075, 393216, 1, 131076, 393216, 1, 131077, 524288, 1, 131078, 524288, 0, 262139, 393216, 1, 262140, 393216, 1, 262141, 393216, 1, 262142, 524288, 1, 262143, 393216, 1, 196608, 393216, 1, 196609, 524288, 1, 196610, 524288, 0, 196611, 524288, 0, 196612, 393216, 1, 327678, 393216, 1, 327679, 393216, 1, 262144, 393216, 1, 262145, 393216, 1)
+layer_0/tile_data = PackedInt32Array(65534, 0, 0, 65535, 0, 0, 0, 0, 0, 1, 0, 0, 2, 0, 0, 3, 0, 0, 65533, 0, 0, 65532, 0, 0, 65531, 0, 0, 65530, 0, 0, 28, 458752, 1, 29, 458752, 1, 65564, 458752, 536870912, 65565, 458752, 536870912, 65566, 458752, 536870912, 30, 458752, 0, 31, 458752, 0, 32, 458752, 0, 65567, 458752, 536870912, 33, 458752, 0, -393181, 458752, 0, -393180, 458752, 0, -393179, 458752, 0, -196564, 458752, 0, -196563, 458752, 0, -196562, 458752, 0, 12, 0, 0, 13, 0, 0, 14, 0, 0, -65521, 0, 0, -65520, 0, 0, 15, 0, 0, -131056, 0, 0, 27, 458752, 1, -7, 0, 0, 65529, 0, 1, 131065, 65536, 0, 131066, 65536, 0, 131067, 65536, 0, 131068, 65536, 0, 131069, 65536, 0, 131070, 65536, 0, 131071, 65536, 0, 65536, 65536, 0, 65537, 65536, 0, 65538, 65536, 0, 131074, 65536, 0, 131073, 65536, 0, 131072, 65536, 0, 196607, 65536, 0, 196606, 65536, 0, 196605, 65536, 0, 196604, 65536, 0, 196603, 65536, 0, 196602, 65536, 0, 262138, 65536, 0, 262137, 65536, 0, 196601, 65536, 0, 131064, 65536, 0, 65528, 65536, 0, 196600, 65536, 0)
 
-[node name="Killzone" parent="." unique_id=1401148875 instance=ExtResource("2_oblk4")]
+[node name="PlayerSpawn" type="Marker2D" parent="." unique_id=2030405420]
+position = Vector2(-57, -46)
+
+[node name="Killzone" parent="." unique_id=2105252087 instance=ExtResource("2_j0i6o")]
 position = Vector2(1, 102)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Killzone" unique_id=1826588811]
-shape = SubResource("WorldBoundaryShape2D_a3cud")
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Killzone" unique_id=1615329084]
+position = Vector2(-1, -16)
+shape = SubResource("WorldBoundaryShape2D_0w6la")
 
-[node name="Door" parent="." unique_id=45088523 instance=ExtResource("3_a3cud")]
-position = Vector2(152, 1)
+[node name="GoalZone" parent="." unique_id=1000000001 instance=ExtResource("3_j0i6o")]
+position = Vector2(729, -52)
+
+[node name="Door" parent="." unique_id=45088523 instance=ExtResource("4_3x7br")]
+position = Vector2(-87, 0)
 target_level_path = "uid://dedncck66f1ak"
+
+[node name="LevelSettings" parent="." unique_id=853737155 instance=ExtResource("5_0w6la")]
+round_time_limit = 30.0

@@ -506,8 +506,18 @@ func update_air_boost(delta):
 			is_boosting = false
 			#velocity.x -= facing_direction * BOOST_SPEED
 
+func set_finished(finished: bool) -> void:
+	if NetworkManager.is_active():
+		_rpc_set_finished.rpc(finished)
+	else:
+		_rpc_set_finished(finished)
+
+@rpc("any_peer", "call_local", "reliable")
+func _rpc_set_finished(finished: bool) -> void:
+	$CollisionShape2D.set_deferred("disabled", finished)
+
 func start_freeze(duration: float):
-	is_frozen = true
+	is_frozen = true 
 	freeze_timer = duration
 	#velocity = Vector2.ZERO  # lock player instantly
 

@@ -32,10 +32,6 @@ corner_radius_bottom_left = 50
 default_font = ExtResource("3_xxodx")
 default_font_size = 50
 
-[sub_resource type="Theme" id="Theme_85g3d"]
-default_font = ExtResource("3_xxodx")
-default_font_size = 30
-
 [sub_resource type="Theme" id="Theme_27rqe"]
 default_font = ExtResource("3_xxodx")
 default_font_size = 40
@@ -117,19 +113,6 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_tefeu")
 layout_mode = 2
 theme = SubResource("Theme_tipki")
 horizontal_alignment = 1
-
-[node name="Time" type="PanelContainer" parent="HUD" unique_id=843018957]
-offset_left = 991.0
-offset_top = 20.0
-offset_right = 1129.0
-offset_bottom = 84.0
-theme = SubResource("Theme_85g3d")
-
-[node name="Label" type="Label" parent="HUD/Time" unique_id=170116207]
-layout_mode = 2
-text = "hello guys"
-horizontal_alignment = 1
-vertical_alignment = 1
 
 [node name="PauseMenu" type="CanvasLayer" parent="." unique_id=1678797512]
 process_mode = 3

@@ -10,6 +10,9 @@ default_base_scale = 30.0
 default_font = SubResource("1")
 default_font_size = 70
 
+[sub_resource type="Theme" id="Theme_3dmo6"]
+default_font_size = 50
+
 [node name="LobbyScreen" type="Control" unique_id=214852882]
 layout_mode = 3
 anchors_preset = 15
@@ -30,11 +33,12 @@ grow_vertical = 2
 
 [node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer" unique_id=2140461876]
 layout_mode = 2
+theme = SubResource("Theme_3dmo6")
 theme_override_constants/separation = 10
 
 [node name="TitleLabel" type="Label" parent="CenterContainer/VBoxContainer" unique_id=1304717314]
 layout_mode = 2
-text = "MULTIPLAYER"
+text = "~~~MULTIPLAYER~~~"
 horizontal_alignment = 1
 
 [node name="HostButton" type="Button" parent="CenterContainer/VBoxContainer" unique_id=1309813484]
@@ -43,7 +47,9 @@ text = "HOST"
 
 [node name="AddressInput" type="LineEdit" parent="CenterContainer/VBoxContainer" unique_id=1638241316]
 layout_mode = 2
+text = "11557"
 placeholder_text = "5-digit tunnel number"
+alignment = 1
 
 [node name="JoinButton" type="Button" parent="CenterContainer/VBoxContainer" unique_id=1338700137]
 layout_mode = 2

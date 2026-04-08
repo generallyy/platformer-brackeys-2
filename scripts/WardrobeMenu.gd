@@ -22,6 +22,11 @@ func open_for_player(player: Node) -> void:
 	visible = true
 	_focus_equipped_button()
 
+func _unhandled_input(event: InputEvent) -> void:
+	if visible and event.is_action_pressed("ui_cancel"):
+		get_tree().get_root().get_node("Main").close_wardrobe()
+		get_viewport().set_input_as_handled()
+
 func close_menu() -> void:
 	visible = false
 	_player = null
