@@ -47,7 +47,9 @@ text = "HOST"
 
 [node name="AddressInput" type="LineEdit" parent="CenterContainer/VBoxContainer" unique_id=1638241316]
 layout_mode = 2
+text = "11557"
 placeholder_text = "5-digit tunnel number"
+alignment = 1
 
 [node name="JoinButton" type="Button" parent="CenterContainer/VBoxContainer" unique_id=1338700137]
 layout_mode = 2

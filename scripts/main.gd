@@ -141,8 +141,10 @@ func _load_level_local(path: String) -> bool:
 		idx += 1
 	await get_tree().create_timer(0.5).timeout
 	loading_screen.visible = false
-	if not NetworkManager.is_active() or multiplayer.is_server():
-		game_mode.start_game()
+	var settings := level_container.get_child(0).get_node_or_null("LevelSettings")
+	if settings and settings.game_mode_enabled:
+		if not NetworkManager.is_active() or multiplayer.is_server():
+			game_mode.start_game()
 	return true
 
 func _get_spawn():

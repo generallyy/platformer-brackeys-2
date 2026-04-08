@@ -5,7 +5,7 @@
 [ext_resource type="Script" uid="uid://cbcey5h2tbcht" path="res://scripts/PauseMenu.gd" id="3_7frdm"]
 [ext_resource type="SystemFont" uid="uid://crymavm3yupm0" path="res://scenes/ui/Font.tres" id="3_xxodx"]
 [ext_resource type="Script" uid="uid://dvcw37gjvs81r" path="res://scripts/HUD.gd" id="8_hudsc"]
-[ext_resource type="Script" path="res://scripts/game_mode.gd" id="9_gamemd"]
+[ext_resource type="Script" uid="uid://b8u5llodnp4b0" path="res://scripts/game_mode.gd" id="9_gamemd"]
 
 [sub_resource type="Theme" id="Theme_27rqe"]
 default_font = ExtResource("3_xxodx")
@@ -109,6 +109,7 @@ size_flags_horizontal = 3
 size_flags_vertical = 1
 min_value = -40.0
 max_value = 0.0
+value = -40.0
 
 [node name="WardrobeMenu" parent="." unique_id=2125863574 instance=ExtResource("2_wardrobe")]
 

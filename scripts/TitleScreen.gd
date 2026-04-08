@@ -2,6 +2,7 @@ extends Control
 
 func _ready():
 	$CenterContainer/VBoxContainer/HBoxContainer/StartButton.grab_focus()  # set default button on menu open
+	AudioServer.set_bus_volume_db(0, -90)
 
 func _input(event):
 	if event.is_action_pressed("submit"):

@@ -5,6 +5,7 @@ const INTERMISSION_DURATION := 3.0
 
 enum State { INACTIVE, PLAYING, INTERMISSION, GAME_OVER }
 
+# signals connect to main.gd's _ready
 signal round_started(round_number: int)
 signal round_ended(scorer_peer_id: int, scores: Dictionary)
 signal game_over(winner_peer_id: int, scores: Dictionary)
@@ -15,12 +16,18 @@ var scores: Dictionary = {}
 var round_number: int = 0
 var _round_active := false
 
+"""
+	Syncs round state.
+"""
 func _broadcast(new_state: int, new_scores: Dictionary, round_num: int, event_peer_id: int) -> void:
 	if NetworkManager.is_active():
 		_sync_round_state.rpc(new_state, new_scores, round_num, event_peer_id)
 	else:
 		_sync_round_state(new_state, new_scores, round_num, event_peer_id)
 
+"""
+	Sets round number to 1 and sets everyone's scores to 0.
+"""
 func start_game() -> void:
 	scores.clear()
 	for peer_id in get_parent().spawned_players:
@@ -28,6 +35,10 @@ func start_game() -> void:
 	round_number = 1
 	_broadcast(State.PLAYING, scores, round_number, -1)
 
+"""
+	If a single player has reached the goal. Increment score for the winner.
+	Also starts the intermission.
+"""
 func goal_reached(peer_id: int) -> void:
 	if not _round_active:
 		return

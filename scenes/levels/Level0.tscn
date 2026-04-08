@@ -16,7 +16,8 @@
 [ext_resource type="FontFile" uid="uid://dcpum57vlyv7c" path="res://assets/fonts/PixelOperator8.ttf" id="13_2ggwp"]
 [ext_resource type="PackedScene" uid="uid://cshsgwdi7vy0x" path="res://scenes/world/WardrobeZone.tscn" id="14_wardrobe"]
 [ext_resource type="PackedScene" uid="uid://drj4jecr8s6x8" path="res://scenes/world/Box.tscn" id="15_auvjl"]
-[ext_resource type="PackedScene" path="res://scenes/world/GoalZone.tscn" id="16_goalzn"]
+[ext_resource type="PackedScene" uid="uid://c7k0nwhuq35hj" path="res://scenes/world/GoalZone.tscn" id="16_goalzn"]
+[ext_resource type="PackedScene" uid="uid://dl2oximo51wsm" path="res://scenes/ui/LevelSettings.tscn" id="18_nx170"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_q4vnh"]
 texture = ExtResource("1_s87cq")
@@ -647,7 +648,7 @@ script = ExtResource("12_q2wfm")
 position = Vector2(29, -31)
 
 [node name="Box2" parent="." unique_id=1335171086 instance=ExtResource("15_auvjl")]
-position = Vector2(153, -25)
+position = Vector2(-7, -114)
 
 [node name="Label3" type="Label" parent="." unique_id=1252420100]
 texture_filter = 1
@@ -670,5 +671,7 @@ position = Vector2(-106, -9)
 
 [node name="GoalZone" parent="." unique_id=1000000010 instance=ExtResource("16_goalzn")]
 position = Vector2(274, -46)
+
+[node name="LevelSettings" parent="." unique_id=853737155 instance=ExtResource("18_nx170")]
 
 [connection signal="body_entered" from="LevelTransition" to="LevelTransition" method="_on_body_entered"]

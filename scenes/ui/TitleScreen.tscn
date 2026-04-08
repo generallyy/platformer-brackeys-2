@@ -1,6 +1,6 @@
-[gd_scene load_steps=6 format=3 uid="uid://cj5vyt4vlebcj"]
+[gd_scene format=3 uid="uid://cj5vyt4vlebcj"]
 
-[ext_resource type="Script" path="res://scripts/TitleScreen.gd" id="1_50mnq"]
+[ext_resource type="Script" uid="uid://c868l1sgn2hs5" path="res://scripts/TitleScreen.gd" id="1_50mnq"]
 
 [sub_resource type="SystemFont" id="SystemFont_rhv14"]
 font_names = PackedStringArray("Andale Mono")
@@ -19,7 +19,7 @@ font_size = 120
 outline_size = 50
 outline_color = Color(0, 0, 0, 1)
 
-[node name="TitleScreen" type="Control"]
+[node name="TitleScreen" type="Control" unique_id=55982476]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -29,7 +29,7 @@ grow_vertical = 2
 theme = SubResource("Theme_4jap7")
 script = ExtResource("1_50mnq")
 
-[node name="CenterContainer" type="CenterContainer" parent="."]
+[node name="CenterContainer" type="CenterContainer" parent="." unique_id=1031410402]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -37,10 +37,10 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer" unique_id=1358289959]
 layout_mode = 2
 
-[node name="GameTitle" type="Label" parent="CenterContainer/VBoxContainer"]
+[node name="GameTitle" type="Label" parent="CenterContainer/VBoxContainer" unique_id=1028388026]
 texture_filter = 1
 texture_repeat = 2
 layout_mode = 2
@@ -48,16 +48,16 @@ text = "BRACKEYS-2"
 label_settings = SubResource("LabelSettings_gnf2o")
 horizontal_alignment = 1
 
-[node name="HBoxContainer" type="HBoxContainer" parent="CenterContainer/VBoxContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="CenterContainer/VBoxContainer" unique_id=1928124178]
 layout_mode = 2
 alignment = 1
 
-[node name="StartButton" type="Button" parent="CenterContainer/VBoxContainer/HBoxContainer"]
+[node name="StartButton" type="Button" parent="CenterContainer/VBoxContainer/HBoxContainer" unique_id=1200233863]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "START"
 
-[node name="QuitButton" type="Button" parent="CenterContainer/VBoxContainer/HBoxContainer"]
+[node name="QuitButton" type="Button" parent="CenterContainer/VBoxContainer/HBoxContainer" unique_id=1442321513]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "QUIT"
