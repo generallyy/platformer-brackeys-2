@@ -35,13 +35,19 @@ func _process(_delta: float) -> void:
 		$PromptLabel.text = "Equipped!"
 		_show_equipped_flash()
 
+func _get_interact_key() -> String:
+	for e in InputMap.action_get_events("interact"):
+		if e is InputEventKey:
+			return OS.get_keycode_string(e.physical_keycode)
+	return "?"
+
 func _on_body_entered(body: Node2D) -> void:
 	if not body.is_in_group("player"):
 		return
 	if NetworkManager.is_active() and not body.is_multiplayer_authority():
 		return
 	_player_nearby = body
-	$PromptLabel.text = "C — Equip"
+	$PromptLabel.text = "%s — Equip" % _get_interact_key()
 	$PromptLabel.visible = true
 
 func _on_body_exited(body: Node2D) -> void:
@@ -52,6 +58,6 @@ func _on_body_exited(body: Node2D) -> void:
 func _show_equipped_flash() -> void:
 	await get_tree().create_timer(0.8).timeout
 	if _player_nearby:
-		$PromptLabel.text = "C — Equip"
+		$PromptLabel.text = "%s — Equip" % _get_interact_key()
 	else:
 		$PromptLabel.visible = false

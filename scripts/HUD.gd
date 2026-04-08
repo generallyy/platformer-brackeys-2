@@ -1,49 +1,42 @@
 extends CanvasLayer
 
-const ANNOUNCEMENT_DURATION := 2.5
+const ANNOUNCEMENT_DURATION := 1
 
-var _hearts: Array = []
-var _score_row: HBoxContainer
+var _score_row: VBoxContainer
 var _announcement_label: Label
 var _announcement_timer := 0.0
+var _time_label: Label
+var _game_mode: Node = null
 
 func _ready() -> void:
-	# Hearts (top-left)
-	var hbox := HBoxContainer.new()
-	hbox.position = Vector2(16, 16)
-	add_child(hbox)
-	for i in 3:
-		var lbl := Label.new()
-		lbl.text = "♥"
-		lbl.add_theme_font_size_override("font_size", 32)
-		_hearts.append(lbl)
-		hbox.add_child(lbl)
-
-	# Score row (top-right)
-	_score_row = HBoxContainer.new()
-	_score_row.anchor_left = 1.0
-	_score_row.anchor_right = 1.0
-	_score_row.grow_horizontal = Control.GROW_DIRECTION_BEGIN
-	_score_row.position = Vector2(-16, 16)
-	add_child(_score_row)
-
-	# Announcement label (center)
-	_announcement_label = Label.new()
-	_announcement_label.set_anchors_preset(Control.PRESET_CENTER)
-	_announcement_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_announcement_label.add_theme_font_size_override("font_size", 48)
-	_announcement_label.visible = false
-	add_child(_announcement_label)
+	$Hearts/Label.text = "♥♥♥"
+	_score_row = $Scores
+	_announcement_label = $Announcement/PanelContainer/Announce
+	$Announcement/PanelContainer.visible = false
+	_time_label = $Time/Label
+	$Time.visible = false
 
 func _process(delta: float) -> void:
 	if _announcement_timer > 0.0:
 		_announcement_timer -= delta
 		if _announcement_timer <= 0.0:
-			_announcement_label.visible = false
+			$Announcement/PanelContainer.visible = false
+
+	if _game_mode and _game_mode._round_active:
+		$Time.visible = true
+		_time_label.text = "%.2f" % _game_mode._time_remaining
+	else:
+		$Time.visible = false
+
+func set_game_mode(gm: Node) -> void:
+	_game_mode = gm
+
 
 func update_hearts(current: int) -> void:
-	for i in _hearts.size():
-		_hearts[i].text = "♥" if i < current else "♡"
+	var text := ""
+	for i in 3:
+		text += "♥" if i < current else "♡"
+	$Hearts/Label.text = text
 
 func update_scores(scores: Dictionary, player_numbers: Dictionary = {}) -> void:
 	for child in _score_row.get_children():
@@ -57,5 +50,6 @@ func update_scores(scores: Dictionary, player_numbers: Dictionary = {}) -> void:
 
 func show_announcement(text: String, duration: float = ANNOUNCEMENT_DURATION) -> void:
 	_announcement_label.text = text
-	_announcement_label.visible = true
-	_announcement_timer = duration  # 0.0 = stays until next call
+	#_announcement_label.visible = true
+	$Announcement/PanelContainer.visible = true
+	_announcement_timer = duration

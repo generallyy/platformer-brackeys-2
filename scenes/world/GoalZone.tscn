@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://c7k0nwhuq35hj"]
 
-[ext_resource type="Script" uid="uid://62cb54d268c64" path="res://scripts/goal_zone.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://42dgn02omc40" path="res://scripts/goal_zone.gd" id="1_script"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_zone"]
 size = Vector2(24, 48)
@@ -14,7 +14,7 @@ polygon = PackedVector2Array(-2, 0, 2, 0, 2, -34, -2, -34)
 
 [node name="Flag" type="Polygon2D" parent="." unique_id=1000000003]
 position = Vector2(2, -32)
-color = Color(1.0, 0.8, 0.0, 1)
+color = Color(1, 0.8, 0, 1)
 polygon = PackedVector2Array(0, 0, 16, 4, 0, 10)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1000000004]
@@ -28,3 +28,5 @@ offset_right = 48.0
 offset_bottom = -43.0
 text = "GOAL"
 horizontal_alignment = 1
+
+[connection signal="body_entered" from="." to="." method="_on_body_entered"]

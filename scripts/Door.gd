@@ -25,6 +25,12 @@ func _process(_delta: float) -> void:
 		_triggered = true
 		get_tree().get_root().get_node("Main").request_load_level(target_level_path)
 
+func _get_interact_key() -> String:
+	for e in InputMap.action_get_events("interact"):
+		if e is InputEventKey:
+			return OS.get_keycode_string(e.physical_keycode)
+	return "?"
+
 func _on_body_entered(body: Node2D) -> void:
 	if not body.is_in_group("player"):
 		return
@@ -37,7 +43,8 @@ func _on_body_entered(body: Node2D) -> void:
 			var id = ResourceUID.text_to_id(actual_path)
 			# 2. Get the "res://" path from that ID
 			actual_path = ResourceUID.get_id_path(id)
-	$PromptLabel.text = "C — Go to " + actual_path.get_file().get_basename() + "!"
+	var key := _get_interact_key()
+	$PromptLabel.text = "%s — Go to %s!" % [key, actual_path.get_file().get_basename()]
 	$PromptLabel.visible = true
 
 func _on_body_exited(body: Node2D) -> void:
