@@ -15,6 +15,7 @@
 [ext_resource type="Script" uid="uid://83nlb7ghun66" path="res://scripts/light.gd" id="12_q2wfm"]
 [ext_resource type="FontFile" uid="uid://dcpum57vlyv7c" path="res://assets/fonts/PixelOperator8.ttf" id="13_2ggwp"]
 [ext_resource type="PackedScene" uid="uid://cshsgwdi7vy0x" path="res://scenes/world/WardrobeZone.tscn" id="14_wardrobe"]
+[ext_resource type="PackedScene" uid="uid://drj4jecr8s6x8" path="res://scenes/world/Box.tscn" id="15_auvjl"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_q4vnh"]
 texture = ExtResource("1_s87cq")
@@ -641,6 +642,12 @@ range_z_max = 15
 texture = SubResource("GradientTexture2D_7o2uh")
 script = ExtResource("12_q2wfm")
 
+[node name="Box" parent="." unique_id=2139828667 instance=ExtResource("15_auvjl")]
+position = Vector2(29, -31)
+
+[node name="Box2" parent="." unique_id=1335171086 instance=ExtResource("15_auvjl")]
+position = Vector2(153, -25)
+
 [node name="Label3" type="Label" parent="." unique_id=1252420100]
 texture_filter = 1
 offset_left = -41.0
@@ -651,13 +658,13 @@ text = "wardrobe <-"
 label_settings = SubResource("LabelSettings_los8d")
 
 [node name="Parallax-03" type="Sprite2D" parent="." unique_id=1370210090]
-position = Vector2(-347.5, 17)
+position = Vector2(-408, 16.999998)
 scale = Vector2(1.68592, 0.871795)
 texture = ExtResource("8_ct2kw")
 region_enabled = true
 region_rect = Rect2(718, 320, 277, 39)
 
 [node name="WardrobeZone" parent="." unique_id=1252420101 instance=ExtResource("14_wardrobe")]
-position = Vector2(-110, -1)
+position = Vector2(-106, -9)
 
 [connection signal="body_entered" from="LevelTransition" to="LevelTransition" method="_on_body_entered"]

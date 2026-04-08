@@ -284,8 +284,10 @@ z_index = 1
 texture_filter = 1
 position = Vector2(0, -12)
 sprite_frames = SubResource("SpriteFrames_sqkdx")
-animation = &"jump"
+animation = &"dbj"
 autoplay = "idle"
+frame = 3
+frame_progress = 0.915111
 
 [node name="EffectsAnchor" type="Node2D" parent="." unique_id=1762507634]
 

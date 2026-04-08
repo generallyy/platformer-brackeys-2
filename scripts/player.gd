@@ -3,7 +3,16 @@ extends CharacterBody2D
 const DAGGER_SCENE = preload("res://scenes/weapons/Dagger.tscn")
 const MELEE_SCENE  = preload("res://scenes/weapons/MeleeHitbox.tscn")
 const SPEED = 200.0
+const ACCELERATION = 1400.0
+const FRICTION = 2400.0
+const TURN_ACCELERATION = 2800.0
+const AIR_ACCELERATION = 900.0
+const AIR_FRICTION = 1200.0
+const AIR_TURN_ACCELERATION = 1800.0
 const JUMP_VELOCITY = -300.0
+const MAX_FALL_SPEED = 400.0
+const MASS = 1.0
+const PUSH_RESTITUTION = 0.0  # 0 = sticky, 1 = fully elastic
 const MAX_HEALTH = 3
 const WEAPON_SPAWN_OFFSET := Vector2(8, -5)
 const IFRAMES_BLINK_INTERVAL := 0.2
@@ -58,6 +67,8 @@ var outfit_id := 0
 signal health_changed(new_health: int)
 
 
+var _pre_slide_velocity := Vector2.ZERO
+
 var is_boosting = false
 var has_air_boosted = false
 var boost_timer = 0.0
@@ -66,7 +77,9 @@ const BOOST_SPEED = 300.0	# constant horizontal speed
 
 var has_dbj = false
 var is_dbj = false
+var _dbj_boost_lockout := 0.0
 const DBJ_SPEED = -350	#double jump
+const DBJ_BOOST_LOCKOUT := 0.2
 
 var is_frozen = false
 var freeze_timer = 0.0
@@ -137,6 +150,7 @@ func _physics_process(delta):
 		move_and_slide()
 		_send_state_sync()
 		return
+	
 
 	# tick knockback
 	if is_knocked_back:
@@ -152,6 +166,7 @@ func _physics_process(delta):
 
 	_melee_cooldown      = max(0.0, _melee_cooldown - delta)
 	_projectile_cooldown = max(0.0, _projectile_cooldown - delta)
+	_dbj_boost_lockout   = max(0.0, _dbj_boost_lockout - delta)
 
 	if not is_knocked_back:
 		# Handle jump.
@@ -160,10 +175,10 @@ func _physics_process(delta):
 				velocity.y = JUMP_VELOCITY
 				audio_stream_player.stream = jump_sfx
 				audio_stream_player.play()
-			elif not has_dbj:
+			elif not has_dbj and not is_boosting:
 				start_dbj()
 
-		if Input.is_action_just_pressed("f") and not is_on_floor() and not has_air_boosted:
+		if Input.is_action_just_pressed("f") and not is_on_floor() and not has_air_boosted and _dbj_boost_lockout <= 0.0:
 			start_air_boost()
 		var _can_throw := _projectile_cooldown <= 0.0 and (not _equipped_returns or _active_projectile_count < _equipped_max_simultaneous)
 		if Input.is_action_just_pressed("attack") and _can_throw:
@@ -176,7 +191,7 @@ func _physics_process(delta):
 
 	# Add the gravity.
 	if not is_on_floor() and not is_boosting:
-		velocity.y += gravity * delta
+		velocity.y = min(velocity.y + gravity * delta, MAX_FALL_SPEED)
 
 	if not is_knocked_back:
 		update_air_boost(delta)
@@ -191,13 +206,19 @@ func _physics_process(delta):
 
 	# apply movement
 	if not is_knocked_back and (is_on_floor() or not is_boosting):
+		var fric := FRICTION if is_on_floor() else AIR_FRICTION
 		if direction:
-			velocity.x = direction * SPEED
+			var turning : float = direction * velocity.x < 0.0  # moving opposite to input
+			var accel := (TURN_ACCELERATION if is_on_floor() else AIR_TURN_ACCELERATION) if turning else \
+						 (ACCELERATION      if is_on_floor() else AIR_ACCELERATION)
+			velocity.x = move_toward(velocity.x, direction * SPEED, accel * delta)
 		else:
-			velocity.x = move_toward(velocity.x, 0, SPEED)
+			velocity.x = move_toward(velocity.x, 0.0, fric * delta)
 	
 		
+	_pre_slide_velocity = velocity
 	move_and_slide()
+	_resolve_body_collisions()
 	_send_state_sync()
 
 @rpc("any_peer", "unreliable_ordered")
@@ -414,6 +435,18 @@ func _do_spawn_melee(dir: int, thrower_id: int) -> void:
 	add_child(m)
 	m.position = WEAPON_SPAWN_OFFSET * Vector2(dir, 1)
 
+func _resolve_body_collisions() -> void:
+	if NetworkManager.is_active() and not multiplayer.is_server():
+		return
+	for i in get_slide_collision_count():
+		var col := get_slide_collision(i)
+		var other := col.get_collider()
+		if not (other is CharacterBody2D and other.is_in_group("pushable")):
+			continue
+		var other_mass: float = other.get("MASS") if other.get("MASS") != null else MASS
+		other.velocity.x = _pre_slide_velocity.x
+		velocity.x *= 1.0 - (other_mass * 0.3)
+
 func die():
 	# TODO: play death animation
 	velocity = Vector2.ZERO
@@ -431,6 +464,7 @@ func start_dbj():
 	if not has_dbj and not is_on_floor():
 		has_dbj = true
 		is_dbj = true
+		_dbj_boost_lockout = DBJ_BOOST_LOCKOUT
 
 		animation_player.play("dbj")
 	
@@ -470,17 +504,17 @@ func update_air_boost(delta):
 		velocity.y = 0  # Optional: freeze vertical motion
 		if boost_timer <= 0:
 			is_boosting = false
-			velocity.x -= facing_direction * BOOST_SPEED
+			#velocity.x -= facing_direction * BOOST_SPEED
 
 func start_freeze(duration: float):
 	is_frozen = true
 	freeze_timer = duration
-	velocity = Vector2.ZERO  # lock player instantly
+	#velocity = Vector2.ZERO  # lock player instantly
 
 func update_freeze(delta):
 	if is_frozen:
 		freeze_timer -= delta
-		velocity = Vector2.ZERO  # Optional: keep locked during freeze
+		#velocity = Vector2.ZERO  # Optional: keep locked during freeze
 		if freeze_timer <= 0:
 			is_frozen = false
 			

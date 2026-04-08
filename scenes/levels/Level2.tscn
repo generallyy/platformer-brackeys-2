@@ -173,7 +173,7 @@ sources/0 = SubResource("TileSetAtlasSource_oblk4")
 [node name="Level2" type="Node2D" unique_id=2065984965]
 
 [node name="PlayerSpawn" type="Marker2D" parent="." unique_id=2062548546]
-position = Vector2(0, -40)
+position = Vector2(0, -62)
 
 [node name="TileMap" type="TileMap" parent="." unique_id=2121979546]
 texture_filter = 1
