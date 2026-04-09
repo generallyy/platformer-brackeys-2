@@ -43,6 +43,10 @@ func stop_game() -> void:
 	_round_active = false
 	state = State.INACTIVE
 
+func register_player(peer_id: int) -> void:
+	if state != State.INACTIVE and peer_id not in scores:
+		scores[peer_id] = 0
+
 func sync_to_peer(peer_id: int) -> void:
 	_sync_round_state.rpc_id(peer_id, state, scores, round_number, -1, _finishers, _time_limit)
 

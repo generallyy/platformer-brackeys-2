@@ -73,6 +73,10 @@ func _deferred_pool_return() -> void:
 		get_parent().remove_child(self)
 	_reset_for_pool()
 
+func _enter_tree() -> void:
+	if _active:
+		set_process(true)
+
 func _reset_for_pool() -> void:
 	_active = true
 	_origin_captured = false
@@ -81,5 +85,5 @@ func _reset_for_pool() -> void:
 	_control_relative = Vector2.ZERO
 	_trail.clear_points()
 	visible = true
-	set_process(true)
+	# set_process(true) is deferred to _enter_tree so it's not called out-of-tree
 	HomerParticle._pool.append(self)
