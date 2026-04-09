@@ -43,6 +43,9 @@ func stop_game() -> void:
 	_round_active = false
 	state = State.INACTIVE
 
+func sync_to_peer(peer_id: int) -> void:
+	_sync_round_state.rpc_id(peer_id, state, scores, round_number, -1, _finishers, _time_limit)
+
 func start_game(time_limit: float = 60.0) -> void:
 	_time_limit = time_limit
 	scores.clear()
@@ -65,11 +68,9 @@ func _end_round() -> void:
 	if not _round_active:
 		return
 	_round_active = false
-	var all_finished: bool = _finishers.size() >= get_parent().spawned_players.size()
-	if not all_finished:
-		for i in _finishers.size():
-			var pts: int = FINISH_POINTS[i] if i < FINISH_POINTS.size() else 0
-			scores[_finishers[i]] = scores.get(_finishers[i], 0) + pts
+	for i in _finishers.size():
+		var pts: int = FINISH_POINTS[i] if i < FINISH_POINTS.size() else 0
+		scores[_finishers[i]] = scores.get(_finishers[i], 0) + pts
 	var winner := _find_winner()
 	_do_intermission(winner, _finishers.duplicate())
 

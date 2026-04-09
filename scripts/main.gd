@@ -55,6 +55,8 @@ func _request_state():
 		_sync_player_outfit.rpc_id(caller, existing_id, spawned_players[existing_id].get_outfit_id())
 	# Tell everyone (including server) to spawn the new player
 	_rpc_spawn.rpc(caller)
+	# Sync current game state to the new client
+	game_mode.sync_to_peer(caller)
 
 @rpc("authority", "call_local", "reliable")
 func _rpc_spawn(peer_id: int):
@@ -286,9 +288,7 @@ func _on_round_started(round_number: int) -> void:
 func _on_round_ended(finishers: Array, scores: Dictionary) -> void:
 	hud.update_scores(scores, _player_numbers)
 	var msg: String
-	if finishers.size() >= spawned_players.size():
-		msg = "Everyone made it! No points."
-	elif finishers.is_empty():
+	if finishers.is_empty():
 		msg = "Time's up! Nobody finished."
 	else:
 		var first_num := get_player_number(finishers[0])
