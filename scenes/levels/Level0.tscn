@@ -471,6 +471,7 @@ fill = 1
 fill_from = Vector2(0.508547, 0.508547)
 
 [node name="Level0" type="Node2D" unique_id=2093286285]
+position = Vector2(0, 1)
 
 [node name="PlayerSpawn" type="Marker2D" parent="." unique_id=517972277]
 position = Vector2(192, -10)

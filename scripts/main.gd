@@ -363,4 +363,6 @@ func _sync_respawn(peer_id: int, pos: Vector2):
 		p.velocity = Vector2.ZERO
 		p.set_physics_process(true)
 		p.show()
+		p.is_invuln = true
+		p._invuln_timer = 0.5
 		
