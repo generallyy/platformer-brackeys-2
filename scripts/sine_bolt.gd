@@ -2,14 +2,14 @@ extends ProjectileBase
 
 
 const SPEED := 100.0
-const AMPLITUDE := 24.0
+const AMPLITUDE := 25.0
 const FREQUENCY := 1
-const MAX_LIFETIME := 4
+const MAX_LIFETIME := 8
 @onready var visual = $Visual
 
 func _init() -> void:
 	WEAPON_NAME = "Sine Bolt"
-	WEAPON_COOLDOWN = 0.5
+	WEAPON_COOLDOWN = 0.0
 
 
 func _get_offset(t: float) -> Vector2:

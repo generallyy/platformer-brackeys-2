@@ -17,7 +17,7 @@ shape = SubResource("RectangleShape2D_sine")
 
 [node name="Visual" type="Line2D" parent="Visual" unique_id=572745586]
 points = PackedVector2Array(-4, 0, 4, 0)
-width = 6.0
+width = 2.0
 default_color = Color(0.4, 0.2, 0.9, 1)
 
 [connection signal="area_entered" from="." to="." method="_on_area_entered"]
