@@ -60,6 +60,8 @@ func _process(delta: float) -> void:
 		_trail.remove_point(0)
 
 	if f >= 1.0:
+		if is_instance_valid(_target_node):
+			_target_node.take_damage(damage, Vector2(direction * knockback.x, knockback.y))
 		_despawn()
 
 # ── Pool return instead of queue_free ────────────────────────────────────────
