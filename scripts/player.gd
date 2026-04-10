@@ -104,6 +104,7 @@ var _active_projectile_count := 0
 var is_invuln := false
 var _invuln_timer := 0.0
 const INVULN_DURATION := 1.0
+var _last_attacker_peer_id: int = -1
 var _ui_locked := false
 var _base_sprite_frames: SpriteFrames
 var _outfit_sprite_frames_cache: Dictionary = {}
@@ -271,11 +272,12 @@ func update_animation():
 	elif not is_dbj:
 		animated_sprite.play("jump")
 
-func take_damage(amount: int, knockback: Vector2 = Vector2.ZERO) -> void:
+func take_damage(amount: int, knockback: Vector2 = Vector2.ZERO, attacker_peer_id: int = -1) -> void:
 	if NetworkManager.is_active() and not is_multiplayer_authority():
 		return
 	if is_invuln:
 		return
+	_last_attacker_peer_id = attacker_peer_id
 	health -= amount
 	health_changed.emit(health)
 	if health <= 0:
@@ -464,6 +466,9 @@ func die():
 	health_changed.emit(health)
 	var main = get_tree().get_root().get_node("Main")
 	var peer_id = multiplayer.get_unique_id() if NetworkManager.is_active() else 1
+	if _last_attacker_peer_id != -1 and _last_attacker_peer_id != peer_id:
+		main.notify_kill(_last_attacker_peer_id, peer_id)
+	_last_attacker_peer_id = -1
 	main.respawn_player_by_id(peer_id)
 
 func start_dbj():

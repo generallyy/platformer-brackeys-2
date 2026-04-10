@@ -23,7 +23,7 @@ func _on_body_entered(body: Node2D) -> void:
 			return
 		_hit.append(body)
 		# Strong horizontal knockback like a forward aerial — mostly sideways, slight upward
-		body.take_damage(1, Vector2(direction * KNOCKBACK.x, KNOCKBACK.y))
+		body.take_damage(1, Vector2(direction * KNOCKBACK.x, KNOCKBACK.y), thrower_peer_id)
 
 func _on_area_entered(area: Area2D) -> void:
 	if area in _hit:

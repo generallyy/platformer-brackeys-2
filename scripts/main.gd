@@ -317,6 +317,18 @@ func free_children(node: Node):
 	for child in node.get_children():
 		child.queue_free()
 
+func notify_kill(killer_peer_id: int, victim_peer_id: int) -> void:
+	if NetworkManager.is_active() and not multiplayer.is_server():
+		_req_notify_kill.rpc_id(1, killer_peer_id, victim_peer_id)
+		return
+	game_mode.record_kill(killer_peer_id, victim_peer_id)
+
+@rpc("any_peer", "reliable")
+func _req_notify_kill(killer_peer_id: int, victim_peer_id: int) -> void:
+	if multiplayer.get_remote_sender_id() != victim_peer_id:
+		return
+	game_mode.record_kill(killer_peer_id, victim_peer_id)
+
 func respawn_player_by_id(peer_id: int):
 	if NetworkManager.is_active() and not multiplayer.is_server():
 		_req_respawn.rpc_id(1, peer_id)

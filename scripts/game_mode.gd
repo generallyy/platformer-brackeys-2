@@ -4,6 +4,7 @@ const POINTS_TO_WIN := 30
 const INTERMISSION_DURATION := 1.25
 const FINISH_POINTS := [10, 7, 4, 2, 1]  # index 0 = 1st place
 const ROUND_START_DELAY := 1.0  # matches HUD.ANNOUNCEMENT_DURATION
+const KILL_POINTS := 5
 
 enum State { INACTIVE, PLAYING, INTERMISSION, GAME_OVER }
 
@@ -20,6 +21,12 @@ var _finishers: Array = []
 var _time_limit: float = 60.0
 var _time_remaining: float = 0.0
 var _start_delay: float = 0.0
+# kills[killer_id][victim_id] = raw kill count for this game
+var kills: Dictionary = {}
+# total kills per player for this game (not synced to clients, server-only)
+var total_kills: Dictionary = {}
+# accumulated finish points separate from kill points so we can recompute at any time
+var _finish_scores: Dictionary = {}
 
 func _process(delta: float) -> void:
 	if not _round_active:
@@ -46,6 +53,7 @@ func stop_game() -> void:
 func register_player(peer_id: int) -> void:
 	if state != State.INACTIVE and peer_id not in scores:
 		scores[peer_id] = 0
+		_finish_scores[peer_id] = 0
 
 func sync_to_peer(peer_id: int) -> void:
 	_sync_round_state.rpc_id(peer_id, state, scores, round_number, -1, _finishers, _time_limit)
@@ -53,8 +61,12 @@ func sync_to_peer(peer_id: int) -> void:
 func start_game(time_limit: float = 60.0) -> void:
 	_time_limit = time_limit
 	scores.clear()
+	_finish_scores.clear()
+	kills.clear()
+	total_kills.clear()
 	for peer_id in get_parent().spawned_players:
 		scores[peer_id] = 0
+		_finish_scores[peer_id] = 0
 	round_number = 1
 	_finishers.clear()
 	_broadcast(State.PLAYING, scores, round_number, -1)
@@ -74,9 +86,32 @@ func _end_round() -> void:
 	_round_active = false
 	for i in _finishers.size():
 		var pts: int = FINISH_POINTS[i] if i < FINISH_POINTS.size() else 0
-		scores[_finishers[i]] = scores.get(_finishers[i], 0) + pts
+		_finish_scores[_finishers[i]] = _finish_scores.get(_finishers[i], 0) + pts
+	_recompute_scores()
 	var winner := _find_winner()
 	_do_intermission(winner, _finishers.duplicate())
+
+func record_kill(killer_id: int, victim_id: int) -> void:
+	if not _round_active:
+		return
+	if killer_id not in kills:
+		kills[killer_id] = {}
+	kills[killer_id][victim_id] = kills[killer_id].get(victim_id, 0) + 1
+	total_kills[killer_id] = total_kills.get(killer_id, 0) + 1
+	_recompute_scores()
+	_broadcast(state, scores, round_number, -1)
+
+func _compute_kill_points(peer_id: int) -> int:
+	var pts := 0
+	for victim_id in kills.get(peer_id, {}):
+		var i_killed_them: int = kills[peer_id][victim_id]
+		var they_killed_me: int = kills.get(victim_id, {}).get(peer_id, 0)
+		pts += max(0, i_killed_them - they_killed_me) * KILL_POINTS
+	return pts
+
+func _recompute_scores() -> void:
+	for peer_id in scores:
+		scores[peer_id] = _finish_scores.get(peer_id, 0) + _compute_kill_points(peer_id)
 
 func _find_winner() -> int:
 	var best_peer := -1

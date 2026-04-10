@@ -61,7 +61,7 @@ func _process(delta: float) -> void:
 
 	if f >= 1.0:
 		if is_instance_valid(_target_node):
-			_target_node.take_damage(damage, Vector2(direction * knockback.x, knockback.y))
+			_target_node.take_damage(damage, Vector2(direction * knockback.x, knockback.y), thrower_peer_id)
 		_despawn()
 
 # ── Pool return instead of queue_free ────────────────────────────────────────

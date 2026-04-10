@@ -66,7 +66,7 @@ func _on_body_entered(body: Node2D) -> void:
 	if body.is_in_group("player"):
 		if NetworkManager.is_active() and body.get_multiplayer_authority() == thrower_peer_id:
 			return
-		body.take_damage(damage, Vector2(direction * knockback.x, knockback.y))
+		body.take_damage(damage, Vector2(direction * knockback.x, knockback.y), thrower_peer_id)
 		_on_hit_character(body)
 		return
 	if body is CharacterBody2D or body.is_in_group("enemy"):
