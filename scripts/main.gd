@@ -22,6 +22,7 @@ func _ready() -> void:
 	game_mode.round_started.connect(_on_round_started)
 	game_mode.round_ended.connect(_on_round_ended)
 	game_mode.game_over.connect(_on_game_over)
+	game_mode.scores_changed.connect(_on_scores_changed)
 	if NetworkManager.is_active():
 		multiplayer.peer_connected.connect(_on_peer_connected)
 		multiplayer.peer_disconnected.connect(_on_peer_disconnected)
@@ -310,6 +311,9 @@ func _on_game_over(winner_peer_id: int, scores: Dictionary) -> void:
 	hud.update_scores(scores, _player_numbers)
 	hud.show_announcement("Player %d wins!" % get_player_number(winner_peer_id))
 	_freeze_all_players(5.0)
+
+func _on_scores_changed(scores: Dictionary) -> void:
+	hud.update_scores(scores, _player_numbers)
 
 func _spawn_offset(index: int) -> Vector2:
 	return Vector2(0, -index * 20)

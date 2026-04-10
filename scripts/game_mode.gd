@@ -12,6 +12,7 @@ signal round_started(round_number: int)
 signal round_ended(finishers: Array, scores: Dictionary)
 signal game_over(winner_peer_id: int, scores: Dictionary)
 signal powerups_distribute(scores: Dictionary)
+signal scores_changed(scores: Dictionary)
 
 var state: int = State.INACTIVE
 var scores: Dictionary = {}
@@ -55,6 +56,7 @@ func _broadcast_scores() -> void:
 @rpc("authority", "call_local", "reliable")
 func _sync_scores(new_scores: Dictionary) -> void:
 	scores = new_scores
+	scores_changed.emit(scores)
 
 func stop_game() -> void:
 	_round_active = false
