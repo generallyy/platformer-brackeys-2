@@ -105,6 +105,8 @@ var is_invuln := false
 var _invuln_timer := 0.0
 const INVULN_DURATION := 1.0
 var _last_attacker_peer_id: int = -1
+var _last_hit_timer: float = 0.0
+const KILL_CREDIT_WINDOW := 2.0
 var _ui_locked := false
 var _base_sprite_frames: SpriteFrames
 var _outfit_sprite_frames_cache: Dictionary = {}
@@ -139,6 +141,10 @@ func _ready() -> void:
 func _physics_process(delta):
 	if NetworkManager.is_active() and not is_multiplayer_authority():
 		return
+	if _last_hit_timer > 0.0:
+		_last_hit_timer -= delta
+		if _last_hit_timer <= 0.0:
+			_last_attacker_peer_id = -1
 	_update_damage_flash(delta)
 	if _ui_locked:
 		velocity.x = 0.0
@@ -277,7 +283,9 @@ func take_damage(amount: int, knockback: Vector2 = Vector2.ZERO, attacker_peer_i
 		return
 	if is_invuln:
 		return
-	_last_attacker_peer_id = attacker_peer_id
+	if attacker_peer_id != -1:
+		_last_attacker_peer_id = attacker_peer_id
+		_last_hit_timer = KILL_CREDIT_WINDOW
 	health -= amount
 	health_changed.emit(health)
 	if health <= 0:
@@ -469,6 +477,7 @@ func die():
 	if _last_attacker_peer_id != -1 and _last_attacker_peer_id != peer_id:
 		main.notify_kill(_last_attacker_peer_id, peer_id)
 	_last_attacker_peer_id = -1
+	_last_hit_timer = 0.0
 	main.respawn_player_by_id(peer_id)
 
 func start_dbj():

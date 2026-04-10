@@ -99,7 +99,10 @@ func record_kill(killer_id: int, victim_id: int) -> void:
 	kills[killer_id][victim_id] = kills[killer_id].get(victim_id, 0) + 1
 	total_kills[killer_id] = total_kills.get(killer_id, 0) + 1
 	_recompute_scores()
-	_broadcast(state, scores, round_number, -1)
+	if _find_winner() != -1:
+		_end_round()
+	else:
+		_broadcast(state, scores, round_number, -1)
 
 func _compute_kill_points(peer_id: int) -> int:
 	var pts := 0
