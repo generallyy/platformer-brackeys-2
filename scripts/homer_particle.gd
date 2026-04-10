@@ -17,14 +17,16 @@ static func acquire() -> HomerParticle:
 const TRAIL_MAX_POINTS := 14
 
 var _target: Vector2
+var _target_node: Node2D = null
 var _control_relative: Vector2
 var _particle_lifetime: float
 var _delay: float = 0.0
 
 @onready var _trail: Line2D = $Trail
 
-func setup(target: Vector2, angle: float, delay: float) -> void:
+func setup(target: Vector2, angle: float, delay: float, target_node: Node2D = null) -> void:
 	_target = target
+	_target_node = target_node
 	var spread_dist := randf_range(15.0, 50.0)
 	_control_relative = Vector2(cos(angle), sin(angle)) * spread_dist
 	_particle_lifetime = randf_range(0.4, 0.6)
@@ -40,6 +42,8 @@ func _process(delta: float) -> void:
 		_control_relative = _origin + _control_relative
 
 	_t += delta
+	if is_instance_valid(_target_node):
+		_target = _target_node.global_position + Vector2(0, -5)
 	if _t < _delay:
 		global_position = _origin
 		return
@@ -83,6 +87,7 @@ func _reset_for_pool() -> void:
 	_t = 0.0
 	_origin = Vector2.ZERO
 	_control_relative = Vector2.ZERO
+	_target_node = null
 	_trail.clear_points()
 	visible = true
 	# set_process(true) is deferred to _enter_tree so it's not called out-of-tree

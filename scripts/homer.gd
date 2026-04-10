@@ -9,8 +9,8 @@ func _init() -> void:
 	WEAPON_NAME = "Homer"
 	WEAPON_COOLDOWN = 1.0
 
-func _find_nearest_player_pos() -> Vector2:
-	var best_pos := global_position + Vector2(direction * 125.0, 0.0)
+func _find_nearest_player() -> Node2D:
+	var best: Node2D = null
 	var best_dist := INF
 	for p in get_tree().get_nodes_in_group("player"):
 		if p.get_multiplayer_authority() == thrower_peer_id:
@@ -18,15 +18,16 @@ func _find_nearest_player_pos() -> Vector2:
 		var d := global_position.distance_to(p.global_position)
 		if d < best_dist:
 			best_dist = d
-			best_pos = p.global_position
-	return best_pos
+			best = p
+	return best
 
 func _process(_delta: float) -> void:
 	if _origin_captured:
 		return
 	_origin_captured = true
 
-	var target := _find_nearest_player_pos() if home_to_player else global_position + Vector2(direction * 125.0, 0.0)
+	var target_node: Node2D = _find_nearest_player() if home_to_player else null
+	var target := target_node.global_position + Vector2(0, -5) if target_node else global_position + Vector2(direction * 125.0, 0.0)
 	# ±30° (PI/6) around the forward direction = PI/3 total spread
 	var base_angle := 0.0 if direction == 1 else PI
 	for i in PARTICLE_COUNT:
@@ -36,7 +37,7 @@ func _process(_delta: float) -> void:
 		p.direction = direction
 		p.thrower_peer_id = thrower_peer_id
 		p.owner_node = owner_node
-		p.setup(target, angle, delay)
+		p.setup(target, angle, delay, target_node)
 		get_parent().add_child(p)
 		p.global_position = global_position
 
