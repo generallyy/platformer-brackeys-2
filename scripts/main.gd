@@ -55,6 +55,10 @@ func _request_state():
 		_sync_player_outfit.rpc_id(caller, existing_id, spawned_players[existing_id].get_outfit_id())
 	# Tell everyone (including server) to spawn the new player
 	_rpc_spawn.rpc(caller)
+	# Add existing clients to new player's sync_peers so the server can relay their state to each other
+	for existing_id in spawned_players:
+		if existing_id != caller and existing_id != 1:
+			spawned_players[caller].add_sync_peer(existing_id)
 	# Ensure late-joining player is included in scores before syncing state
 	game_mode.register_player(caller)
 	# Sync current game state to the new client

@@ -231,6 +231,12 @@ func _sync_state(pos: Vector2, flip: bool, anim: String, body_visible: bool, spr
 	animated_sprite.flip_h = flip
 	if animated_sprite.animation != anim:
 		animated_sprite.play(anim)
+	# Server relays client state to all other peers that need it
+	if multiplayer.is_server():
+		var sender := multiplayer.get_remote_sender_id()
+		for pid in _sync_peers:
+			if pid != sender:
+				_sync_state.rpc_id(pid, pos, flip, anim, body_visible, sprite_visible)
 
 func _update_damage_flash(delta: float) -> void:
 	if not is_invuln:
