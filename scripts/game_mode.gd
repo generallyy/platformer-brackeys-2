@@ -46,6 +46,16 @@ func _broadcast(new_state: int, new_scores: Dictionary, round_num: int, event_pe
 	else:
 		_sync_round_state(new_state, new_scores, round_num, event_peer_id, finishers, _time_limit)
 
+func _broadcast_scores() -> void:
+	if NetworkManager.is_active():
+		_sync_scores.rpc(scores)
+	else:
+		_sync_scores(scores)
+
+@rpc("authority", "call_local", "reliable")
+func _sync_scores(new_scores: Dictionary) -> void:
+	scores = new_scores
+
 func stop_game() -> void:
 	_round_active = false
 	state = State.INACTIVE
@@ -102,7 +112,7 @@ func record_kill(killer_id: int, victim_id: int) -> void:
 	if _find_winner() != -1:
 		_end_round()
 	else:
-		_broadcast(state, scores, round_number, -1)
+		_broadcast_scores()
 
 func _compute_kill_points(peer_id: int) -> int:
 	var pts := 0

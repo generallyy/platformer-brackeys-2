@@ -40,7 +40,8 @@ func _on_peer_connected(_id: int):
 func _on_peer_disconnected(id: int):
 	for p in spawned_players.values():
 		p.remove_sync_peer(id)
-	_rpc_despawn.rpc(id)
+	if multiplayer.is_server():
+		_rpc_despawn.rpc(id)
 
 # Client asks server for current state on join
 @rpc("any_peer", "reliable")
