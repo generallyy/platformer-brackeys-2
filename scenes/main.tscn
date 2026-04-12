@@ -91,9 +91,9 @@ layout_mode = 2
 text = "♥♥♥"
 
 [node name="Scores" type="VBoxContainer" parent="HUD" unique_id=1678903393]
-offset_left = 1155.0
+offset_left = 977.0
 offset_top = 32.0
-offset_right = 1240.0
+offset_right = 1080.0
 offset_bottom = 198.0
 theme = SubResource("Theme_o6xl0")
 
@@ -119,9 +119,9 @@ theme = SubResource("Theme_tipki")
 horizontal_alignment = 1
 
 [node name="Time" type="PanelContainer" parent="HUD" unique_id=843018957]
-offset_left = 991.0
+offset_left = 804.0
 offset_top = 20.0
-offset_right = 1129.0
+offset_right = 949.0
 offset_bottom = 84.0
 theme = SubResource("Theme_85g3d")
 

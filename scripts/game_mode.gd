@@ -5,6 +5,7 @@ const INTERMISSION_DURATION := 1.25
 const FINISH_POINTS := [10, 7, 4, 2, 1]  # index 0 = 1st place
 const ROUND_START_DELAY := 1.0  # matches HUD.ANNOUNCEMENT_DURATION
 const KILL_POINTS := 5
+const STOCKS_PER_ROUND := 3
 
 enum State { INACTIVE, PLAYING, INTERMISSION, GAME_OVER }
 
@@ -13,9 +14,11 @@ signal round_ended(finishers: Array, scores: Dictionary)
 signal game_over(winner_peer_id: int, scores: Dictionary)
 signal powerups_distribute(scores: Dictionary)
 signal scores_changed(scores: Dictionary)
+signal stocks_changed(stocks: Dictionary)
 
 var state: int = State.INACTIVE
 var scores: Dictionary = {}
+var stocks: Dictionary = {}
 var round_number: int = 0
 var _round_active := false
 var _finishers: Array = []
@@ -66,6 +69,7 @@ func register_player(peer_id: int) -> void:
 	if state != State.INACTIVE and peer_id not in scores:
 		scores[peer_id] = 0
 		_finish_scores[peer_id] = 0
+		stocks[peer_id] = STOCKS_PER_ROUND
 
 func sync_to_peer(peer_id: int) -> void:
 	_sync_round_state.rpc_id(peer_id, state, scores, round_number, -1, _finishers, _time_limit)
@@ -76,9 +80,11 @@ func start_game(time_limit: float = 60.0) -> void:
 	_finish_scores.clear()
 	kills.clear()
 	total_kills.clear()
+	stocks.clear()
 	for peer_id in get_parent().spawned_players:
 		scores[peer_id] = 0
 		_finish_scores[peer_id] = 0
+		stocks[peer_id] = STOCKS_PER_ROUND
 	round_number = 1
 	_finishers.clear()
 	_broadcast(State.PLAYING, scores, round_number, -1)
@@ -110,11 +116,30 @@ func record_kill(killer_id: int, victim_id: int) -> void:
 		kills[killer_id] = {}
 	kills[killer_id][victim_id] = kills[killer_id].get(victim_id, 0) + 1
 	total_kills[killer_id] = total_kills.get(killer_id, 0) + 1
+	if victim_id in stocks and stocks[victim_id] > 0:
+		stocks[victim_id] -= 1
 	_recompute_scores()
 	if _find_winner() != -1:
 		_end_round()
 	else:
 		_broadcast_scores()
+		_broadcast_stocks()
+
+func can_respawn(peer_id: int) -> bool:
+	if state == State.GAME_OVER or state == State.INACTIVE:
+		return true
+	return stocks.get(peer_id, STOCKS_PER_ROUND) > 0
+
+func _broadcast_stocks() -> void:
+	if NetworkManager.is_active():
+		_sync_stocks_rpc.rpc(stocks)
+	else:
+		_sync_stocks_rpc(stocks)
+
+@rpc("authority", "call_local", "reliable")
+func _sync_stocks_rpc(new_stocks: Dictionary) -> void:
+	stocks = new_stocks
+	stocks_changed.emit(stocks)
 
 func _compute_kill_points(peer_id: int) -> int:
 	var pts := 0
@@ -163,6 +188,9 @@ func _sync_round_state(new_state: int, new_scores: Dictionary, round_num: int, e
 			_time_limit = time_limit
 			_time_remaining = time_limit
 			_start_delay = ROUND_START_DELAY
+			for peer_id in new_scores:
+				stocks[peer_id] = STOCKS_PER_ROUND
+			stocks_changed.emit(stocks)
 			round_started.emit(round_num)
 		State.INTERMISSION:
 			round_ended.emit(finishers, new_scores)

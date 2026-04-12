@@ -23,6 +23,7 @@ func _ready() -> void:
 	game_mode.round_ended.connect(_on_round_ended)
 	game_mode.game_over.connect(_on_game_over)
 	game_mode.scores_changed.connect(_on_scores_changed)
+	game_mode.stocks_changed.connect(_on_stocks_changed)
 	if NetworkManager.is_active():
 		multiplayer.peer_connected.connect(_on_peer_connected)
 		multiplayer.peer_disconnected.connect(_on_peer_disconnected)
@@ -291,11 +292,11 @@ func _freeze_all_players(duration: float) -> void:
 
 func _on_round_started(round_number: int) -> void:
 	hud.show_announcement("GO!" if round_number == 1 else "Round %d — GO!" % round_number)
-	hud.update_scores(game_mode.scores, _player_numbers)
+	hud.update_scores(game_mode.scores, _player_numbers, game_mode.stocks)
 	_freeze_all_players(hud.ANNOUNCEMENT_DURATION)
 
 func _on_round_ended(finishers: Array, scores: Dictionary) -> void:
-	hud.update_scores(scores, _player_numbers)
+	hud.update_scores(scores, _player_numbers, game_mode.stocks)
 	var msg: String
 	if finishers.is_empty():
 		msg = "Time's up! Nobody finished."
@@ -310,10 +311,14 @@ func _on_round_ended(finishers: Array, scores: Dictionary) -> void:
 func _on_game_over(winner_peer_id: int, scores: Dictionary) -> void:
 	hud.update_scores(scores, _player_numbers)
 	hud.show_announcement("Player %d wins!" % get_player_number(winner_peer_id))
+	respawn_all_at_spawn()
 	_freeze_all_players(5.0)
 
 func _on_scores_changed(scores: Dictionary) -> void:
-	hud.update_scores(scores, _player_numbers)
+	hud.update_scores(scores, _player_numbers, game_mode.stocks)
+
+func _on_stocks_changed(_stocks: Dictionary) -> void:
+	hud.update_scores(game_mode.scores, _player_numbers, _stocks)
 
 func _spawn_offset(index: int) -> Vector2:
 	return Vector2(0, -index * 20)
@@ -347,6 +352,8 @@ func _req_respawn(peer_id: int):
 
 func _do_respawn(peer_id: int):
 	if not peer_id in spawned_players:
+		return
+	if not game_mode.can_respawn(peer_id):
 		return
 	var spawn = get_current_spawn_for_peer(peer_id)
 	var pos = spawn.global_position if spawn else Vector2.ZERO

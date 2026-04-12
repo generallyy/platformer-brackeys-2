@@ -38,14 +38,17 @@ func update_hearts(current: int) -> void:
 		text += "♥" if i < current else "♡"
 	$Hearts/Label.text = text
 
-func update_scores(scores: Dictionary, player_numbers: Dictionary = {}) -> void:
+func update_scores(scores: Dictionary, player_numbers: Dictionary = {}, stocks: Dictionary = {}) -> void:
 	for child in _score_row.get_children():
 		child.queue_free()
 	for peer_id in scores:
 		var display_num: int = player_numbers.get(peer_id, peer_id)
 		var lbl := Label.new()
 		lbl.add_theme_font_size_override("font_size", 24)
-		lbl.text = "  P%d: %d" % [display_num, scores[peer_id]]
+		if peer_id in stocks:
+			lbl.text = "  P%d: %d  (%d stocks)" % [display_num, scores[peer_id], stocks[peer_id]]
+		else:
+			lbl.text = "  P%d: %d" % [display_num, scores[peer_id]]
 		_score_row.add_child(lbl)
 
 func show_announcement(text: String, duration: float = ANNOUNCEMENT_DURATION) -> void:
