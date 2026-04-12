@@ -15,6 +15,11 @@ func _ready() -> void:
 	$Announcement/PanelContainer.visible = false
 	_time_label = $Time/Label
 	$Time.visible = false
+	$KDA.visible = false
+
+func _input(event: InputEvent) -> void:
+	if event.is_action_pressed("ui_focus_next"):  # Tab
+		$KDA.visible = not $KDA.visible
 
 func _process(delta: float) -> void:
 	if _announcement_timer > 0.0:
@@ -50,6 +55,22 @@ func update_scores(scores: Dictionary, player_numbers: Dictionary = {}, stocks: 
 		else:
 			lbl.text = "  P%d: %d" % [display_num, scores[peer_id]]
 		_score_row.add_child(lbl)
+
+func update_kda(kda_kills: Dictionary, kda_deaths: Dictionary, player_numbers: Dictionary = {}) -> void:
+	var vbox := $KDA/VBoxContainer
+	for child in vbox.get_children():
+		child.queue_free()
+	var all_peers := (kda_kills.keys() + kda_deaths.keys())
+	var peers := []
+	for pid in all_peers:
+		if pid not in peers:
+			peers.append(pid)
+	for peer_id in peers:
+		var display_num: int = player_numbers.get(peer_id, peer_id)
+		var lbl := Label.new()
+		lbl.add_theme_font_size_override("font_size", 24)
+		lbl.text = "  P%d  K: %d  D: %d" % [display_num, kda_kills.get(peer_id, 0), kda_deaths.get(peer_id, 0)]
+		vbox.add_child(lbl)
 
 func show_announcement(text: String, duration: float = ANNOUNCEMENT_DURATION) -> void:
 	_announcement_label.text = text

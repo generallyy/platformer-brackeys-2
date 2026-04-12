@@ -24,6 +24,7 @@ func _ready() -> void:
 	game_mode.game_over.connect(_on_game_over)
 	game_mode.scores_changed.connect(_on_scores_changed)
 	game_mode.stocks_changed.connect(_on_stocks_changed)
+	game_mode.kda_changed.connect(_on_kda_changed)
 	if NetworkManager.is_active():
 		multiplayer.peer_connected.connect(_on_peer_connected)
 		multiplayer.peer_disconnected.connect(_on_peer_disconnected)
@@ -318,6 +319,9 @@ func _on_scores_changed(scores: Dictionary) -> void:
 
 func _on_stocks_changed(_stocks: Dictionary) -> void:
 	hud.update_scores(game_mode.scores, _player_numbers, _stocks)
+
+func _on_kda_changed(kda_kills: Dictionary, kda_deaths: Dictionary) -> void:
+	hud.update_kda(kda_kills, kda_deaths, _player_numbers)
 
 func _spawn_offset(index: int) -> Vector2:
 	return Vector2(0, -index * 20)

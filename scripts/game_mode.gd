@@ -15,10 +15,13 @@ signal game_over(winner_peer_id: int, scores: Dictionary)
 signal powerups_distribute(scores: Dictionary)
 signal scores_changed(scores: Dictionary)
 signal stocks_changed(stocks: Dictionary)
+signal kda_changed(kda_kills: Dictionary, kda_deaths: Dictionary)
 
 var state: int = State.INACTIVE
 var scores: Dictionary = {}
 var stocks: Dictionary = {}
+var kda_kills: Dictionary = {}
+var kda_deaths: Dictionary = {}
 var round_number: int = 0
 var _round_active := false
 var _finishers: Array = []
@@ -64,6 +67,9 @@ func _sync_scores(new_scores: Dictionary) -> void:
 func stop_game() -> void:
 	_round_active = false
 	state = State.INACTIVE
+	kda_kills.clear()
+	kda_deaths.clear()
+	kda_changed.emit(kda_kills, kda_deaths)
 
 func register_player(peer_id: int) -> void:
 	if state != State.INACTIVE and peer_id not in scores:
@@ -95,8 +101,15 @@ func player_finished(peer_id: int) -> void:
 	if peer_id in _finishers:
 		return
 	_finishers.append(peer_id)
-	if _finishers.size() >= get_parent().spawned_players.size():
-		_end_round()
+	_check_all_done()
+
+func _check_all_done() -> void:
+	if not _round_active:
+		return
+	for peer_id in get_parent().spawned_players:
+		if peer_id not in _finishers and stocks.get(peer_id, STOCKS_PER_ROUND) > 0:
+			return
+	_end_round()
 
 func _end_round() -> void:
 	if not _round_active:
@@ -120,16 +133,23 @@ func record_kill(killer_id: int, victim_id: int) -> void:
 		kills[killer_id] = {}
 	kills[killer_id][victim_id] = kills[killer_id].get(victim_id, 0) + 1
 	total_kills[killer_id] = total_kills.get(killer_id, 0) + 1
+	kda_kills[killer_id] = kda_kills.get(killer_id, 0) + 1
+	kda_deaths[victim_id] = kda_deaths.get(victim_id, 0) + 1
 	if victim_id in stocks and stocks[victim_id] > 0:
 		stocks[victim_id] -= 1
 	_broadcast_stocks()
+	_broadcast_kda()
+	_check_all_done()
 
 func record_death(victim_id: int) -> void:
 	if not _round_active:
 		return
+	kda_deaths[victim_id] = kda_deaths.get(victim_id, 0) + 1
 	if victim_id in stocks and stocks[victim_id] > 0:
 		stocks[victim_id] -= 1
 	_broadcast_stocks()
+	_broadcast_kda()
+	_check_all_done()
 
 func can_respawn(peer_id: int) -> bool:
 	if state == State.GAME_OVER or state == State.INACTIVE:
@@ -146,6 +166,18 @@ func _broadcast_stocks() -> void:
 func _sync_stocks_rpc(new_stocks: Dictionary) -> void:
 	stocks = new_stocks
 	stocks_changed.emit(stocks)
+
+func _broadcast_kda() -> void:
+	if NetworkManager.is_active():
+		_sync_kda_rpc.rpc(kda_kills, kda_deaths)
+	else:
+		_sync_kda_rpc(kda_kills, kda_deaths)
+
+@rpc("authority", "call_local", "reliable")
+func _sync_kda_rpc(new_kills: Dictionary, new_deaths: Dictionary) -> void:
+	kda_kills = new_kills
+	kda_deaths = new_deaths
+	kda_changed.emit(kda_kills, kda_deaths)
 
 func _compute_kill_points(peer_id: int) -> int:
 	var pts := 0

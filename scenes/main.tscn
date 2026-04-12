@@ -11,6 +11,10 @@
 default_font = ExtResource("3_xxodx")
 default_font_size = 40
 
+[sub_resource type="Theme" id="Theme_choun"]
+default_font = ExtResource("3_xxodx")
+default_font_size = 30
+
 [sub_resource type="Theme" id="Theme_o6xl0"]
 default_font = ExtResource("3_xxodx")
 default_font_size = 30
@@ -90,6 +94,30 @@ theme = SubResource("Theme_tefeu")
 layout_mode = 2
 text = "♥♥♥"
 
+[node name="KDA" type="PanelContainer" parent="HUD" unique_id=1771099154]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -191.0
+offset_top = 48.0
+offset_right = 191.0
+offset_bottom = 90.0
+grow_horizontal = 2
+size_flags_horizontal = 4
+
+[node name="VBoxContainer" type="VBoxContainer" parent="HUD/KDA" unique_id=1504450340]
+layout_mode = 2
+
+[node name="dummy label" type="Label" parent="HUD/KDA/VBoxContainer" unique_id=819409617]
+layout_mode = 2
+theme = SubResource("Theme_choun")
+text = "P1: 30/10/12"
+horizontal_alignment = 1
+
+[node name="CenterContainer" type="CenterContainer" parent="HUD" unique_id=1142803283]
+offset_right = 1280.0
+offset_bottom = 301.0
+
 [node name="Scores" type="VBoxContainer" parent="HUD" unique_id=1678903393]
 offset_left = 977.0
 offset_top = 32.0
@@ -99,7 +127,7 @@ theme = SubResource("Theme_o6xl0")
 
 [node name="dummy label" type="Label" parent="HUD/Scores" unique_id=1850977732]
 layout_mode = 2
-text = "p1: 680"
+text = "p1: 680 (Stocks: 41)"
 
 [node name="Announcement" type="CenterContainer" parent="HUD" unique_id=85783049]
 anchors_preset = 15
