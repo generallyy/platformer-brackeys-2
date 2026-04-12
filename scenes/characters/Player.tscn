@@ -303,3 +303,8 @@ process_material = SubResource("ParticleProcessMaterial_1085j")
 libraries/ = SubResource("AnimationLibrary_y5ki7")
 
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="." unique_id=1552145014]
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1346791460]
+zoom = Vector2(4, 4)
+limit_bottom = 120
+position_smoothing_enabled = true

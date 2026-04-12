@@ -97,11 +97,7 @@ func _spawn_player(peer_id: int):
 	else:
 		p.set_physics_process(false)
 	if not NetworkManager.is_active() or peer_id == multiplayer.get_unique_id():
-		var cam = Camera2D.new()
-		cam.zoom = Vector2(4, 4)
-		cam.limit_bottom = 120
-		cam.position_smoothing_enabled = true
-		p.add_child(cam)
+		var cam = p.get_node("Camera2D")
 		cam.make_current()
 		p.health_changed.connect(hud.update_hearts)
 
