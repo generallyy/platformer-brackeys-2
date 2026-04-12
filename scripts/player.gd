@@ -476,6 +476,8 @@ func die():
 	var peer_id = multiplayer.get_unique_id() if NetworkManager.is_active() else 1
 	if _last_attacker_peer_id != -1 and _last_attacker_peer_id != peer_id:
 		main.notify_kill(_last_attacker_peer_id, peer_id)
+	else:
+		main.notify_self_death(peer_id)
 	_last_attacker_peer_id = -1
 	_last_hit_timer = 0.0
 	main.respawn_player_by_id(peer_id)

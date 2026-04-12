@@ -338,6 +338,18 @@ func _req_notify_kill(killer_peer_id: int, victim_peer_id: int) -> void:
 		return
 	game_mode.record_kill(killer_peer_id, victim_peer_id)
 
+func notify_self_death(victim_peer_id: int) -> void:
+	if NetworkManager.is_active() and not multiplayer.is_server():
+		_req_notify_self_death.rpc_id(1, victim_peer_id)
+		return
+	game_mode.record_death(victim_peer_id)
+
+@rpc("any_peer", "reliable")
+func _req_notify_self_death(victim_peer_id: int) -> void:
+	if multiplayer.get_remote_sender_id() != victim_peer_id:
+		return
+	game_mode.record_death(victim_peer_id)
+
 func respawn_player_by_id(peer_id: int):
 	if NetworkManager.is_active() and not multiplayer.is_server():
 		_req_respawn.rpc_id(1, peer_id)

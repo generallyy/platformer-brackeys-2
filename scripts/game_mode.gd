@@ -122,12 +122,14 @@ func record_kill(killer_id: int, victim_id: int) -> void:
 	total_kills[killer_id] = total_kills.get(killer_id, 0) + 1
 	if victim_id in stocks and stocks[victim_id] > 0:
 		stocks[victim_id] -= 1
-	_recompute_scores()
-	if _find_winner() != -1:
-		_end_round()
-	else:
-		_broadcast_scores()
-		_broadcast_stocks()
+	_broadcast_stocks()
+
+func record_death(victim_id: int) -> void:
+	if not _round_active:
+		return
+	if victim_id in stocks and stocks[victim_id] > 0:
+		stocks[victim_id] -= 1
+	_broadcast_stocks()
 
 func can_respawn(peer_id: int) -> bool:
 	if state == State.GAME_OVER or state == State.INACTIVE:
