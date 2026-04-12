@@ -312,7 +312,6 @@ func _on_game_over(winner_peer_id: int, scores: Dictionary) -> void:
 	hud.update_scores(scores, _player_numbers)
 	hud.show_announcement("Player %d wins!" % get_player_number(winner_peer_id))
 	respawn_all_at_spawn()
-	_freeze_all_players(5.0)
 
 func _on_scores_changed(scores: Dictionary) -> void:
 	hud.update_scores(scores, _player_numbers, game_mode.stocks)

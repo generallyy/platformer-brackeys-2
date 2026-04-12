@@ -33,7 +33,7 @@ func _process(_delta: float) -> void:
 			_spawn_particle(fixed, angle, null)
 	else:
 		# Split particles evenly across all enemy players
-		var per_target := PARTICLE_COUNT / targets.size()
+		var per_target: int = PARTICLE_COUNT / targets.size()
 		var remainder := PARTICLE_COUNT % targets.size()
 		var particle_index := 0
 		for t in range(targets.size()):

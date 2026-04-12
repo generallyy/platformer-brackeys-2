@@ -105,6 +105,10 @@ func _end_round() -> void:
 	for i in _finishers.size():
 		var pts: int = FINISH_POINTS[i] if i < FINISH_POINTS.size() else 0
 		_finish_scores[_finishers[i]] = _finish_scores.get(_finishers[i], 0) + pts
+	for peer_id in scores:
+		_finish_scores[peer_id] = _finish_scores.get(peer_id, 0) + _compute_kill_points(peer_id)
+	kills.clear()
+	total_kills.clear()
 	_recompute_scores()
 	var winner := _find_winner()
 	_do_intermission(winner, _finishers.duplicate())
