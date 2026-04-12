@@ -127,28 +127,28 @@ func _end_round() -> void:
 	_do_intermission(winner, _finishers.duplicate())
 
 func record_kill(killer_id: int, victim_id: int) -> void:
+	kda_kills[killer_id] = kda_kills.get(killer_id, 0) + 1
+	kda_deaths[victim_id] = kda_deaths.get(victim_id, 0) + 1
+	_broadcast_kda()
 	if not _round_active:
 		return
 	if killer_id not in kills:
 		kills[killer_id] = {}
 	kills[killer_id][victim_id] = kills[killer_id].get(victim_id, 0) + 1
 	total_kills[killer_id] = total_kills.get(killer_id, 0) + 1
-	kda_kills[killer_id] = kda_kills.get(killer_id, 0) + 1
-	kda_deaths[victim_id] = kda_deaths.get(victim_id, 0) + 1
 	if victim_id in stocks and stocks[victim_id] > 0:
 		stocks[victim_id] -= 1
 	_broadcast_stocks()
-	_broadcast_kda()
 	_check_all_done()
 
 func record_death(victim_id: int) -> void:
+	kda_deaths[victim_id] = kda_deaths.get(victim_id, 0) + 1
+	_broadcast_kda()
 	if not _round_active:
 		return
-	kda_deaths[victim_id] = kda_deaths.get(victim_id, 0) + 1
 	if victim_id in stocks and stocks[victim_id] > 0:
 		stocks[victim_id] -= 1
 	_broadcast_stocks()
-	_broadcast_kda()
 	_check_all_done()
 
 func can_respawn(peer_id: int) -> bool:

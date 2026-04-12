@@ -82,8 +82,10 @@ const BOOST_SPEED = 300.0	# constant horizontal speed
 var has_dbj = false
 var is_dbj = false
 var _dbj_boost_lockout := 0.0
+var _boost_dbj_lockout := 0.0
 const DBJ_SPEED = -350	#double jump
 const DBJ_BOOST_LOCKOUT := 0.2
+const BOOST_DBJ_LOCKOUT := 0.1
 
 var is_frozen = false
 var freeze_timer = 0.0
@@ -197,6 +199,7 @@ func _physics_process(delta):
 	_melee_cooldown      = max(0.0, _melee_cooldown - delta)
 	_projectile_cooldown = max(0.0, _projectile_cooldown - delta)
 	_dbj_boost_lockout   = max(0.0, _dbj_boost_lockout - delta)
+	_boost_dbj_lockout   = max(0.0, _boost_dbj_lockout - delta)
 
 	if not is_knocked_back:
 		# Handle jump.
@@ -205,7 +208,7 @@ func _physics_process(delta):
 				velocity.y = JUMP_VELOCITY
 				audio_stream_player.stream = jump_sfx
 				audio_stream_player.play()
-			elif not has_dbj and not is_boosting:
+			elif not has_dbj and _boost_dbj_lockout <= 0.0:
 				start_dbj()
 
 		if Input.is_action_just_pressed("f") and not is_on_floor() and not has_air_boosted and _dbj_boost_lockout <= 0.0 and not _is_shielding:
@@ -560,6 +563,7 @@ func start_air_boost():
 		boost_timer = BOOST_DURATION
 		has_air_boosted = true
 
+		_boost_dbj_lockout = BOOST_DBJ_LOCKOUT
 		audio_stream_player.stream = boost_jump_sfx
 		audio_stream_player.play()
 

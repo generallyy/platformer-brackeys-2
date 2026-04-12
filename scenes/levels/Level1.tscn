@@ -498,5 +498,8 @@ target_level_path = "uid://dedncck66f1ak"
 position = Vector2(-222, 1)
 target_level_path = "uid://d15xchk33ihme"
 
+[node name="Checkpoint2" parent="." unique_id=1127554574 instance=ExtResource("17_chkpt")]
+position = Vector2(-273, -24)
+
 [node name="Checkpoint" parent="." unique_id=382174373 instance=ExtResource("17_chkpt")]
 position = Vector2(-21, -14)

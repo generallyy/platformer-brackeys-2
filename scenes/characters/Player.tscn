@@ -305,6 +305,5 @@ libraries/ = SubResource("AnimationLibrary_y5ki7")
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="." unique_id=1552145014]
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1346791460]
-zoom = Vector2(4, 4)
-limit_bottom = 120
+zoom = Vector2(3, 3)
 position_smoothing_enabled = true

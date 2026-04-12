@@ -189,11 +189,24 @@ func _req_activate_checkpoint(checkpoint_path: NodePath, peer_id: int) -> void:
 		_set_checkpoint(checkpoint, peer_id)
 
 func _set_checkpoint(checkpoint: Node2D, peer_id: int) -> void:
+	if peer_id in _respawn_points:
+		var old: Node2D = _respawn_points[peer_id]
+		if is_instance_valid(old) and old != checkpoint:
+			if NetworkManager.is_active():
+				_sync_reset_checkpoint.rpc(peer_id, old.get_path())
+			else:
+				_sync_reset_checkpoint(peer_id, old.get_path())
 	_respawn_points[peer_id] = checkpoint
 	if NetworkManager.is_active():
 		_sync_checkpoint.rpc(peer_id, checkpoint.get_path())
 	else:
 		_sync_checkpoint(peer_id, checkpoint.get_path())
+
+@rpc("authority", "call_local", "reliable")
+func _sync_reset_checkpoint(peer_id: int, checkpoint_path: NodePath) -> void:
+	var old := get_node_or_null(checkpoint_path)
+	if old:
+		old.reset_for_peer(peer_id)
 
 @rpc("authority", "call_local", "reliable")
 func _sync_checkpoint(peer_id: int, checkpoint_path: NodePath) -> void:
