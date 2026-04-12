@@ -294,6 +294,7 @@ func _freeze_all_players(duration: float) -> void:
 func _on_round_started(round_number: int) -> void:
 	hud.show_announcement("GO!" if round_number == 1 else "Round %d — GO!" % round_number)
 	hud.update_scores(game_mode.scores, _player_numbers, game_mode.stocks)
+	hud.update_kda(game_mode.kda_kills, game_mode.kda_deaths, _player_numbers)
 	_freeze_all_players(hud.ANNOUNCEMENT_DURATION)
 
 func _on_round_ended(finishers: Array, scores: Dictionary) -> void:

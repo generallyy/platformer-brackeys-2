@@ -1,0 +1,12 @@
+[gd_scene format=3 uid="uid://6p4wbys3uy3w"]
+
+[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_da4f3"]
+load_path = "res://.godot/imported/knight.png-7c67c83d34932624952797d9e971a644.ctex"
+
+[node name="Sprite2D" type="Sprite2D" unique_id=1704015272]
+texture_filter = 1
+position = Vector2(-1, -10)
+texture = SubResource("CompressedTexture2D_da4f3")
+offset = Vector2(0, 0.5)
+region_enabled = true
+region_rect = Rect2(8, 9, 14, 19)

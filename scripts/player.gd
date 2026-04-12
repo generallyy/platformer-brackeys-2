@@ -1,7 +1,11 @@
 extends CharacterBody2D
 
-const DAGGER_SCENE = preload("res://scenes/weapons/Dagger.tscn")
-const MELEE_SCENE  = preload("res://scenes/weapons/MeleeHitbox.tscn")
+const DAGGER_SCENE  = preload("res://scenes/weapons/Dagger.tscn")
+const MELEE_SCENE   = preload("res://scenes/weapons/MeleeHitbox.tscn")
+const ZAP_SCENE     = preload("res://scenes/weapons/Zap.tscn")
+const SHIELD_SCENE  = preload("res://scenes/weapons/Shield.tscn")
+const SHIELD_MAX           := 1.0
+const SHIELD_RECHARGE_RATE := 0.25
 const SPEED = 200.0
 const ACCELERATION = 1400.0
 const FRICTION = 2400.0
@@ -101,6 +105,10 @@ var _equipped_max_simultaneous := 1
 var _equipped_returns := false
 var _active_projectile_count := 0
 
+var shield_charge: float = SHIELD_MAX
+var _is_shielding := false
+var _shield_node: Node = null
+
 var is_invuln := false
 var _invuln_timer := 0.0
 const INVULN_DURATION := 1.0
@@ -137,6 +145,9 @@ func _ready() -> void:
 	_base_sprite_frames = animated_sprite.sprite_frames
 	_apply_outfit_visuals(outfit_id)
 	equip_weapon(DAGGER_SCENE)
+	_shield_node = SHIELD_SCENE.instantiate()
+	add_child(_shield_node)
+	_shield_node.visible = false
 
 func _physics_process(delta):
 	if NetworkManager.is_active() and not is_multiplayer_authority():
@@ -165,7 +176,19 @@ func _physics_process(delta):
 		if _knockback_timer <= 0.0:
 			is_knocked_back = false
 
-	var direction = 0.0 if is_knocked_back else Input.get_axis("move_left", "move_right")
+	# Shield logic
+	var want_shield := Input.is_action_pressed("shield") and (_is_shielding or shield_charge > 0.25)
+	_is_shielding = want_shield
+	if _is_shielding:
+		shield_charge = max(0.0, shield_charge - delta)
+		if shield_charge <= 0.0:
+			_is_shielding = false
+	else:
+		shield_charge = min(SHIELD_MAX, shield_charge + SHIELD_RECHARGE_RATE * delta)
+	_shield_node.set_active(_is_shielding)
+	_shield_node.update_charge(shield_charge, SHIELD_MAX)
+
+	var direction = 0.0 if (is_knocked_back or _is_shielding) else Input.get_axis("move_left", "move_right")
 
 	# flip sprite or don't flip sprite
 	update_direction(direction)
@@ -177,7 +200,7 @@ func _physics_process(delta):
 
 	if not is_knocked_back:
 		# Handle jump.
-		if Input.is_action_just_pressed("jump"):
+		if Input.is_action_just_pressed("jump") and not _is_shielding:
 			if is_on_floor():
 				velocity.y = JUMP_VELOCITY
 				audio_stream_player.stream = jump_sfx
@@ -185,16 +208,19 @@ func _physics_process(delta):
 			elif not has_dbj and not is_boosting:
 				start_dbj()
 
-		if Input.is_action_just_pressed("f") and not is_on_floor() and not has_air_boosted and _dbj_boost_lockout <= 0.0:
+		if Input.is_action_just_pressed("f") and not is_on_floor() and not has_air_boosted and _dbj_boost_lockout <= 0.0 and not _is_shielding:
 			start_air_boost()
 		var _can_throw := _projectile_cooldown <= 0.0 and (not _equipped_returns or _active_projectile_count < _equipped_max_simultaneous)
-		if Input.is_action_just_pressed("attack") and _can_throw:
+		if Input.is_action_just_pressed("attack") and _can_throw and not _is_shielding:
 			_throw_weapon(equipped_projectile_scene, facing_direction)
 			if _equipped_returns:
 				_active_projectile_count += 1
 			_projectile_cooldown = _equipped_cooldown_max
-		if Input.is_action_just_pressed("melee") and _melee_cooldown <= 0.0:
-			_do_melee()
+		if Input.is_action_just_pressed("melee") and _melee_cooldown <= 0.0 and not _is_shielding:
+			if Input.get_axis("move_left", "move_right") != 0.0:
+				_do_melee()
+			else:
+				_do_zap()
 
 	# Add the gravity.
 	if not is_on_floor() and not is_boosting:
@@ -229,7 +255,7 @@ func _physics_process(delta):
 	_send_state_sync()
 
 @rpc("any_peer", "unreliable_ordered")
-func _sync_state(pos: Vector2, flip: bool, anim: String, body_visible: bool, sprite_visible: bool):
+func _sync_state(pos: Vector2, flip: bool, anim: String, body_visible: bool, sprite_visible: bool, shield_visible: bool):
 	if is_multiplayer_authority():
 		return
 	global_position = pos
@@ -238,12 +264,13 @@ func _sync_state(pos: Vector2, flip: bool, anim: String, body_visible: bool, spr
 	animated_sprite.flip_h = flip
 	if animated_sprite.animation != anim:
 		animated_sprite.play(anim)
+	_shield_node.set_active(shield_visible)
 	# Server relays client state to all other peers that need it
 	if multiplayer.is_server():
 		var sender := multiplayer.get_remote_sender_id()
 		for pid in _sync_peers:
 			if pid != sender:
-				_sync_state.rpc_id(pid, pos, flip, anim, body_visible, sprite_visible)
+				_sync_state.rpc_id(pid, pos, flip, anim, body_visible, sprite_visible, shield_visible)
 
 func _update_damage_flash(delta: float) -> void:
 	if not is_invuln:
@@ -258,11 +285,12 @@ func _update_damage_flash(delta: float) -> void:
 func _send_state_sync() -> void:
 	if not NetworkManager.is_active():
 		return
+	var sv : bool = _shield_node.visible if _shield_node else false
 	if multiplayer.is_server():
 		for pid in _sync_peers:
-			_sync_state.rpc_id(pid, global_position, animated_sprite.flip_h, animated_sprite.animation, visible, animated_sprite.visible)
+			_sync_state.rpc_id(pid, global_position, animated_sprite.flip_h, animated_sprite.animation, visible, animated_sprite.visible, sv)
 	else:
-		_sync_state.rpc_id(1, global_position, animated_sprite.flip_h, animated_sprite.animation, visible, animated_sprite.visible)
+		_sync_state.rpc_id(1, global_position, animated_sprite.flip_h, animated_sprite.animation, visible, animated_sprite.visible, sv)
 
 func update_direction(direction: float):
 	if direction != 0:
@@ -282,6 +310,8 @@ func take_damage(amount: int, knockback: Vector2 = Vector2.ZERO, attacker_peer_i
 	if NetworkManager.is_active() and not is_multiplayer_authority():
 		return
 	if is_invuln:
+		return
+	if _is_shielding:
 		return
 	if attacker_peer_id != -1:
 		_last_attacker_peer_id = attacker_peer_id
@@ -450,6 +480,26 @@ func _do_spawn_melee(dir: int, thrower_id: int) -> void:
 	m.thrower_peer_id = thrower_id
 	add_child(m)
 	m.position = WEAPON_SPAWN_OFFSET * Vector2(dir, 1)
+
+func _do_zap() -> void:
+	_melee_cooldown = MELEE_COOLDOWN
+	var pid := multiplayer.get_unique_id() if NetworkManager.is_active() else -1
+	if NetworkManager.is_active():
+		_rpc_throw_zap.rpc(facing_direction, pid)
+	else:
+		_do_spawn_zap(facing_direction, pid)
+
+@rpc("authority", "call_local", "reliable")
+func _rpc_throw_zap(dir: int, thrower_id: int) -> void:
+	_do_spawn_zap(dir, thrower_id)
+
+func _do_spawn_zap(dir: int, thrower_id: int) -> void:
+	var z = ZAP_SCENE.instantiate()
+	z.direction = dir
+	z.thrower_peer_id = thrower_id
+	add_child(z)
+	z.position.x = 0
+	z.position.y = -7
 
 func _resolve_body_collisions() -> void:
 	if NetworkManager.is_active() and not multiplayer.is_server():

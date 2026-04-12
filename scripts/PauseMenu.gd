@@ -7,6 +7,7 @@ const ACTIONS := {
 	"f": "Boost",
 	"attack": "Attack",
 	"melee": "Melee",
+	"shield": "Shield",
 	"interact": "Interact / Equip",
 }
 

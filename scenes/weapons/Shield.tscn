@@ -1,0 +1,72 @@
+[gd_scene format=3 uid="uid://cp11710aei6oy"]
+
+[ext_resource type="PackedScene" uid="uid://6p4wbys3uy3w" path="res://scenes/characters/PlayerImg.tscn" id="1_4s7vw"]
+[ext_resource type="Script" uid="uid://bxo287trdqgw3" path="res://scripts/Shield.gd" id="2_shield"]
+
+[sub_resource type="Gradient" id="Gradient_4s7vw"]
+offsets = PackedFloat32Array(0, 0.5544355, 0.56653225)
+colors = PackedColorArray(0.26519892, 0.5479524, 0.6312912, 1, 0.5223032, 0.7061223, 0.7603011, 0.65010357, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_v8r57"]
+gradient = SubResource("Gradient_4s7vw")
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(0, 0)
+
+[sub_resource type="Gradient" id="Gradient_bcra7"]
+offsets = PackedFloat32Array(0.105150215, 0.97639483, 1)
+colors = PackedColorArray(0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_31g8r"]
+gradient = SubResource("Gradient_bcra7")
+width = 128
+height = 128
+fill = 1
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_4s7vw"]
+radius = 13.0
+
+[sub_resource type="Gradient" id="Gradient_v8r57"]
+offsets = PackedFloat32Array(0.50858366, 0.51287556, 0.5171674)
+colors = PackedColorArray(0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_bcra7"]
+gradient = SubResource("Gradient_v8r57")
+width = 36
+height = 36
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
+
+[node name="Shield" type="Area2D" unique_id=1587654411]
+script = ExtResource("2_shield")
+
+[node name="ShieldSprite" type="Sprite2D" parent="." unique_id=1240500468]
+z_index = 1
+texture_filter = 1
+position = Vector2(2.9802322e-08, -10)
+scale = Vector2(0.5078125, 0.52853954)
+texture = SubResource("GradientTexture2D_v8r57")
+
+[node name="Player" parent="." unique_id=1704015272 instance=ExtResource("1_4s7vw")]
+visible = false
+
+[node name="Polygon2D" type="Polygon2D" parent="." unique_id=1809828116]
+visible = false
+color = Color(4.042983e-06, 0.85430574, 0.8544629, 1)
+texture = SubResource("GradientTexture2D_31g8r")
+polygon = PackedVector2Array(0, -6, 16, -6, 15, 6)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1345970984]
+position = Vector2(0, -10)
+shape = SubResource("CircleShape2D_4s7vw")
+
+[node name="TextureProgressBar" type="TextureProgressBar" parent="." unique_id=1096547555]
+z_index = 1
+offset_left = -18.0
+offset_top = -28.0
+offset_right = 18.0
+offset_bottom = 8.0
+step = 0.01
+fill_mode = 4
+texture_progress = SubResource("GradientTexture2D_bcra7")

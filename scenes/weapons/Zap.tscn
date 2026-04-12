@@ -1,0 +1,23 @@
+[gd_scene format=3 uid="uid://ddebsw7pr00vh"]
+
+[ext_resource type="Texture2D" uid="uid://da6r0ki7buguf" path="res://assets/sprites/white_circle.png" id="1_fne7g"]
+[ext_resource type="Script" uid="uid://dmyjh4xjm564t" path="res://scripts/Zap.gd" id="1_lbk1x"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_aqms5"]
+radius = 14.035668
+
+[node name="Zap" type="Area2D" unique_id=237655767]
+script = ExtResource("1_lbk1x")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=985386265]
+shape = SubResource("CircleShape2D_aqms5")
+
+[node name="PointLight2D" type="PointLight2D" parent="." unique_id=1054500608]
+position = Vector2(-7.450581e-09, 0)
+scale = Vector2(2.0117188, 2.0117188)
+color = Color(0.9114438, 0, 0.32076967, 1)
+energy = 1.05
+texture = ExtResource("1_fne7g")
+
+[connection signal="area_entered" from="." to="." method="_on_area_entered"]
+[connection signal="body_entered" from="." to="." method="_on_body_entered"]

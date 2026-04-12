@@ -60,11 +60,8 @@ func update_kda(kda_kills: Dictionary, kda_deaths: Dictionary, player_numbers: D
 	var vbox := $KDA/VBoxContainer
 	for child in vbox.get_children():
 		child.queue_free()
-	var all_peers := (kda_kills.keys() + kda_deaths.keys())
-	var peers := []
-	for pid in all_peers:
-		if pid not in peers:
-			peers.append(pid)
+	var peers := player_numbers.keys()
+	peers.sort_custom(func(a, b): return player_numbers[a] < player_numbers[b])
 	for peer_id in peers:
 		var display_num: int = player_numbers.get(peer_id, peer_id)
 		var lbl := Label.new()
