@@ -9,7 +9,7 @@ var _time_label: Label
 var _game_mode: Node = null
 
 func _ready() -> void:
-	$Hearts/Label.text = "♥♥♥"
+	#$Hearts/Label.text = "♥♥♥♥♥"
 	_score_row = $Scores
 	_announcement_label = $Announcement/PanelContainer/Announce
 	$Announcement/PanelContainer.visible = false

@@ -1,0 +1,44 @@
+[gd_scene format=3 uid="uid://dghf2fi812ufr"]
+
+[ext_resource type="Script" uid="uid://n7e5qg244mv4" path="res://scripts/CollisionToggle.gd" id="1_v3m5t"]
+[ext_resource type="Theme" uid="uid://swm642j7u26w" path="res://assets/fonts/pixel_theme.tres" id="1_vyha1"]
+
+[sub_resource type="Gradient" id="Gradient_vyha1"]
+colors = PackedColorArray(0.62352943, 0, 0.11372549, 1, 1, 1, 1, 1)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_v3m5t"]
+gradient = SubResource("Gradient_vyha1")
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_17qfp"]
+size = Vector2(13.5, 19.75)
+
+[node name="CollisionToggle" type="Area2D" unique_id=762361470]
+script = ExtResource("1_v3m5t")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=314551700]
+position = Vector2(-1.6666665, -22.876337)
+scale = Vector2(0.43333334, 0.3466112)
+texture = SubResource("GradientTexture1D_v3m5t")
+offset = Vector2(5, 37)
+region_enabled = true
+region_rect = Rect2(84.82402, 133.33391, 30.933334, 58.708878)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1859907216]
+position = Vector2(0.25, -10.125)
+shape = SubResource("RectangleShape2D_17qfp")
+
+[node name="PromptLabel" type="Label" parent="." unique_id=2131564775]
+visible = false
+texture_filter = 1
+offset_left = -87.0
+offset_top = -36.0
+offset_right = 88.0
+offset_bottom = -13.0
+theme = ExtResource("1_vyha1")
+theme_override_font_sizes/font_size = 8
+text = "hello"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[connection signal="body_entered" from="." to="." method="_on_body_entered"]
+[connection signal="body_exited" from="." to="." method="_on_body_exited"]

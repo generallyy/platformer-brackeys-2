@@ -160,6 +160,10 @@ func _load_level_local(path: String) -> bool:
 	if spawn == null:
 		push_error("No PlayerSpawn found in level: %s" % path)
 	var spawn_pos: Vector2 = spawn.global_position if spawn else Vector2.ZERO
+	for p in spawned_players.values():
+		for other in spawned_players.values():
+			if other != p:
+				p.remove_collision_exception_with(other)
 	var idx: int = 0
 	for p in spawned_players.values():
 		if spawn:

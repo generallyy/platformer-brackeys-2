@@ -4,7 +4,7 @@
 [ext_resource type="PackedScene" uid="uid://bss3elgcw2k64" path="res://scenes/world/snowplatform.tscn" id="3_a3eoy"]
 [ext_resource type="PackedScene" uid="uid://r58dyaaue84q" path="res://scenes/world/Door.tscn" id="4_dqba7"]
 [ext_resource type="Texture2D" uid="uid://cfblvi3let1yi" path="res://assets/sprites/parallax/parallax-00.png" id="4_ludr6"]
-[ext_resource type="PackedScene" uid="uid://bkev11l1s8t2u" path="res://scenes/world/killzone.tscn" id="4_t5btq"]
+[ext_resource type="PackedScene" uid="uid://bkev11l1s8t2u" path="res://scenes/world/hazards/killzone.tscn" id="4_t5btq"]
 [ext_resource type="Texture2D" uid="uid://cpmuib8eixpur" path="res://assets/sprites/parallax/parallax-01.png" id="5_ddl6m"]
 [ext_resource type="Script" uid="uid://ctg7pgehojdrk" path="res://scripts/CloudLayer.gd" id="5_esope"]
 [ext_resource type="Texture2D" uid="uid://b58flvpefme0d" path="res://assets/sprites/parallax/parallax-02.png" id="6_n2e4f"]
@@ -21,6 +21,8 @@
 [ext_resource type="PackedScene" uid="uid://brcunvxow50lq" path="res://scenes/world/Checkpoint.tscn" id="17_chkpt"]
 [ext_resource type="PackedScene" path="res://scenes/world/MovingSnowPlatform.tscn" id="18_move"]
 [ext_resource type="PackedScene" uid="uid://cnyg8hvr1lhvg" path="res://scenes/world/LevelTransition.tscn" id="19_xbvxr"]
+[ext_resource type="PackedScene" uid="uid://dghf2fi812ufr" path="res://scenes/world/CollisionToggle.tscn" id="22_usw5k"]
+[ext_resource type="PackedScene" uid="uid://ci71fpxtxsgj7" path="res://scenes/world/hazards/Spikes.tscn" id="23_jsker"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_bspq0"]
 texture = ExtResource("2_lc44e")
@@ -413,6 +415,10 @@ text = "you like da movement?"
 label_settings = SubResource("LabelSettings_yuese")
 horizontal_alignment = 1
 
+[node name="Spikes" parent="Labels" unique_id=1134753863 instance=ExtResource("23_jsker")]
+position = Vector2(77.00001, 15)
+rotation = 1.5414431
+
 [node name="Enemy" parent="." unique_id=1424475405 instance=ExtResource("11_lha2r")]
 position = Vector2(-327, -30)
 
@@ -501,5 +507,12 @@ target_level_path = "uid://d15xchk33ihme"
 [node name="Checkpoint2" parent="." unique_id=1127554574 instance=ExtResource("17_chkpt")]
 position = Vector2(-273, -24)
 
+[node name="CollisionToggle" parent="." unique_id=762361470 instance=ExtResource("22_usw5k")]
+position = Vector2(71, -50)
+
 [node name="Checkpoint" parent="." unique_id=382174373 instance=ExtResource("17_chkpt")]
 position = Vector2(-21, -14)
+
+[node name="Spikes" parent="." unique_id=1386707205 instance=ExtResource("23_jsker")]
+position = Vector2(90.00001, -27.999992)
+rotation = 0.5772796

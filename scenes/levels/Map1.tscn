@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://djmyjt6r4opt4"]
 
 [ext_resource type="Texture2D" uid="uid://de6fdtyglanjq" path="res://assets/sprites/world_tileset.png" id="1_ovtbk"]
-[ext_resource type="PackedScene" uid="uid://bkev11l1s8t2u" path="res://scenes/world/killzone.tscn" id="2_j0i6o"]
+[ext_resource type="PackedScene" uid="uid://bkev11l1s8t2u" path="res://scenes/world/hazards/killzone.tscn" id="2_j0i6o"]
 [ext_resource type="PackedScene" uid="uid://c7k0nwhuq35hj" path="res://scenes/world/GoalZone.tscn" id="3_j0i6o"]
 [ext_resource type="PackedScene" uid="uid://r58dyaaue84q" path="res://scenes/world/Door.tscn" id="4_3x7br"]
 [ext_resource type="PackedScene" uid="uid://dl2oximo51wsm" path="res://scenes/ui/LevelSettings.tscn" id="5_0w6la"]

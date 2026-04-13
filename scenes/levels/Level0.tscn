@@ -2,7 +2,7 @@
 
 [ext_resource type="Texture2D" uid="uid://de6fdtyglanjq" path="res://assets/sprites/world_tileset.png" id="1_s87cq"]
 [ext_resource type="Shader" uid="uid://e4u8tyxfagrf" path="res://assets/shaders/darken.tres" id="2_ykix4"]
-[ext_resource type="PackedScene" uid="uid://bkev11l1s8t2u" path="res://scenes/world/killzone.tscn" id="3_2u0cu"]
+[ext_resource type="PackedScene" uid="uid://bkev11l1s8t2u" path="res://scenes/world/hazards/killzone.tscn" id="3_2u0cu"]
 [ext_resource type="Texture2D" uid="uid://cfblvi3let1yi" path="res://assets/sprites/parallax/parallax-00.png" id="4_5028q"]
 [ext_resource type="Script" uid="uid://ctg7pgehojdrk" path="res://scripts/CloudLayer.gd" id="5_syv5r"]
 [ext_resource type="Texture2D" uid="uid://cpmuib8eixpur" path="res://assets/sprites/parallax/parallax-01.png" id="6_ci07s"]

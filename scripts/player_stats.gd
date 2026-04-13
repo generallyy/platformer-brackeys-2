@@ -37,7 +37,7 @@ extends Resource
 @export var shield_recharge_rate: float = 0.25
 
 # Health
-@export var max_health: int = 3
+@export var max_health: int = 5
 
 # Powerups
 @export var speed_surge_speed: float = 400.0

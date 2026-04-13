@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://d15xchk33ihme"]
 
 [ext_resource type="Texture2D" uid="uid://de6fdtyglanjq" path="res://assets/sprites/world_tileset.png" id="1_uw6xe"]
-[ext_resource type="PackedScene" uid="uid://bkev11l1s8t2u" path="res://scenes/world/killzone.tscn" id="2_oblk4"]
+[ext_resource type="PackedScene" uid="uid://bkev11l1s8t2u" path="res://scenes/world/hazards/killzone.tscn" id="2_oblk4"]
 [ext_resource type="PackedScene" uid="uid://r58dyaaue84q" path="res://scenes/world/Door.tscn" id="3_a3cud"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_a3cud"]

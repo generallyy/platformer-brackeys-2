@@ -23,6 +23,7 @@ position = Vector2(0, -20)
 shape = SubResource("RectangleShape2D_zone")
 
 [node name="PromptLabel" type="Label" parent="." unique_id=1052958701]
+visible = false
 offset_left = -48.0
 offset_top = -66.0
 offset_right = 48.0

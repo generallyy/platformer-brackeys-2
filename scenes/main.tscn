@@ -68,9 +68,9 @@ corner_radius_top_right = 15
 corner_radius_bottom_right = 15
 corner_radius_bottom_left = 15
 
-[sub_resource type="Theme" id="Theme_27rqe"]
+[sub_resource type="Theme" id="Theme_eb6dy"]
 default_font = ExtResource("3_xxodx")
-default_font_size = 40
+default_font_size = 60
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_w7i0f"]
 bg_color = Color(0.154876, 0.154876, 0.154876, 1)
@@ -78,7 +78,7 @@ border_width_left = 5
 border_width_top = 5
 border_width_right = 5
 border_width_bottom = 5
-border_color = Color(0.240981, 0.0434862, 0.209013, 1)
+border_color = Color(0.13333334, 0.08235294, 0.6745098, 1)
 border_blend = true
 corner_radius_top_left = 30
 corner_radius_top_right = 30
@@ -120,7 +120,7 @@ theme = SubResource("Theme_tefeu")
 
 [node name="Label" type="Label" parent="HUD/Hearts" unique_id=753615665]
 layout_mode = 2
-text = "♥♥♥"
+text = "♥♥♥♥♥"
 
 [node name="KDA" type="PanelContainer" parent="HUD" unique_id=1771099154]
 anchors_preset = 5
@@ -230,7 +230,6 @@ text = "hi guys"
 [node name="PauseMenu" type="CanvasLayer" parent="." unique_id=1678797512]
 process_mode = 3
 layer = 2
-visible = false
 script = ExtResource("3_7frdm")
 
 [node name="ColorRect" type="ColorRect" parent="PauseMenu" unique_id=413221137]
@@ -249,7 +248,7 @@ offset_left = -3.0
 offset_right = -3.0
 grow_horizontal = 2
 grow_vertical = 2
-theme = SubResource("Theme_27rqe")
+theme = SubResource("Theme_eb6dy")
 
 [node name="PanelContainer" type="PanelContainer" parent="PauseMenu/CenterContainer" unique_id=2002907725]
 layout_mode = 2

@@ -1,7 +1,7 @@
 extends Area2D
 
-const LIFETIME := 0.12
-const KNOCKBACK_BASE := Vector2(900.0, -200.0)
+const LIFETIME := 0.06
+const KNOCKBACK_BASE := Vector2(100.0, -300.0)
 
 var direction := 1
 var thrower_peer_id := -1
