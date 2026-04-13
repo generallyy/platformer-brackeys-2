@@ -48,6 +48,7 @@ var _state: PlayerState = PlayerState.GROUNDED
 # ============================================================
 
 signal health_changed(new_health: int, max_health: int)
+signal powerups_changed(passive: Array, active: String)
 
 # ============================================================
 # PLAYER STATE
@@ -653,6 +654,7 @@ func apply_powerup(id: String) -> void:
 		if id == PowerupIds.EXTRA_HEARTS:
 			health = mini(health + 2, get_effective_max_health())
 			health_changed.emit(health, get_effective_max_health())
+	powerups_changed.emit(passive_powerups, active_powerup)
 
 
 func clear_powerups() -> void:
@@ -661,6 +663,7 @@ func clear_powerups() -> void:
 	_active_used_this_round = false
 	_speed_surge_active     = false
 	_speed_surge_timer      = 0.0
+	powerups_changed.emit(passive_powerups, active_powerup)
 
 
 func reset_round_powerup_state() -> void:

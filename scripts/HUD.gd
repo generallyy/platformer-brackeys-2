@@ -37,11 +37,37 @@ func set_game_mode(gm: Node) -> void:
 	_game_mode = gm
 
 
+@onready var _powerups_label: Label = $PowerupsLabel
+
 func update_hearts(current: int, max_health: int = 3) -> void:
 	var text := ""
 	for i in max_health:
 		text += "♥" if i < current else "♡"
 	$Hearts/Label.text = text
+
+func update_powerups(passive: Array, active: String) -> void:
+	var lines: Array[String] = []
+	var counts := {}
+	for id in passive:
+		counts[id] = counts.get(id, 0) + 1
+	for id in counts:
+		var name := _powerup_display_name(id)
+		lines.append(name if counts[id] == 1 else "%s x%d" % [name, counts[id]])
+	if active != "":
+		lines.append("[%s]" % _powerup_display_name(active))
+	_powerups_label.text = "\n".join(lines)
+	_powerups_label.visible = not lines.is_empty()
+
+func _powerup_display_name(id: String) -> String:
+	match id:
+		PowerupIds.JUMP_BOOST:      return "Jump Boost"
+		PowerupIds.DAMAGE_BOOST:    return "Damage Boost"
+		PowerupIds.KNOCKBACK_BOOST: return "Knockback Boost"
+		PowerupIds.EXTRA_HEARTS:    return "Extra Hearts"
+		PowerupIds.LOW_GRAVITY:     return "Low Gravity"
+		PowerupIds.SPEED_BOOST:     return "Speed Boost"
+		PowerupIds.HOMER_ONCE:      return "Homer"
+		_:                          return id
 
 func update_scores(scores: Dictionary, player_numbers: Dictionary = {}, stocks: Dictionary = {}) -> void:
 	for child in _score_row.get_children():

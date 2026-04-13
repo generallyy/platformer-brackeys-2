@@ -119,6 +119,7 @@ func _spawn_player(peer_id: int):
 		var cam = p.get_node("Camera2D")
 		cam.make_current()
 		p.health_changed.connect(hud.update_hearts)
+		p.powerups_changed.connect(hud.update_powerups)
 
 func request_load_level(path: String) -> void:
 	if NetworkManager.is_active() and not multiplayer.is_server():

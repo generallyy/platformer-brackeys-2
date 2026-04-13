@@ -122,6 +122,20 @@ theme = SubResource("Theme_tefeu")
 layout_mode = 2
 text = "♥♥♥♥♥"
 
+[node name="PowerupsLabel" type="Label" parent="HUD" unique_id=1111111111]
+visible = false
+anchors_preset = -1
+anchor_left = 0.066
+anchor_top = 0.09
+anchor_right = 0.066
+anchor_bottom = 0.09
+offset_left = -55.0
+offset_top = 32.0
+offset_right = 220.0
+offset_bottom = 130.0
+theme_override_fonts/font = ExtResource("3_xxodx")
+theme_override_font_sizes/font_size = 12
+
 [node name="KDA" type="PanelContainer" parent="HUD" unique_id=1771099154]
 anchors_preset = 5
 anchor_left = 0.5
