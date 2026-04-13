@@ -16,6 +16,7 @@ func _ready() -> void:
 	_time_label = $Time/Label
 	$Time.visible = false
 	$KDA.visible = false
+	_powerups_label.visible = false
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_focus_next") or event.is_action_released("ui_focus_next"):  # Tab
