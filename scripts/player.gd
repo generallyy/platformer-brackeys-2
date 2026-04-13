@@ -164,10 +164,12 @@ func _physics_process(delta: float) -> void:
 			if _dbj_frozen:
 				return
 			_handle_input(delta)
-			_apply_movement(delta)
+			if _state == PlayerState.DOUBLE_JUMP:
+				_apply_movement(delta)
 		_:
 			_handle_input(delta)
-			_apply_movement(delta)
+			if _state not in [PlayerState.AIR_BOOST, PlayerState.DASH]:
+				_apply_movement(delta)
 
 	_pre_slide_velocity = velocity
 	move_and_slide()
@@ -200,6 +202,8 @@ func _enter_state(state: PlayerState) -> void:
 			_boost_timer       = stats.boost_duration
 			has_air_boosted    = true
 			_boost_dbj_lockout = stats.boost_dbj_lockout
+			velocity.x = facing_direction * stats.boost_speed
+			velocity.y = 0.0
 			audio_stream_player.stream = _BOOST_SFX
 			audio_stream_player.play()
 			_effects_anchor.position = Vector2(-facing_direction * 10.0, 0.0)
@@ -627,7 +631,10 @@ func set_finished(finished: bool) -> void:
 
 @rpc("any_peer", "call_local", "reliable")
 func _rpc_set_finished(finished: bool) -> void:
-	_collision_shape.set_deferred("disabled", finished)
+	if finished:
+		_transition_to(PlayerState.UI_LOCKED)
+	else:
+		_transition_to(PlayerState.GROUNDED if is_on_floor() else PlayerState.AIRBORNE)
 
 # ============================================================
 # POWERUPS
