@@ -43,11 +43,14 @@ func _ready():
 
 func _init_bindings() -> void:
 	for action in ACTIONS:
-		var events := InputMap.action_get_events(action)
-		var slots := []
-		for i in SLOTS:
-			slots.append(events[i] if i < events.size() else null)
-		_bindings[action] = slots
+		var events  := InputMap.action_get_events(action)
+		var kb_events   := events.filter(func(e): return e is InputEventKey)
+		var ctrl_events := events.filter(func(e): return e is InputEventJoypadButton or e is InputEventJoypadMotion)
+		_bindings[action] = [
+			kb_events[0]   if kb_events.size()   > 0 else null,
+			kb_events[1]   if kb_events.size()   > 1 else null,
+			ctrl_events[0] if ctrl_events.size() > 0 else null,
+		]
 
 func _apply_bindings(action: String) -> void:
 	InputMap.action_erase_events(action)
@@ -78,6 +81,24 @@ func _build_keybinds_panel() -> void:
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(title)
 
+	# Column headers
+	var header := HBoxContainer.new()
+	header.add_theme_constant_override("separation", 8)
+	vbox.add_child(header)
+	var header_spacer := Label.new()
+	header_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header.add_child(header_spacer)
+	var kb_header := Label.new()
+	kb_header.text = "Keyboard"
+	kb_header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	kb_header.custom_minimum_size = Vector2(228, 0)  # two 110px buttons + 8px gap
+	header.add_child(kb_header)
+	var ctrl_header := Label.new()
+	ctrl_header.text = "Controller"
+	ctrl_header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	ctrl_header.custom_minimum_size = Vector2(110, 0)
+	header.add_child(ctrl_header)
+
 	for action in ACTIONS:
 		var hbox := HBoxContainer.new()
 		hbox.add_theme_constant_override("separation", 8)
@@ -96,6 +117,11 @@ func _build_keybinds_panel() -> void:
 			hbox.add_child(btn)
 			btns.append(btn)
 		_action_buttons[action] = btns
+
+	var reset := Button.new()
+	reset.text = "RESET TO DEFAULTS"
+	reset.pressed.connect(_reset_keybinds)
+	vbox.add_child(reset)
 
 	var back := Button.new()
 	back.text = "BACK"
@@ -150,6 +176,13 @@ func _joy_axis_name(axis: int, value: float) -> String:
 		_: return "Axis%d%s" % [axis, "-" if value < 0 else "+"]
 
 func _start_rebind(action: String, slot: int, btn: Button) -> void:
+	# Second click on the same slot — clear it
+	if _rebinding_action == action and _rebinding_slot == slot:
+		_commit_rebind(null)
+		return
+	# Clicking a different slot while already rebinding — cancel the old one first
+	if _rebinding_action != "":
+		_cancel_rebind()
 	_rebinding_action = action
 	_rebinding_slot   = slot
 	_rebinding_button = btn
@@ -167,24 +200,27 @@ func _input(event: InputEvent) -> void:
 	if _rebinding_action == "":
 		return
 
+	var is_kb_slot := _rebinding_slot < SLOTS - 1
+
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.physical_keycode == KEY_ESCAPE:
 			_cancel_rebind()
-		else:
+			get_viewport().set_input_as_handled()
+		elif is_kb_slot:
 			_commit_rebind(event)
-		get_viewport().set_input_as_handled()
+			get_viewport().set_input_as_handled()
 
-	elif event is InputEventJoypadButton and event.pressed:
-		_commit_rebind(event)
-		get_viewport().set_input_as_handled()
-
-	elif event is InputEventJoypadMotion and abs(event.axis_value) >= 0.5:
-		var e := InputEventJoypadMotion.new()
-		e.device     = event.device
-		e.axis       = event.axis
-		e.axis_value = sign(event.axis_value)
-		_commit_rebind(e)
-		get_viewport().set_input_as_handled()
+	elif not is_kb_slot:
+		if event is InputEventJoypadButton and event.pressed:
+			_commit_rebind(event)
+			get_viewport().set_input_as_handled()
+		elif event is InputEventJoypadMotion and abs(event.axis_value) >= 0.5:
+			var e := InputEventJoypadMotion.new()
+			e.device     = event.device
+			e.axis       = event.axis
+			e.axis_value = sign(event.axis_value)
+			_commit_rebind(e)
+			get_viewport().set_input_as_handled()
 
 func _commit_rebind(event: InputEvent) -> void:
 	_bindings[_rebinding_action][_rebinding_slot] = event
@@ -201,6 +237,16 @@ func _cancel_rebind() -> void:
 	_rebinding_action = ""
 	_rebinding_slot   = -1
 	_rebinding_button = null
+
+func _reset_keybinds() -> void:
+	if _rebinding_action != "":
+		_cancel_rebind()
+	InputMap.load_from_project_settings()
+	_init_bindings()
+	for action in ACTIONS:
+		_apply_bindings(action)
+	DirAccess.remove_absolute("user://keybinds.cfg")
+	_refresh_all_buttons()
 
 # ============================================================
 # SAVE / LOAD
@@ -291,7 +337,7 @@ func _on_restart_pressed():
 
 func _on_title_pressed():
 	get_tree().paused = false
-	get_tree().change_scene_to_file("res://scenes/TitleScreen.tscn")
+	get_tree().change_scene_to_file("res://scenes/UI/TitleScreen.tscn")
 
 func _on_keybinds_pressed():
 	$CenterContainer.visible = false

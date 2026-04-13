@@ -200,6 +200,7 @@ func _enter_state(state: PlayerState) -> void:
 		PlayerState.DASH:
 			_dash_timer    = stats.dash_duration
 			_dash_cooldown = stats.dash_cooldown
+			velocity.x = facing_direction * stats.dash_speed
 		PlayerState.AIR_BOOST:
 			_boost_timer       = stats.boost_duration
 			has_air_boosted    = true
