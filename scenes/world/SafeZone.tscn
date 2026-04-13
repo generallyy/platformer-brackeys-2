@@ -1,0 +1,9 @@
+[gd_scene format=3 uid="uid://cnqlcu2d4omum"]
+
+[ext_resource type="Script" uid="uid://be6sbw3vf2rg" path="res://scripts/safe_zone.gd" id="1_safez"]
+
+[node name="SafeZone" type="Area2D" unique_id=1488022728]
+script = ExtResource("1_safez")
+
+[connection signal="body_entered" from="." to="." method="_on_body_entered"]
+[connection signal="body_exited" from="." to="." method="_on_body_exited"]

@@ -2,6 +2,7 @@
 
 [ext_resource type="Texture2D" uid="uid://1jcup4os5nef" path="res://assets/sprites/knight.png" id="1_okj15"]
 [ext_resource type="Script" uid="uid://8y0ak4ctjdvg" path="res://scripts/player.gd" id="1_wlgh5"]
+[ext_resource type="Resource" uid="uid://gxu7b4kv2qap" path="res://resources/player_stats.tres" id="2_gj1sn"]
 [ext_resource type="Texture2D" uid="uid://d4no0dlt7wndt" path="res://assets/sprites/knightfly.png" id="2_o2dby"]
 [ext_resource type="Texture2D" uid="uid://da6r0ki7buguf" path="res://assets/sprites/white_circle.png" id="3_a8hje"]
 
@@ -255,7 +256,7 @@ tracks/1/keys = {
 "times": PackedFloat32Array(0, 0.1, 0.5),
 "transitions": PackedFloat32Array(1, 1, 1),
 "values": [{
-"args": [0.09],
+"args": [0.1],
 "method": &"start_freeze"
 }, {
 "args": [null],
@@ -274,6 +275,7 @@ _data = {
 [node name="Player" type="CharacterBody2D" unique_id=1990097403]
 z_index = 5
 script = ExtResource("1_wlgh5")
+stats = ExtResource("2_gj1sn")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1972804155]
 position = Vector2(0, -5)

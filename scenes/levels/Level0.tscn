@@ -17,6 +17,7 @@
 [ext_resource type="PackedScene" uid="uid://cshsgwdi7vy0x" path="res://scenes/world/WardrobeZone.tscn" id="14_wardrobe"]
 [ext_resource type="PackedScene" uid="uid://drj4jecr8s6x8" path="res://scenes/world/Box.tscn" id="15_auvjl"]
 [ext_resource type="PackedScene" uid="uid://r58dyaaue84q" path="res://scenes/world/Door.tscn" id="16_l5fl4"]
+[ext_resource type="PackedScene" uid="uid://cnqlcu2d4omum" path="res://scenes/world/SafeZone.tscn" id="18_nx170"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_q4vnh"]
 texture = ExtResource("1_s87cq")
@@ -470,6 +471,9 @@ gradient = SubResource("Gradient_ssbg5")
 fill = 1
 fill_from = Vector2(0.508547, 0.508547)
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_h27y2"]
+size = Vector2(243, 205)
+
 [node name="Level0" type="Node2D" unique_id=2093286285]
 position = Vector2(0, 1)
 
@@ -672,5 +676,12 @@ target_level_path = "uid://djmyjt6r4opt4"
 
 [node name="WardrobeZone" parent="." unique_id=1252420101 instance=ExtResource("14_wardrobe")]
 position = Vector2(-106, -9)
+
+[node name="SafeZone" parent="." unique_id=108348627 instance=ExtResource("18_nx170")]
+position = Vector2(75, -100)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="SafeZone" unique_id=1034426737]
+position = Vector2(92.5, -4.5)
+shape = SubResource("RectangleShape2D_h27y2")
 
 [connection signal="body_entered" from="LevelTransition" to="LevelTransition" method="_on_body_entered"]
