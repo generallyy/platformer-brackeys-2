@@ -65,6 +65,7 @@ var is_frozen: bool:
 	set(v): _dbj_frozen = v
 
 var _input_direction    := 0.0
+var _input_locked       := false
 var _pre_slide_velocity := Vector2.ZERO
 var gravity: float       = ProjectSettings.get_setting("physics/2d/default_gravity")
 
@@ -144,7 +145,7 @@ func _physics_process(delta: float) -> void:
 	_update_shield(delta)
 	_apply_gravity(delta)
 
-	_input_direction = 0.0 if (_state == PlayerState.KNOCKED_BACK or _is_shielding) \
+	_input_direction = 0.0 if (_state == PlayerState.KNOCKED_BACK or _is_shielding or _input_locked) \
 			else Input.get_axis("move_left", "move_right")
 	update_direction(_input_direction)
 	update_animation()
@@ -377,6 +378,13 @@ func update_animation() -> void:
 func start_freeze(duration: float) -> void:
 	_dbj_frozen       = true
 	_dbj_freeze_timer = duration
+
+
+func freeze_for_duration(duration: float) -> void:
+	_input_locked = true
+	velocity.x    = 0.0
+	await get_tree().create_timer(duration).timeout
+	_input_locked = false
 
 
 func run_dbj(_delta = null) -> void:

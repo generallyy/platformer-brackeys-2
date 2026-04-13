@@ -1,0 +1,7 @@
+[gd_resource type="Theme" format=3 uid="uid://2p378flu0i2e"]
+
+[ext_resource type="FontFile" uid="uid://dw2vot0ojx8pg" path="res://assets/fonts/Labrada/ttf/Labrada-Medium.ttf" id="1_8bk46"]
+
+[resource]
+default_font = ExtResource("1_8bk46")
+default_font_size = 50

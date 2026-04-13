@@ -11,9 +11,13 @@ const ACTIONS := {
 	"interact": "Interact / Equip",
 }
 
+const SLOTS := 3
+
 var _keybinds_panel: Control
-var _action_buttons := {}
+var _action_buttons := {}  # action -> Array of Button, size SLOTS
+var _bindings       := {}  # action -> Array of InputEvent or null, size SLOTS
 var _rebinding_action := ""
+var _rebinding_slot   := -1
 var _rebinding_button: Button = null
 
 func _ready():
@@ -29,8 +33,31 @@ func _ready():
 				UiAudio.play_click()
 			)
 
+	_init_bindings()
 	_build_keybinds_panel()
 	_load_keybinds()
+
+# ============================================================
+# BINDINGS DATA
+# ============================================================
+
+func _init_bindings() -> void:
+	for action in ACTIONS:
+		var events := InputMap.action_get_events(action)
+		var slots := []
+		for i in SLOTS:
+			slots.append(events[i] if i < events.size() else null)
+		_bindings[action] = slots
+
+func _apply_bindings(action: String) -> void:
+	InputMap.action_erase_events(action)
+	for e in _bindings[action]:
+		if e != null:
+			InputMap.action_add_event(action, e)
+
+# ============================================================
+# KEYBINDS UI
+# ============================================================
 
 func _build_keybinds_panel() -> void:
 	var center := CenterContainer.new()
@@ -53,7 +80,7 @@ func _build_keybinds_panel() -> void:
 
 	for action in ACTIONS:
 		var hbox := HBoxContainer.new()
-		hbox.add_theme_constant_override("separation", 16)
+		hbox.add_theme_constant_override("separation", 8)
 		vbox.add_child(hbox)
 
 		var lbl := Label.new()
@@ -61,46 +88,176 @@ func _build_keybinds_panel() -> void:
 		lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		hbox.add_child(lbl)
 
-		var btn := Button.new()
-		btn.text = _get_key_name(action)
-		btn.custom_minimum_size = Vector2(140, 0)
-		btn.pressed.connect(_start_rebind.bind(action, btn))
-		hbox.add_child(btn)
-		_action_buttons[action] = btn
+		var btns := []
+		for slot in SLOTS:
+			var btn := Button.new()
+			btn.custom_minimum_size = Vector2(110, 0)
+			btn.pressed.connect(_start_rebind.bind(action, slot, btn))
+			hbox.add_child(btn)
+			btns.append(btn)
+		_action_buttons[action] = btns
 
 	var back := Button.new()
 	back.text = "BACK"
 	back.pressed.connect(_close_keybinds)
 	vbox.add_child(back)
 
-func _get_key_name(action: String) -> String:
-	for e in InputMap.action_get_events(action):
-		if e is InputEventKey:
-			return e.as_text_physical_keycode()
+	_refresh_all_buttons()
+
+func _refresh_all_buttons() -> void:
+	for action in _action_buttons:
+		var btns: Array = _action_buttons[action]
+		var slots: Array = _bindings[action]
+		for i in SLOTS:
+			btns[i].text = _event_display_name(slots[i]) if slots[i] != null else "---"
+
+func _event_display_name(event: InputEvent) -> String:
+	if event is InputEventKey:
+		return event.as_text_physical_keycode()
+	if event is InputEventJoypadButton:
+		return _joy_button_name(event.button_index)
+	if event is InputEventJoypadMotion:
+		return _joy_axis_name(event.axis, event.axis_value)
 	return "???"
 
-func _start_rebind(action: String, btn: Button) -> void:
+func _joy_button_name(index: int) -> String:
+	match index:
+		0:  return "B"
+		1:  return "A"
+		2:  return "Y"
+		3:  return "X"
+		4:  return "Minus"
+		5:  return "Home"
+		6:  return "Plus"
+		7:  return "L3"
+		8:  return "R3"
+		9:  return "L"
+		10: return "R"
+		11: return "D-Up"
+		12: return "D-Down"
+		13: return "D-Left"
+		14: return "D-Right"
+		_:  return "Btn %d" % index
+
+func _joy_axis_name(axis: int, value: float) -> String:
+	match axis:
+		0: return "L-Stick ←" if value < 0 else "L-Stick →"
+		1: return "L-Stick ↑" if value < 0 else "L-Stick ↓"
+		2: return "R-Stick ←" if value < 0 else "R-Stick →"
+		3: return "R-Stick ↑" if value < 0 else "R-Stick ↓"
+		4: return "ZL"
+		5: return "ZR"
+		_: return "Axis%d%s" % [axis, "-" if value < 0 else "+"]
+
+func _start_rebind(action: String, slot: int, btn: Button) -> void:
 	_rebinding_action = action
+	_rebinding_slot   = slot
 	_rebinding_button = btn
-	btn.text = "[ press key ]"
+	btn.text = "[ press... ]"
 
 func _close_keybinds() -> void:
 	_keybinds_panel.visible = false
 	$CenterContainer.visible = true
 
-func _input(event):
-	if _rebinding_action != "":
-		if event is InputEventKey and event.pressed and not event.echo:
-			if event.physical_keycode == KEY_ESCAPE:
-				_rebinding_button.text = _get_key_name(_rebinding_action)
-			else:
-				InputMap.action_erase_events(_rebinding_action)
-				InputMap.action_add_event(_rebinding_action, event)
-				_rebinding_button.text = _get_key_name(_rebinding_action)
-				_save_keybinds()
-			_rebinding_action = ""
-			_rebinding_button = null
+# ============================================================
+# INPUT — rebind capture
+# ============================================================
+
+func _input(event: InputEvent) -> void:
+	if _rebinding_action == "":
+		return
+
+	if event is InputEventKey and event.pressed and not event.echo:
+		if event.physical_keycode == KEY_ESCAPE:
+			_cancel_rebind()
+		else:
+			_commit_rebind(event)
 		get_viewport().set_input_as_handled()
+
+	elif event is InputEventJoypadButton and event.pressed:
+		_commit_rebind(event)
+		get_viewport().set_input_as_handled()
+
+	elif event is InputEventJoypadMotion and abs(event.axis_value) >= 0.5:
+		var e := InputEventJoypadMotion.new()
+		e.device     = event.device
+		e.axis       = event.axis
+		e.axis_value = sign(event.axis_value)
+		_commit_rebind(e)
+		get_viewport().set_input_as_handled()
+
+func _commit_rebind(event: InputEvent) -> void:
+	_bindings[_rebinding_action][_rebinding_slot] = event
+	_apply_bindings(_rebinding_action)
+	_save_keybinds()
+	_refresh_all_buttons()
+	_rebinding_action = ""
+	_rebinding_slot   = -1
+	_rebinding_button = null
+
+func _cancel_rebind() -> void:
+	var e = _bindings[_rebinding_action][_rebinding_slot]
+	_rebinding_button.text = _event_display_name(e) if e != null else "---"
+	_rebinding_action = ""
+	_rebinding_slot   = -1
+	_rebinding_button = null
+
+# ============================================================
+# SAVE / LOAD
+# ============================================================
+
+func _save_keybinds() -> void:
+	var cfg := ConfigFile.new()
+	for action in ACTIONS:
+		for slot in SLOTS:
+			var e = _bindings[action][slot]
+			cfg.set_value("keybinds", "%s/%d" % [action, slot],
+					_serialize_event(e) if e != null else null)
+	cfg.save("user://keybinds.cfg")
+
+func _load_keybinds() -> void:
+	var cfg := ConfigFile.new()
+	if cfg.load("user://keybinds.cfg") != OK:
+		return
+	for action in ACTIONS:
+		for slot in SLOTS:
+			var key := "%s/%d" % [action, slot]
+			if not cfg.has_section_key("keybinds", key):
+				continue
+			var data = cfg.get_value("keybinds", key)
+			_bindings[action][slot] = _deserialize_event(data) if data != null else null
+		_apply_bindings(action)
+	_refresh_all_buttons()
+
+func _serialize_event(event: InputEvent) -> Dictionary:
+	if event is InputEventKey:
+		return {"type": "key", "keycode": event.physical_keycode}
+	if event is InputEventJoypadButton:
+		return {"type": "button", "button_index": event.button_index}
+	if event is InputEventJoypadMotion:
+		return {"type": "motion", "axis": event.axis, "axis_value": event.axis_value}
+	return {}
+
+func _deserialize_event(data: Dictionary) -> InputEvent:
+	match data.get("type", ""):
+		"key":
+			var e := InputEventKey.new()
+			e.physical_keycode = data["keycode"] as Key
+			return e
+		"button":
+			var e := InputEventJoypadButton.new()
+			e.button_index = data["button_index"] as JoyButton
+			return e
+		"motion":
+			var e := InputEventJoypadMotion.new()
+			e.axis       = data["axis"] as JoyAxis
+			e.axis_value = data["axis_value"]
+			return e
+	return null
+
+# ============================================================
+# PAUSE / RESUME
+# ============================================================
 
 func _unhandled_input(event):
 	if event.is_action_pressed("pause"):
@@ -113,29 +270,6 @@ func _unhandled_input(event):
 		if focused and focused is Button:
 			focused.emit_signal("pressed")
 			UiAudio.play_click()
-
-func _save_keybinds() -> void:
-	var cfg := ConfigFile.new()
-	for action in ACTIONS:
-		for e in InputMap.action_get_events(action):
-			if e is InputEventKey:
-				cfg.set_value("keybinds", action, e.physical_keycode)
-				break
-	cfg.save("user://keybinds.cfg")
-
-func _load_keybinds() -> void:
-	var cfg := ConfigFile.new()
-	if cfg.load("user://keybinds.cfg") != OK:
-		return
-	for action in ACTIONS:
-		if cfg.has_section_key("keybinds", action):
-			var keycode: int = cfg.get_value("keybinds", action)
-			var event := InputEventKey.new()
-			event.physical_keycode = keycode as Key
-			InputMap.action_erase_events(action)
-			InputMap.action_add_event(action, event)
-	for action in _action_buttons:
-		_action_buttons[action].text = _get_key_name(action)
 
 func pause_game():
 	get_tree().paused = true

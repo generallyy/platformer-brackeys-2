@@ -322,9 +322,9 @@ func _sync_respawn_all(pos: Vector2) -> void:
 		if goal:
 			goal.reset_for_new_round()
 
-func _freeze_all_players(duration: float) -> void:
+func _freeze_for_all_players(duration: float) -> void:
 	for p in spawned_players.values():
-		p.start_freeze(duration)
+		p.freeze_for_duration(duration)
 
 func _on_round_started(round_number: int) -> void:
 	powerups_menu.close_menu()
@@ -332,7 +332,7 @@ func _on_round_started(round_number: int) -> void:
 	hud.show_announcement("GO!" if round_number == 1 else "Round %d — GO!" % round_number)
 	hud.update_scores(game_mode.scores, _player_numbers, game_mode.stocks)
 	hud.update_kda(game_mode.kda_kills, game_mode.kda_deaths, _player_numbers)
-	_freeze_all_players(hud.ANNOUNCEMENT_DURATION)
+	_freeze_for_all_players(hud.ANNOUNCEMENT_DURATION)
 
 func _on_round_ended(finishers: Array, scores: Dictionary) -> void:
 	hud.update_scores(scores, _player_numbers, game_mode.stocks)
@@ -343,7 +343,7 @@ func _on_round_ended(finishers: Array, scores: Dictionary) -> void:
 		var first_num := get_player_number(finishers[0])
 		msg = "P%d finished first! +%d pts" % [first_num, game_mode.FINISH_POINTS[0]]
 	hud.show_announcement(msg)
-	_freeze_all_players(hud.ANNOUNCEMENT_DURATION)
+	_freeze_for_all_players(hud.ANNOUNCEMENT_DURATION)
 	for p in spawned_players.values():
 		p.set_finished(false)
 

@@ -3,22 +3,10 @@
 [ext_resource type="Script" uid="uid://bll64vmi1miib" path="res://scripts/main.gd" id="1_exn86"]
 [ext_resource type="PackedScene" uid="uid://dg30pfci4cpnd" path="res://scenes/ui/WardrobeMenu.tscn" id="2_wardrobe"]
 [ext_resource type="Script" uid="uid://cbcey5h2tbcht" path="res://scripts/PauseMenu.gd" id="3_7frdm"]
-[ext_resource type="SystemFont" uid="uid://crymavm3yupm0" path="res://scenes/ui/Font.tres" id="3_xxodx"]
+[ext_resource type="Theme" uid="uid://2p378flu0i2e" path="res://assets/fonts/labrada.tres" id="5_tipki"]
 [ext_resource type="Script" uid="uid://dvcw37gjvs81r" path="res://scripts/HUD.gd" id="8_hudsc"]
 [ext_resource type="Script" uid="uid://b8u5llodnp4b0" path="res://scripts/game_mode.gd" id="9_gamemd"]
 [ext_resource type="Script" uid="uid://d0ngr678ycifw" path="res://scripts/PowerupsMenu.gd" id="10_powerups"]
-
-[sub_resource type="Theme" id="Theme_tefeu"]
-default_font = ExtResource("3_xxodx")
-default_font_size = 40
-
-[sub_resource type="Theme" id="Theme_choun"]
-default_font = ExtResource("3_xxodx")
-default_font_size = 30
-
-[sub_resource type="Theme" id="Theme_o6xl0"]
-default_font = ExtResource("3_xxodx")
-default_font_size = 30
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tefeu"]
 bg_color = Color(0.99025565, 0.34329996, 0.36159417, 0.7411765)
@@ -32,18 +20,6 @@ corner_radius_top_left = 50
 corner_radius_top_right = 50
 corner_radius_bottom_right = 50
 corner_radius_bottom_left = 50
-
-[sub_resource type="Theme" id="Theme_tipki"]
-default_font = ExtResource("3_xxodx")
-default_font_size = 50
-
-[sub_resource type="Theme" id="Theme_85g3d"]
-default_font = ExtResource("3_xxodx")
-default_font_size = 30
-
-[sub_resource type="Theme" id="Theme_ya4ey"]
-default_font = ExtResource("3_xxodx")
-default_font_size = 50
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_o6xl0"]
 corner_radius_top_left = 80
@@ -68,10 +44,6 @@ corner_radius_top_right = 15
 corner_radius_bottom_right = 15
 corner_radius_bottom_left = 15
 
-[sub_resource type="Theme" id="Theme_eb6dy"]
-default_font = ExtResource("3_xxodx")
-default_font_size = 60
-
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_w7i0f"]
 bg_color = Color(0.154876, 0.154876, 0.154876, 1)
 border_width_left = 5
@@ -88,10 +60,6 @@ expand_margin_left = 70.0
 expand_margin_top = 70.0
 expand_margin_right = 70.0
 expand_margin_bottom = 70.0
-
-[sub_resource type="Theme" id="Theme_03yvu"]
-default_font = ExtResource("3_xxodx")
-default_font_size = 80
 
 [node name="Main" type="Node2D" unique_id=1378921661]
 texture_filter = 1
@@ -116,7 +84,7 @@ offset_left = -55.479996
 offset_top = -41.800003
 offset_right = 46.520004
 offset_bottom = 28.199997
-theme = SubResource("Theme_tefeu")
+theme = ExtResource("5_tipki")
 
 [node name="Label" type="Label" parent="HUD/Hearts" unique_id=753615665]
 layout_mode = 2
@@ -133,7 +101,6 @@ offset_left = -55.0
 offset_top = 32.0
 offset_right = 220.0
 offset_bottom = 130.0
-theme_override_fonts/font = ExtResource("3_xxodx")
 theme_override_font_sizes/font_size = 12
 
 [node name="KDA" type="PanelContainer" parent="HUD" unique_id=1771099154]
@@ -146,13 +113,15 @@ offset_right = 191.0
 offset_bottom = 90.0
 grow_horizontal = 2
 size_flags_horizontal = 4
+theme = ExtResource("5_tipki")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="HUD/KDA" unique_id=1504450340]
 layout_mode = 2
 
 [node name="dummy label" type="Label" parent="HUD/KDA/VBoxContainer" unique_id=819409617]
 layout_mode = 2
-theme = SubResource("Theme_choun")
+theme = ExtResource("5_tipki")
+theme_override_font_sizes/font_size = 30
 text = "P1: 30/10/12"
 horizontal_alignment = 1
 
@@ -165,7 +134,7 @@ offset_left = 1588.0
 offset_top = 32.0
 offset_right = 1862.0
 offset_bottom = 198.0
-theme = SubResource("Theme_o6xl0")
+theme = ExtResource("5_tipki")
 
 [node name="dummy label" type="Label" parent="HUD/Scores" unique_id=1850977732]
 layout_mode = 2
@@ -185,7 +154,8 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_tefeu")
 
 [node name="Announce" type="Label" parent="HUD/Announcement/PanelContainer" unique_id=291901302]
 layout_mode = 2
-theme = SubResource("Theme_tipki")
+theme = ExtResource("5_tipki")
+theme_override_font_sizes/font_size = 50
 horizontal_alignment = 1
 
 [node name="Time" type="PanelContainer" parent="HUD" unique_id=843018957]
@@ -193,7 +163,7 @@ offset_left = 1406.0
 offset_top = 20.0
 offset_right = 1551.0
 offset_bottom = 84.0
-theme = SubResource("Theme_85g3d")
+theme = ExtResource("5_tipki")
 
 [node name="Label" type="Label" parent="HUD/Time" unique_id=170116207]
 layout_mode = 2
@@ -208,7 +178,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme = SubResource("Theme_ya4ey")
+theme = ExtResource("5_tipki")
 script = ExtResource("10_powerups")
 
 [node name="PowerupsMenu" type="CenterContainer" parent="HUD/PowerupsMenu" unique_id=1101933221]
@@ -244,6 +214,7 @@ text = "hi guys"
 [node name="PauseMenu" type="CanvasLayer" parent="." unique_id=1678797512]
 process_mode = 3
 layer = 2
+visible = false
 script = ExtResource("3_7frdm")
 
 [node name="ColorRect" type="ColorRect" parent="PauseMenu" unique_id=413221137]
@@ -262,7 +233,7 @@ offset_left = -3.0
 offset_right = -3.0
 grow_horizontal = 2
 grow_vertical = 2
-theme = SubResource("Theme_eb6dy")
+theme = ExtResource("5_tipki")
 
 [node name="PanelContainer" type="PanelContainer" parent="PauseMenu/CenterContainer" unique_id=2002907725]
 layout_mode = 2
@@ -330,7 +301,8 @@ grow_vertical = 2
 
 [node name="Label" type="Label" parent="LoadingScreen/ColorRect/CenterContainer" unique_id=704589070]
 layout_mode = 2
-theme = SubResource("Theme_03yvu")
+theme = ExtResource("5_tipki")
+theme_override_font_sizes/font_size = 80
 text = "Loading..."
 
 [connection signal="pressed" from="PauseMenu/CenterContainer/PanelContainer/VBoxContainer/Resume" to="PauseMenu" method="_on_resume_pressed"]
