@@ -19,6 +19,7 @@ signal kda_changed(kda_kills: Dictionary, kda_deaths: Dictionary)
 
 var state: int = State.INACTIVE
 var _n_picked := 0
+var _intermission_gen := 0
 var scores: Dictionary = {}
 var stocks: Dictionary = {}
 var kda_kills: Dictionary = {}
@@ -213,10 +214,14 @@ func notify_player_picked() -> void:
 
 func _do_intermission(winner_peer_id: int, finishers: Array) -> void:
 	_broadcast(State.INTERMISSION, scores, round_number, winner_peer_id, finishers)
-	powerups_distribute.emit(scores.duplicate(), _finishers.duplicate())
+	# powerups_distribute is emitted by _sync_round_state on all peers (including clients)
 	_n_picked = 0
+	_intermission_gen += 1
+	var my_gen := _intermission_gen
 	get_tree().create_timer(INTERMISSION_DURATION).timeout.connect(
-		func(): _intermission_done.emit(), CONNECT_ONE_SHOT
+		func():
+			if _intermission_gen == my_gen:
+				_intermission_done.emit()
 	)
 	await _intermission_done
 	if state == State.INACTIVE:
@@ -247,6 +252,8 @@ func _sync_round_state(new_state: int, new_scores: Dictionary, round_num: int, e
 			round_started.emit(round_num)
 		State.INTERMISSION:
 			round_ended.emit(finishers, new_scores)
+			if event_peer_id == -1:
+				powerups_distribute.emit(new_scores, finishers)
 		State.GAME_OVER:
 			_round_active = false
 			game_over.emit(event_peer_id, new_scores)
