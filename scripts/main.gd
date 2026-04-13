@@ -8,12 +8,16 @@ var current_level_path := "res://scenes/levels/Level0.tscn"
 var _respawn_points: Dictionary = {}
 var _wardrobe_player: Node = null
 
+const _MOUSE_HIDE_DELAY := 2.0
+var _mouse_idle := 0.0
+
 @onready var pause_menu = $PauseMenu
 @onready var level_container = $LevelContainer
 @onready var loading_screen = $LoadingScreen
 @onready var hud = $HUD
 @onready var wardrobe_menu = $WardrobeMenu
 @onready var game_mode = $GameMode
+@onready var powerups_menu = $HUD/PowerupsMenu
 
 func _ready() -> void:
 	pause_menu.visible = false
@@ -25,6 +29,8 @@ func _ready() -> void:
 	game_mode.scores_changed.connect(_on_scores_changed)
 	game_mode.stocks_changed.connect(_on_stocks_changed)
 	game_mode.kda_changed.connect(_on_kda_changed)
+	game_mode.powerups_distribute.connect(_on_powerups_distribute)
+	powerups_menu.powerup_picked.connect(_on_powerup_picked)
 	if NetworkManager.is_active():
 		multiplayer.peer_connected.connect(_on_peer_connected)
 		multiplayer.peer_disconnected.connect(_on_peer_disconnected)
@@ -36,6 +42,16 @@ func _ready() -> void:
 	else:
 		_spawn_player(1)
 		await _load_level_local(current_level_path)
+
+func _process(delta: float) -> void:
+	_mouse_idle += delta
+	if _mouse_idle >= _MOUSE_HIDE_DELAY:
+		Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
+
+func _input(event: InputEvent) -> void:
+	if event is InputEventMouseMotion:
+		_mouse_idle = 0.0
+		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 
 func _on_peer_connected(_id: int):
 	pass  # client initiates via _request_state
@@ -121,10 +137,12 @@ func load_level(path: String) -> void:
 
 func _load_level_local(path: String) -> bool:
 	game_mode.stop_game()
+	_clear_all_player_powerups()
 	for p in spawned_players.values():
 		p.is_frozen = false
 	loading_screen.visible = true
 	close_wardrobe()
+	powerups_menu.close_menu()
 	await get_tree().process_frame
 	var level_scene: PackedScene = load(path) as PackedScene
 	if level_scene == null:
@@ -286,8 +304,8 @@ func _sync_respawn_all(pos: Vector2) -> void:
 		p.velocity = Vector2.ZERO
 		p.is_frozen = false
 		p.set_finished(false)
-		p.health = p.MAX_HEALTH
-		p.health_changed.emit(p.health)
+		p.health = p.get_effective_max_health()
+		p.health_changed.emit(p.health, p.get_effective_max_health())
 		p.set_physics_process(true)
 		p.show()
 		idx += 1
@@ -301,6 +319,8 @@ func _freeze_all_players(duration: float) -> void:
 		p.start_freeze(duration)
 
 func _on_round_started(round_number: int) -> void:
+	powerups_menu.close_menu()
+	_grant_round_powerup_state()
 	hud.show_announcement("GO!" if round_number == 1 else "Round %d — GO!" % round_number)
 	hud.update_scores(game_mode.scores, _player_numbers, game_mode.stocks)
 	hud.update_kda(game_mode.kda_kills, game_mode.kda_deaths, _player_numbers)
@@ -332,6 +352,41 @@ func _on_stocks_changed(_stocks: Dictionary) -> void:
 
 func _on_kda_changed(kda_kills: Dictionary, kda_deaths: Dictionary) -> void:
 	hud.update_kda(kda_kills, kda_deaths, _player_numbers)
+
+func _on_powerups_distribute(_scores: Dictionary, finishers: Array) -> void:
+	var local_peer := multiplayer.get_unique_id() if NetworkManager.is_active() else 1
+	var player = spawned_players.get(local_peer)
+	if player == null:
+		return
+	var placement := finishers.find(local_peer) + 1  # 1-indexed; 0 means not in finishers
+	if placement == 0:
+		placement = spawned_players.size()
+	var delay := 1.5
+	await get_tree().create_timer(delay).timeout
+	if game_mode.state == game_mode.State.INTERMISSION:
+		var time_left: float = game_mode.INTERMISSION_DURATION - delay
+		powerups_menu.open_for_player(player, placement, time_left)
+
+func _on_powerup_picked() -> void:
+	if NetworkManager.is_active() and not multiplayer.is_server():
+		_req_notify_picked.rpc_id(1)
+	else:
+		game_mode.notify_player_picked()
+
+@rpc("any_peer", "reliable")
+func _req_notify_picked() -> void:
+	var caller := multiplayer.get_remote_sender_id()
+	if caller not in spawned_players:
+		return
+	game_mode.notify_player_picked()
+
+func _clear_all_player_powerups() -> void:
+	for p in spawned_players.values():
+		p.clear_powerups()
+
+func _grant_round_powerup_state() -> void:
+	for p in spawned_players.values():
+		p.reset_round_powerup_state()
 
 func _spawn_offset(index: int) -> Vector2:
 	return Vector2(0, -index * 20)

@@ -1,7 +1,7 @@
 extends Node
 
 const POINTS_TO_WIN := 30
-const INTERMISSION_DURATION := 1.25
+const INTERMISSION_DURATION := 8.0
 const FINISH_POINTS := [10, 7, 4, 2, 1]  # index 0 = 1st place
 const ROUND_START_DELAY := 1.0  # matches HUD.ANNOUNCEMENT_DURATION
 const KILL_POINTS := 5
@@ -12,12 +12,13 @@ enum State { INACTIVE, PLAYING, INTERMISSION, GAME_OVER }
 signal round_started(round_number: int)
 signal round_ended(finishers: Array, scores: Dictionary)
 signal game_over(winner_peer_id: int, scores: Dictionary)
-signal powerups_distribute(scores: Dictionary)
+signal powerups_distribute(scores: Dictionary, finishers: Array)
 signal scores_changed(scores: Dictionary)
 signal stocks_changed(stocks: Dictionary)
 signal kda_changed(kda_kills: Dictionary, kda_deaths: Dictionary)
 
 var state: int = State.INACTIVE
+var _n_picked := 0
 var scores: Dictionary = {}
 var stocks: Dictionary = {}
 var kda_kills: Dictionary = {}
@@ -200,10 +201,24 @@ func _find_winner() -> int:
 			best_peer = peer_id
 	return best_peer
 
+signal _intermission_done
+
+func notify_player_picked() -> void:
+	if state != State.INTERMISSION:
+		return
+	_n_picked += 1
+	if _n_picked >= get_parent().spawned_players.size():
+		_n_picked = 0
+		_intermission_done.emit()
+
 func _do_intermission(winner_peer_id: int, finishers: Array) -> void:
 	_broadcast(State.INTERMISSION, scores, round_number, winner_peer_id, finishers)
-	powerups_distribute.emit(scores.duplicate())
-	await get_tree().create_timer(INTERMISSION_DURATION).timeout
+	powerups_distribute.emit(scores.duplicate(), _finishers.duplicate())
+	_n_picked = 0
+	get_tree().create_timer(INTERMISSION_DURATION).timeout.connect(
+		func(): _intermission_done.emit(), CONNECT_ONE_SHOT
+	)
+	await _intermission_done
 	if state == State.INACTIVE:
 		return  # level changed while waiting — bail out
 	if winner_peer_id != -1:

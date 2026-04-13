@@ -68,7 +68,7 @@ const OUTFITS := [
 var health := MAX_HEALTH
 var outfit_id := 0
 
-signal health_changed(new_health: int)
+signal health_changed(new_health: int, max_health: int)
 
 
 var _pre_slide_velocity := Vector2.ZERO
@@ -86,6 +86,10 @@ var _boost_dbj_lockout := 0.0
 const DBJ_SPEED = -350	#double jump
 const DBJ_BOOST_LOCKOUT := 0.2
 const BOOST_DBJ_LOCKOUT := 0.1
+
+const HOMER_SCENE = preload("res://scenes/weapons/Homer.tscn")
+const SPEED_SURGE_DURATION := 2.5
+const SPEED_SURGE_SPEED := SPEED * 2.0
 
 var is_frozen = false
 var freeze_timer = 0.0
@@ -118,6 +122,7 @@ var _last_attacker_peer_id: int = -1
 var _last_hit_timer: float = 0.0
 const KILL_CREDIT_WINDOW := 2.0
 var _ui_locked := false
+var _input_cooldown := 0.0
 var _base_sprite_frames: SpriteFrames
 var _outfit_sprite_frames_cache: Dictionary = {}
 var _outfit_preview_cache: Dictionary = {}
@@ -127,6 +132,12 @@ var gravity = ProjectSettings.get_setting("physics/2d/default_gravity")
 
 var facing_direction = 1 	# right = 1, left = -1
 var _sync_peers: Array = []  # only used on server: peers that have this player spawned
+
+var passive_powerups: Array[String] = []
+var active_powerup: String = ""
+var _active_used_this_round := false
+var _speed_surge_active := false
+var _speed_surge_timer := 0.0
 
 func add_sync_peer(peer_id: int) -> void:
 	if peer_id not in _sync_peers:
@@ -196,16 +207,21 @@ func _physics_process(delta):
 	update_direction(direction)
 	update_animation()
 
+	_input_cooldown      = max(0.0, _input_cooldown - delta)
 	_melee_cooldown      = max(0.0, _melee_cooldown - delta)
 	_projectile_cooldown = max(0.0, _projectile_cooldown - delta)
 	_dbj_boost_lockout   = max(0.0, _dbj_boost_lockout - delta)
 	_boost_dbj_lockout   = max(0.0, _boost_dbj_lockout - delta)
+	if _speed_surge_active:
+		_speed_surge_timer -= delta
+		if _speed_surge_timer <= 0.0:
+			_speed_surge_active = false
 
 	if not is_knocked_back:
 		# Handle jump.
-		if Input.is_action_just_pressed("jump") and not _is_shielding:
+		if Input.is_action_just_pressed("jump") and not _is_shielding and _input_cooldown <= 0.0:
 			if is_on_floor():
-				velocity.y = JUMP_VELOCITY
+				velocity.y = JUMP_VELOCITY * pow(1.35, passive_powerups.count("jump_boost"))
 				audio_stream_player.stream = jump_sfx
 				audio_stream_player.play()
 			elif not has_dbj and _boost_dbj_lockout <= 0.0:
@@ -224,10 +240,21 @@ func _physics_process(delta):
 				_do_melee()
 			else:
 				_do_zap()
+		if Input.is_action_just_pressed("use_active") and not _active_used_this_round and not _is_shielding:
+			match active_powerup:
+				"speed_boost":
+					_speed_surge_active = true
+					_speed_surge_timer = SPEED_SURGE_DURATION
+					_active_used_this_round = true
+				"homer_once":
+					_throw_weapon(HOMER_SCENE, facing_direction)
+					_active_used_this_round = true
 
 	# Add the gravity.
 	if not is_on_floor() and not is_boosting:
-		velocity.y = min(velocity.y + gravity * delta, MAX_FALL_SPEED)
+		var gravity_scale := 0.5 if "low_gravity" in passive_powerups else 1.0
+		var fall_cap := MAX_FALL_SPEED * (0.6 if "low_gravity" in passive_powerups else 1.0)
+		velocity.y = min(velocity.y + gravity * gravity_scale * delta, fall_cap)
 
 	if not is_knocked_back:
 		update_air_boost(delta)
@@ -243,11 +270,12 @@ func _physics_process(delta):
 	# apply movement
 	if not is_knocked_back and (is_on_floor() or not is_boosting):
 		var fric := FRICTION if is_on_floor() else AIR_FRICTION
+		var effective_speed := SPEED_SURGE_SPEED if _speed_surge_active else SPEED
 		if direction:
 			var turning : float = direction * velocity.x < 0.0  # moving opposite to input
 			var accel := (TURN_ACCELERATION if is_on_floor() else AIR_TURN_ACCELERATION) if turning else \
 						 (ACCELERATION      if is_on_floor() else AIR_ACCELERATION)
-			velocity.x = move_toward(velocity.x, direction * SPEED, accel * delta)
+			velocity.x = move_toward(velocity.x, direction * effective_speed, accel * delta)
 		else:
 			velocity.x = move_toward(velocity.x, 0.0, fric * delta)
 	
@@ -320,7 +348,7 @@ func take_damage(amount: int, knockback: Vector2 = Vector2.ZERO, attacker_peer_i
 		_last_attacker_peer_id = attacker_peer_id
 		_last_hit_timer = KILL_CREDIT_WINDOW
 	health -= amount
-	health_changed.emit(health)
+	health_changed.emit(health, get_effective_max_health())
 	if health <= 0:
 		die()
 		return
@@ -411,6 +439,8 @@ func set_ui_locked(locked: bool) -> void:
 	_ui_locked = locked
 	if locked:
 		velocity = Vector2.ZERO
+	else:
+		_input_cooldown = 0.1
 
 func equip_weapon(scene: PackedScene, cooldown: float = 0.0) -> void:
 	if scene == null:
@@ -430,22 +460,24 @@ func _throw_weapon(scene: PackedScene, dir: int, extra_offset: Vector2 = Vector2
 	if scene == null:
 		push_error("%s tried to throw a null weapon scene" % name)
 		return
+	var dmg := 1 + passive_powerups.count("damage_boost")
+	var kbs := pow(1.6, passive_powerups.count("knockback_boost"))
 	var spawn_pos := global_position + WEAPON_SPAWN_OFFSET * Vector2(dir, 1) + extra_offset
 	var pid := multiplayer.get_unique_id() if NetworkManager.is_active() else -1
 	if NetworkManager.is_active():
-		_rpc_throw_weapon.rpc(scene.resource_path, dir, spawn_pos, pid)
+		_rpc_throw_weapon.rpc(scene.resource_path, dir, spawn_pos, pid, dmg, kbs)
 	else:
-		_do_spawn_weapon(scene, dir, spawn_pos, pid)
+		_do_spawn_weapon(scene, dir, spawn_pos, pid, dmg, kbs)
 
 @rpc("authority", "call_local", "reliable")
-func _rpc_throw_weapon(scene_path: String, dir: int, pos: Vector2, thrower_id: int) -> void:
+func _rpc_throw_weapon(scene_path: String, dir: int, pos: Vector2, thrower_id: int, dmg: int = 1, kbs: float = 1.0) -> void:
 	var scene: PackedScene = load(scene_path) as PackedScene
 	if scene == null:
 		push_error("Failed to load weapon scene: %s" % scene_path)
 		return
-	_do_spawn_weapon(scene, dir, pos, thrower_id)
+	_do_spawn_weapon(scene, dir, pos, thrower_id, dmg, kbs)
 
-func _do_spawn_weapon(scene: PackedScene, dir: int, pos: Vector2, thrower_id: int) -> void:
+func _do_spawn_weapon(scene: PackedScene, dir: int, pos: Vector2, thrower_id: int, dmg: int = 1, kbs: float = 1.0) -> void:
 	if scene == null:
 		push_error("%s tried to spawn a null weapon scene" % name)
 		return
@@ -453,6 +485,8 @@ func _do_spawn_weapon(scene: PackedScene, dir: int, pos: Vector2, thrower_id: in
 	p.direction = dir
 	p.scale.x = dir
 	p.thrower_peer_id = thrower_id
+	p.damage = dmg
+	p.knockback = p.knockback * kbs
 	if not NetworkManager.is_active():
 		p.owner_node = self
 	get_parent().add_child(p)
@@ -466,40 +500,48 @@ func _on_projectile_returned() -> void:
 
 func _do_melee() -> void:
 	_melee_cooldown = MELEE_COOLDOWN
+	var dmg := 1 + passive_powerups.count("damage_boost")
+	var kbs := pow(1.6, passive_powerups.count("knockback_boost"))
 	var pid := multiplayer.get_unique_id() if NetworkManager.is_active() else -1
 	if NetworkManager.is_active():
-		_rpc_throw_melee.rpc(facing_direction, pid)
+		_rpc_throw_melee.rpc(facing_direction, pid, dmg, kbs)
 	else:
-		_do_spawn_melee(facing_direction, pid)
+		_do_spawn_melee(facing_direction, pid, dmg, kbs)
 
 @rpc("authority", "call_local", "reliable")
-func _rpc_throw_melee(dir: int, thrower_id: int) -> void:
-	_do_spawn_melee(dir, thrower_id)
+func _rpc_throw_melee(dir: int, thrower_id: int, dmg: int = 1, kbs: float = 1.0) -> void:
+	_do_spawn_melee(dir, thrower_id, dmg, kbs)
 
-func _do_spawn_melee(dir: int, thrower_id: int) -> void:
+func _do_spawn_melee(dir: int, thrower_id: int, dmg: int = 1, kbs: float = 1.0) -> void:
 	var m = MELEE_SCENE.instantiate()
 	m.direction = dir
 	m.scale.x = dir
 	m.thrower_peer_id = thrower_id
+	m.damage = dmg
+	m.knockback_scale = kbs
 	add_child(m)
 	m.position = WEAPON_SPAWN_OFFSET * Vector2(dir, 1)
 
 func _do_zap() -> void:
 	_melee_cooldown = MELEE_COOLDOWN
+	var dmg := 1 + passive_powerups.count("damage_boost")
+	var kbs := pow(1.6, passive_powerups.count("knockback_boost"))
 	var pid := multiplayer.get_unique_id() if NetworkManager.is_active() else -1
 	if NetworkManager.is_active():
-		_rpc_throw_zap.rpc(facing_direction, pid)
+		_rpc_throw_zap.rpc(facing_direction, pid, dmg, kbs)
 	else:
-		_do_spawn_zap(facing_direction, pid)
+		_do_spawn_zap(facing_direction, pid, dmg, kbs)
 
 @rpc("authority", "call_local", "reliable")
-func _rpc_throw_zap(dir: int, thrower_id: int) -> void:
-	_do_spawn_zap(dir, thrower_id)
+func _rpc_throw_zap(dir: int, thrower_id: int, dmg: int = 1, kbs: float = 1.0) -> void:
+	_do_spawn_zap(dir, thrower_id, dmg, kbs)
 
-func _do_spawn_zap(dir: int, thrower_id: int) -> void:
+func _do_spawn_zap(dir: int, thrower_id: int, dmg: int = 1, kbs: float = 1.0) -> void:
 	var z = ZAP_SCENE.instantiate()
 	z.direction = dir
 	z.thrower_peer_id = thrower_id
+	z.damage = dmg
+	z.knockback_scale = kbs
 	add_child(z)
 	z.position.x = 0
 	z.position.y = -7
@@ -523,8 +565,8 @@ func die():
 
 	await get_tree().create_timer(RESPAWN_DELAY).timeout
 
-	health = MAX_HEALTH
-	health_changed.emit(health)
+	health = get_effective_max_health()
+	health_changed.emit(health, get_effective_max_health())
 	var main = get_tree().get_root().get_node("Main")
 	var peer_id = multiplayer.get_unique_id() if NetworkManager.is_active() else 1
 	if _last_attacker_peer_id != -1 and _last_attacker_peer_id != peer_id:
@@ -613,3 +655,29 @@ func _rpc_effect_boost(anchor_x: float, anchor_y: float, dir: Vector3) -> void:
 func effect_boost():
 	$EffectsAnchor/BoostParticles.restart()
 	$EffectsAnchor/BoostParticles.emitting = true
+
+func get_effective_max_health() -> int:
+	return MAX_HEALTH + passive_powerups.count("extra_hearts") * 2
+
+func apply_powerup(id: String) -> void:
+	var is_active := id in ["speed_boost", "homer_once"]
+	if is_active:
+		active_powerup = id
+		_active_used_this_round = false
+	else:
+		passive_powerups.append(id)
+		if id == "extra_hearts":
+			health = mini(health + 2, get_effective_max_health())
+			health_changed.emit(health, get_effective_max_health())
+
+func clear_powerups() -> void:
+	passive_powerups.clear()
+	active_powerup = ""
+	_active_used_this_round = false
+	_speed_surge_active = false
+	_speed_surge_timer = 0.0
+
+func reset_round_powerup_state() -> void:
+	_active_used_this_round = false
+	_speed_surge_active = false
+	_speed_surge_timer = 0.0

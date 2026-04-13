@@ -1,10 +1,12 @@
 extends Area2D
 
 const LIFETIME := 0.12
-const KNOCKBACK := Vector2(900.0, -200.0)
+const KNOCKBACK_BASE := Vector2(900.0, -200.0)
 
 var direction := 1
 var thrower_peer_id := -1
+var damage := 1
+var knockback_scale := 1.0
 
 # Track what we've already hit this swing so multi-frame overlap only hits once
 var _hit: Array = []
@@ -23,7 +25,7 @@ func _on_body_entered(body: Node2D) -> void:
 			return
 		_hit.append(body)
 		# Strong horizontal knockback like a forward aerial — mostly sideways, slight upward
-		body.take_damage(1, Vector2(direction * KNOCKBACK.x, KNOCKBACK.y), thrower_peer_id)
+		body.take_damage(damage, Vector2(direction * KNOCKBACK_BASE.x, KNOCKBACK_BASE.y) * knockback_scale, thrower_peer_id)
 
 func _on_area_entered(area: Area2D) -> void:
 	if area in _hit:

@@ -18,8 +18,8 @@ func _ready() -> void:
 	$KDA.visible = false
 
 func _input(event: InputEvent) -> void:
-	if event.is_action_pressed("ui_focus_next"):  # Tab
-		$KDA.visible = not $KDA.visible
+	if event.is_action_pressed("ui_focus_next") or event.is_action_released("ui_focus_next"):  # Tab
+		$KDA.visible = Input.is_action_pressed("ui_focus_next")
 
 func _process(delta: float) -> void:
 	if _announcement_timer > 0.0:
@@ -37,9 +37,9 @@ func set_game_mode(gm: Node) -> void:
 	_game_mode = gm
 
 
-func update_hearts(current: int) -> void:
+func update_hearts(current: int, max_health: int = 3) -> void:
 	var text := ""
-	for i in 3:
+	for i in max_health:
 		text += "♥" if i < current else "♡"
 	$Hearts/Label.text = text
 
