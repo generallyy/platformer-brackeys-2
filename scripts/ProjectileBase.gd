@@ -76,6 +76,9 @@ func _on_body_entered(body: Node2D) -> void:
 func _on_area_entered(area: Area2D) -> void:
 	if not _active:
 		return
+	if area.is_in_group("shield"):
+		_despawn()
+		return
 	if area.is_in_group("enemy_hurtbox"):
 		area.get_parent().take_damage(damage)
 		_on_hit_character(area.get_parent())

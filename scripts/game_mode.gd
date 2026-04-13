@@ -1,21 +1,28 @@
 extends Node
 
 const POINTS_TO_WIN := 30
-const INTERMISSION_DURATION := 1.25
+const INTERMISSION_DURATION := 10.0
 const FINISH_POINTS := [10, 7, 4, 2, 1]  # index 0 = 1st place
 const ROUND_START_DELAY := 1.0  # matches HUD.ANNOUNCEMENT_DURATION
 const KILL_POINTS := 5
+const STOCKS_PER_ROUND := 3
 
 enum State { INACTIVE, PLAYING, INTERMISSION, GAME_OVER }
 
 signal round_started(round_number: int)
 signal round_ended(finishers: Array, scores: Dictionary)
 signal game_over(winner_peer_id: int, scores: Dictionary)
-signal powerups_distribute(scores: Dictionary)
+signal powerups_distribute(scores: Dictionary, finishers: Array)
 signal scores_changed(scores: Dictionary)
+signal stocks_changed(stocks: Dictionary)
+signal kda_changed(kda_kills: Dictionary, kda_deaths: Dictionary)
 
 var state: int = State.INACTIVE
+var _n_picked := 0
 var scores: Dictionary = {}
+var stocks: Dictionary = {}
+var kda_kills: Dictionary = {}
+var kda_deaths: Dictionary = {}
 var round_number: int = 0
 var _round_active := false
 var _finishers: Array = []
@@ -61,11 +68,15 @@ func _sync_scores(new_scores: Dictionary) -> void:
 func stop_game() -> void:
 	_round_active = false
 	state = State.INACTIVE
+	kda_kills.clear()
+	kda_deaths.clear()
+	kda_changed.emit(kda_kills, kda_deaths)
 
 func register_player(peer_id: int) -> void:
 	if state != State.INACTIVE and peer_id not in scores:
 		scores[peer_id] = 0
 		_finish_scores[peer_id] = 0
+		stocks[peer_id] = STOCKS_PER_ROUND
 
 func sync_to_peer(peer_id: int) -> void:
 	_sync_round_state.rpc_id(peer_id, state, scores, round_number, -1, _finishers, _time_limit)
@@ -76,9 +87,11 @@ func start_game(time_limit: float = 60.0) -> void:
 	_finish_scores.clear()
 	kills.clear()
 	total_kills.clear()
+	stocks.clear()
 	for peer_id in get_parent().spawned_players:
 		scores[peer_id] = 0
 		_finish_scores[peer_id] = 0
+		stocks[peer_id] = STOCKS_PER_ROUND
 	round_number = 1
 	_finishers.clear()
 	_broadcast(State.PLAYING, scores, round_number, -1)
@@ -89,8 +102,15 @@ func player_finished(peer_id: int) -> void:
 	if peer_id in _finishers:
 		return
 	_finishers.append(peer_id)
-	if _finishers.size() >= get_parent().spawned_players.size():
-		_end_round()
+	_check_all_done()
+
+func _check_all_done() -> void:
+	if not _round_active:
+		return
+	for peer_id in get_parent().spawned_players:
+		if peer_id not in _finishers and stocks.get(peer_id, STOCKS_PER_ROUND) > 0:
+			return
+	_end_round()
 
 func _end_round() -> void:
 	if not _round_active:
@@ -99,22 +119,66 @@ func _end_round() -> void:
 	for i in _finishers.size():
 		var pts: int = FINISH_POINTS[i] if i < FINISH_POINTS.size() else 0
 		_finish_scores[_finishers[i]] = _finish_scores.get(_finishers[i], 0) + pts
+	for peer_id in scores:
+		_finish_scores[peer_id] = _finish_scores.get(peer_id, 0) + _compute_kill_points(peer_id)
+	kills.clear()
+	total_kills.clear()
 	_recompute_scores()
 	var winner := _find_winner()
 	_do_intermission(winner, _finishers.duplicate())
 
 func record_kill(killer_id: int, victim_id: int) -> void:
+	kda_kills[killer_id] = kda_kills.get(killer_id, 0) + 1
+	kda_deaths[victim_id] = kda_deaths.get(victim_id, 0) + 1
+	_broadcast_kda()
 	if not _round_active:
 		return
 	if killer_id not in kills:
 		kills[killer_id] = {}
 	kills[killer_id][victim_id] = kills[killer_id].get(victim_id, 0) + 1
 	total_kills[killer_id] = total_kills.get(killer_id, 0) + 1
-	_recompute_scores()
-	if _find_winner() != -1:
-		_end_round()
+	if victim_id in stocks and stocks[victim_id] > 0:
+		stocks[victim_id] -= 1
+	_broadcast_stocks()
+	_check_all_done()
+
+func record_death(victim_id: int) -> void:
+	kda_deaths[victim_id] = kda_deaths.get(victim_id, 0) + 1
+	_broadcast_kda()
+	if not _round_active:
+		return
+	if victim_id in stocks and stocks[victim_id] > 0:
+		stocks[victim_id] -= 1
+	_broadcast_stocks()
+	_check_all_done()
+
+func can_respawn(peer_id: int) -> bool:
+	if state == State.GAME_OVER or state == State.INACTIVE:
+		return true
+	return stocks.get(peer_id, STOCKS_PER_ROUND) > 0
+
+func _broadcast_stocks() -> void:
+	if NetworkManager.is_active():
+		_sync_stocks_rpc.rpc(stocks)
 	else:
-		_broadcast_scores()
+		_sync_stocks_rpc(stocks)
+
+@rpc("authority", "call_local", "reliable")
+func _sync_stocks_rpc(new_stocks: Dictionary) -> void:
+	stocks = new_stocks
+	stocks_changed.emit(stocks)
+
+func _broadcast_kda() -> void:
+	if NetworkManager.is_active():
+		_sync_kda_rpc.rpc(kda_kills, kda_deaths)
+	else:
+		_sync_kda_rpc(kda_kills, kda_deaths)
+
+@rpc("authority", "call_local", "reliable")
+func _sync_kda_rpc(new_kills: Dictionary, new_deaths: Dictionary) -> void:
+	kda_kills = new_kills
+	kda_deaths = new_deaths
+	kda_changed.emit(kda_kills, kda_deaths)
 
 func _compute_kill_points(peer_id: int) -> int:
 	var pts := 0
@@ -137,10 +201,24 @@ func _find_winner() -> int:
 			best_peer = peer_id
 	return best_peer
 
+signal _intermission_done
+
+func notify_player_picked() -> void:
+	if state != State.INTERMISSION:
+		return
+	_n_picked += 1
+	if _n_picked >= get_parent().spawned_players.size():
+		_n_picked = 0
+		_intermission_done.emit()
+
 func _do_intermission(winner_peer_id: int, finishers: Array) -> void:
 	_broadcast(State.INTERMISSION, scores, round_number, winner_peer_id, finishers)
-	powerups_distribute.emit(scores.duplicate())
-	await get_tree().create_timer(INTERMISSION_DURATION).timeout
+	powerups_distribute.emit(scores.duplicate(), _finishers.duplicate())
+	_n_picked = 0
+	get_tree().create_timer(INTERMISSION_DURATION).timeout.connect(
+		func(): _intermission_done.emit(), CONNECT_ONE_SHOT
+	)
+	await _intermission_done
 	if state == State.INACTIVE:
 		return  # level changed while waiting — bail out
 	if winner_peer_id != -1:
@@ -163,6 +241,9 @@ func _sync_round_state(new_state: int, new_scores: Dictionary, round_num: int, e
 			_time_limit = time_limit
 			_time_remaining = time_limit
 			_start_delay = ROUND_START_DELAY
+			for peer_id in new_scores:
+				stocks[peer_id] = STOCKS_PER_ROUND
+			stocks_changed.emit(stocks)
 			round_started.emit(round_num)
 		State.INTERMISSION:
 			round_ended.emit(finishers, new_scores)

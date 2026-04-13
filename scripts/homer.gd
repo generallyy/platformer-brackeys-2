@@ -12,8 +12,12 @@ func _init() -> void:
 func _find_enemy_players() -> Array:
 	var enemies: Array = []
 	for p in get_tree().get_nodes_in_group("player"):
-		if p.get_multiplayer_authority() == thrower_peer_id:
-			continue
+		if NetworkManager.is_active():
+			if p.get_multiplayer_authority() == thrower_peer_id:
+				continue
+		else:
+			if p == owner_node:
+				continue
 		enemies.append(p)
 	return enemies
 
@@ -33,7 +37,7 @@ func _process(_delta: float) -> void:
 			_spawn_particle(fixed, angle, null)
 	else:
 		# Split particles evenly across all enemy players
-		var per_target := PARTICLE_COUNT / targets.size()
+		var per_target: int = int(float(PARTICLE_COUNT) / targets.size())
 		var remainder := PARTICLE_COUNT % targets.size()
 		var particle_index := 0
 		for t in range(targets.size()):

@@ -8,12 +8,16 @@ var current_level_path := "res://scenes/levels/Level0.tscn"
 var _respawn_points: Dictionary = {}
 var _wardrobe_player: Node = null
 
+const _MOUSE_HIDE_DELAY := 2.0
+var _mouse_idle := 0.0
+
 @onready var pause_menu = $PauseMenu
 @onready var level_container = $LevelContainer
 @onready var loading_screen = $LoadingScreen
 @onready var hud = $HUD
 @onready var wardrobe_menu = $WardrobeMenu
 @onready var game_mode = $GameMode
+@onready var powerups_menu = $HUD/PowerupsMenu
 
 func _ready() -> void:
 	pause_menu.visible = false
@@ -23,6 +27,10 @@ func _ready() -> void:
 	game_mode.round_ended.connect(_on_round_ended)
 	game_mode.game_over.connect(_on_game_over)
 	game_mode.scores_changed.connect(_on_scores_changed)
+	game_mode.stocks_changed.connect(_on_stocks_changed)
+	game_mode.kda_changed.connect(_on_kda_changed)
+	game_mode.powerups_distribute.connect(_on_powerups_distribute)
+	powerups_menu.powerup_picked.connect(_on_powerup_picked)
 	if NetworkManager.is_active():
 		multiplayer.peer_connected.connect(_on_peer_connected)
 		multiplayer.peer_disconnected.connect(_on_peer_disconnected)
@@ -34,6 +42,19 @@ func _ready() -> void:
 	else:
 		_spawn_player(1)
 		await _load_level_local(current_level_path)
+
+func _process(delta: float) -> void:
+	if pause_menu.visible:
+		_mouse_idle = 0.0
+		return
+	_mouse_idle += delta
+	if _mouse_idle >= _MOUSE_HIDE_DELAY:
+		Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
+
+func _input(event: InputEvent) -> void:
+	if event is InputEventMouseMotion:
+		_mouse_idle = 0.0
+		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 
 func _on_peer_connected(_id: int):
 	pass  # client initiates via _request_state
@@ -95,11 +116,7 @@ func _spawn_player(peer_id: int):
 	else:
 		p.set_physics_process(false)
 	if not NetworkManager.is_active() or peer_id == multiplayer.get_unique_id():
-		var cam = Camera2D.new()
-		cam.zoom = Vector2(4, 4)
-		cam.limit_bottom = 120
-		cam.position_smoothing_enabled = true
-		p.add_child(cam)
+		var cam = p.get_node("Camera2D")
 		cam.make_current()
 		p.health_changed.connect(hud.update_hearts)
 
@@ -123,10 +140,12 @@ func load_level(path: String) -> void:
 
 func _load_level_local(path: String) -> bool:
 	game_mode.stop_game()
+	_clear_all_player_powerups()
 	for p in spawned_players.values():
 		p.is_frozen = false
 	loading_screen.visible = true
 	close_wardrobe()
+	powerups_menu.close_menu()
 	await get_tree().process_frame
 	var level_scene: PackedScene = load(path) as PackedScene
 	if level_scene == null:
@@ -191,11 +210,24 @@ func _req_activate_checkpoint(checkpoint_path: NodePath, peer_id: int) -> void:
 		_set_checkpoint(checkpoint, peer_id)
 
 func _set_checkpoint(checkpoint: Node2D, peer_id: int) -> void:
+	if peer_id in _respawn_points:
+		var old: Node2D = _respawn_points[peer_id]
+		if is_instance_valid(old) and old != checkpoint:
+			if NetworkManager.is_active():
+				_sync_reset_checkpoint.rpc(peer_id, old.get_path())
+			else:
+				_sync_reset_checkpoint(peer_id, old.get_path())
 	_respawn_points[peer_id] = checkpoint
 	if NetworkManager.is_active():
 		_sync_checkpoint.rpc(peer_id, checkpoint.get_path())
 	else:
 		_sync_checkpoint(peer_id, checkpoint.get_path())
+
+@rpc("authority", "call_local", "reliable")
+func _sync_reset_checkpoint(peer_id: int, checkpoint_path: NodePath) -> void:
+	var old := get_node_or_null(checkpoint_path)
+	if old:
+		old.reset_for_peer(peer_id)
 
 @rpc("authority", "call_local", "reliable")
 func _sync_checkpoint(peer_id: int, checkpoint_path: NodePath) -> void:
@@ -275,8 +307,8 @@ func _sync_respawn_all(pos: Vector2) -> void:
 		p.velocity = Vector2.ZERO
 		p.is_frozen = false
 		p.set_finished(false)
-		p.health = p.MAX_HEALTH
-		p.health_changed.emit(p.health)
+		p.health = p.get_effective_max_health()
+		p.health_changed.emit(p.health, p.get_effective_max_health())
 		p.set_physics_process(true)
 		p.show()
 		idx += 1
@@ -290,12 +322,15 @@ func _freeze_all_players(duration: float) -> void:
 		p.start_freeze(duration)
 
 func _on_round_started(round_number: int) -> void:
+	powerups_menu.close_menu()
+	_grant_round_powerup_state()
 	hud.show_announcement("GO!" if round_number == 1 else "Round %d — GO!" % round_number)
-	hud.update_scores(game_mode.scores, _player_numbers)
+	hud.update_scores(game_mode.scores, _player_numbers, game_mode.stocks)
+	hud.update_kda(game_mode.kda_kills, game_mode.kda_deaths, _player_numbers)
 	_freeze_all_players(hud.ANNOUNCEMENT_DURATION)
 
 func _on_round_ended(finishers: Array, scores: Dictionary) -> void:
-	hud.update_scores(scores, _player_numbers)
+	hud.update_scores(scores, _player_numbers, game_mode.stocks)
 	var msg: String
 	if finishers.is_empty():
 		msg = "Time's up! Nobody finished."
@@ -310,10 +345,51 @@ func _on_round_ended(finishers: Array, scores: Dictionary) -> void:
 func _on_game_over(winner_peer_id: int, scores: Dictionary) -> void:
 	hud.update_scores(scores, _player_numbers)
 	hud.show_announcement("Player %d wins!" % get_player_number(winner_peer_id))
-	_freeze_all_players(5.0)
+	respawn_all_at_spawn()
 
 func _on_scores_changed(scores: Dictionary) -> void:
-	hud.update_scores(scores, _player_numbers)
+	hud.update_scores(scores, _player_numbers, game_mode.stocks)
+
+func _on_stocks_changed(_stocks: Dictionary) -> void:
+	hud.update_scores(game_mode.scores, _player_numbers, _stocks)
+
+func _on_kda_changed(kda_kills: Dictionary, kda_deaths: Dictionary) -> void:
+	hud.update_kda(kda_kills, kda_deaths, _player_numbers)
+
+func _on_powerups_distribute(_scores: Dictionary, finishers: Array) -> void:
+	var local_peer := multiplayer.get_unique_id() if NetworkManager.is_active() else 1
+	var player = spawned_players.get(local_peer)
+	if player == null:
+		return
+	var placement := finishers.find(local_peer) + 1  # 1-indexed; 0 means not in finishers
+	if placement == 0: 
+		placement = spawned_players.size()
+	var delay := 1.0
+	await get_tree().create_timer(delay).timeout
+	if game_mode.state == game_mode.State.INTERMISSION:
+		var time_left: float = game_mode.INTERMISSION_DURATION - delay
+		powerups_menu.open_for_player(player, placement, time_left)
+
+func _on_powerup_picked() -> void:
+	if NetworkManager.is_active() and not multiplayer.is_server():
+		_req_notify_picked.rpc_id(1)
+	else:
+		game_mode.notify_player_picked()
+
+@rpc("any_peer", "reliable")
+func _req_notify_picked() -> void:
+	var caller := multiplayer.get_remote_sender_id()
+	if caller not in spawned_players:
+		return
+	game_mode.notify_player_picked()
+
+func _clear_all_player_powerups() -> void:
+	for p in spawned_players.values():
+		p.clear_powerups()
+
+func _grant_round_powerup_state() -> void:
+	for p in spawned_players.values():
+		p.reset_round_powerup_state()
 
 func _spawn_offset(index: int) -> Vector2:
 	return Vector2(0, -index * 20)
@@ -334,6 +410,18 @@ func _req_notify_kill(killer_peer_id: int, victim_peer_id: int) -> void:
 		return
 	game_mode.record_kill(killer_peer_id, victim_peer_id)
 
+func notify_self_death(victim_peer_id: int) -> void:
+	if NetworkManager.is_active() and not multiplayer.is_server():
+		_req_notify_self_death.rpc_id(1, victim_peer_id)
+		return
+	game_mode.record_death(victim_peer_id)
+
+@rpc("any_peer", "reliable")
+func _req_notify_self_death(victim_peer_id: int) -> void:
+	if multiplayer.get_remote_sender_id() != victim_peer_id:
+		return
+	game_mode.record_death(victim_peer_id)
+
 func respawn_player_by_id(peer_id: int):
 	if NetworkManager.is_active() and not multiplayer.is_server():
 		_req_respawn.rpc_id(1, peer_id)
@@ -347,6 +435,8 @@ func _req_respawn(peer_id: int):
 
 func _do_respawn(peer_id: int):
 	if not peer_id in spawned_players:
+		return
+	if not game_mode.can_respawn(peer_id):
 		return
 	var spawn = get_current_spawn_for_peer(peer_id)
 	var pos = spawn.global_position if spawn else Vector2.ZERO

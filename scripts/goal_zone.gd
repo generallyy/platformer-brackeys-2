@@ -10,6 +10,9 @@ func _on_body_entered(body: Node2D) -> void:
 		return
 	if NetworkManager.is_active() and not body.is_multiplayer_authority():
 		return
+	var gm: Node = get_tree().get_root().get_node("Main").game_mode
+	if gm.state != gm.State.PLAYING:
+		return
 	var peer_id := body.get_multiplayer_authority() if NetworkManager.is_active() else 1
 	if peer_id in _finished_peers:
 		return

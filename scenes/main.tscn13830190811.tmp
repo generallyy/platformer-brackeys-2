@@ -57,16 +57,6 @@ expand_margin_bottom = 350.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_eb6dy"]
 bg_color = Color(0, 0, 0, 0.5254902)
-border_width_left = 20
-border_width_top = 20
-border_width_right = 20
-border_width_bottom = 20
-border_color = Color(0, 0, 0, 0.5254902)
-border_blend = true
-corner_radius_top_left = 15
-corner_radius_top_right = 15
-corner_radius_bottom_right = 15
-corner_radius_bottom_left = 15
 
 [sub_resource type="Theme" id="Theme_27rqe"]
 default_font = ExtResource("3_xxodx")
@@ -198,6 +188,7 @@ theme = SubResource("Theme_ya4ey")
 script = ExtResource("10_powerups")
 
 [node name="PowerupsMenu" type="CenterContainer" parent="HUD/PowerupsMenu" unique_id=1101933221]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -220,10 +211,10 @@ alignment = 1
 
 [node name="Time" type="Label" parent="HUD/PowerupsMenu" unique_id=1833735245]
 layout_mode = 0
-offset_left = 1218.0
-offset_top = 738.0
-offset_right = 1428.0
-offset_bottom = 847.0
+offset_left = 1221.0
+offset_top = 790.0
+offset_right = 1222.0
+offset_bottom = 859.0
 theme_override_styles/normal = SubResource("StyleBoxFlat_eb6dy")
 text = "hi guys"
 

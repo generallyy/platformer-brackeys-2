@@ -9,6 +9,12 @@ func _ready() -> void:
 	prompt_label.text = "checkpoint"
 	flag.color = Color(0.95, 0.85, 0.2, 1)
 
+func reset_for_peer(peer_id: int) -> void:
+	_activated_peers.erase(peer_id)
+	if _activated_peers.is_empty():
+		flag.color = Color(0.95, 0.85, 0.2, 1)
+		prompt_label.text = "checkpoint"
+
 func _on_body_entered(body: Node2D) -> void:
 	if not body.is_in_group("player"):
 		return

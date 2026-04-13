@@ -70,4 +70,4 @@ func _on_solo_button_pressed():
 
 func _on_back_button_pressed():
 	UiAudio.play_click()
-	get_tree().change_scene_to_file("res://scenes/TitleScreen.tscn")
+	get_tree().change_scene_to_file("res://scenes/ui/TitleScreen.tscn")

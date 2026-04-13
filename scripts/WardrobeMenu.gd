@@ -23,7 +23,10 @@ func open_for_player(player: Node) -> void:
 	_focus_equipped_button()
 
 func _unhandled_input(event: InputEvent) -> void:
-	if visible and event.is_action_pressed("ui_cancel"):
+	if not visible:
+		return
+	if event.is_action_pressed("ui_cancel") or \
+			(event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT):
 		get_tree().get_root().get_node("Main").close_wardrobe()
 		get_viewport().set_input_as_handled()
 
@@ -66,8 +69,7 @@ func _on_outfit_pressed(outfit_id: int) -> void:
 	if _player == null:
 		return
 	_player.request_outfit_change(outfit_id)
-	_preview_outfit(outfit_id)
-	_refresh_option_labels(outfit_id)
+	get_tree().get_root().get_node("Main").close_wardrobe()
 
 func _on_close_pressed() -> void:
 	get_tree().get_root().get_node("Main").close_wardrobe()
