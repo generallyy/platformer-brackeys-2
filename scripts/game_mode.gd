@@ -1,7 +1,7 @@
 extends Node
 
 const POINTS_TO_WIN := 30
-const INTERMISSION_DURATION := 8.0
+const INTERMISSION_DURATION := 10.0
 const FINISH_POINTS := [10, 7, 4, 2, 1]  # index 0 = 1st place
 const ROUND_START_DELAY := 1.0  # matches HUD.ANNOUNCEMENT_DURATION
 const KILL_POINTS := 5

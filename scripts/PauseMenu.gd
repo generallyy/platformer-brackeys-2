@@ -140,6 +140,7 @@ func _load_keybinds() -> void:
 func pause_game():
 	get_tree().paused = true
 	visible = true
+	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 	$CenterContainer/PanelContainer/VBoxContainer/Resume.grab_focus()
 
 func resume_game():

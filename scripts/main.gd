@@ -44,6 +44,9 @@ func _ready() -> void:
 		await _load_level_local(current_level_path)
 
 func _process(delta: float) -> void:
+	if pause_menu.visible:
+		_mouse_idle = 0.0
+		return
 	_mouse_idle += delta
 	if _mouse_idle >= _MOUSE_HIDE_DELAY:
 		Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
@@ -359,9 +362,9 @@ func _on_powerups_distribute(_scores: Dictionary, finishers: Array) -> void:
 	if player == null:
 		return
 	var placement := finishers.find(local_peer) + 1  # 1-indexed; 0 means not in finishers
-	if placement == 0:
+	if placement == 0: 
 		placement = spawned_players.size()
-	var delay := 1.5
+	var delay := 1.0
 	await get_tree().create_timer(delay).timeout
 	if game_mode.state == game_mode.State.INTERMISSION:
 		var time_left: float = game_mode.INTERMISSION_DURATION - delay

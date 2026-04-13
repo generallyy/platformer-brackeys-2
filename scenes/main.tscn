@@ -198,7 +198,6 @@ theme = SubResource("Theme_ya4ey")
 script = ExtResource("10_powerups")
 
 [node name="PowerupsMenu" type="CenterContainer" parent="HUD/PowerupsMenu" unique_id=1101933221]
-visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -221,10 +220,10 @@ alignment = 1
 
 [node name="Time" type="Label" parent="HUD/PowerupsMenu" unique_id=1833735245]
 layout_mode = 0
-offset_left = 1221.0
-offset_top = 790.0
-offset_right = 1222.0
-offset_bottom = 859.0
+offset_left = 1218.0
+offset_top = 738.0
+offset_right = 1428.0
+offset_bottom = 847.0
 theme_override_styles/normal = SubResource("StyleBoxFlat_eb6dy")
 text = "hi guys"
 

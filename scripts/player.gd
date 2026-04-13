@@ -586,7 +586,7 @@ func start_dbj():
 		animation_player.play("dbj")
 	
 func run_dbj(_delta):
-	velocity.y = DBJ_SPEED
+	velocity.y = DBJ_SPEED * pow(1.35, passive_powerups.count("jump_boost"))
 	audio_stream_player.stream = dbj_sfx
 	audio_stream_player.play()
 	$EffectsAnchor.position.y = 10

@@ -15,6 +15,7 @@ signal powerup_picked
 var _player: Node = null
 var _time_left := 0.0
 var _is_open := false
+var _pick_buttons: Array[Button] = []
 
 @onready var _inner: CenterContainer = $PowerupsMenu
 @onready var _options_container: HBoxContainer = $PowerupsMenu/Panel/HBoxContainer
@@ -36,22 +37,47 @@ func _process(delta: float) -> void:
 
 func open_for_player(player: Node, placement: int, time_left: float) -> void:
 	_player = player
+	_player.set_ui_locked(true)
 	_time_left = time_left
 	_is_open = true
 	_rebuild_options(placement)
 	_time_label.text = "%.2f" % _time_left
 	_inner.visible = true
 	_time_label.visible = true
+	# Wait one frame for the buttons to enter the tree, then focus the first one
+	await get_tree().process_frame
+	if _pick_buttons.size() > 0:
+		_pick_buttons[0].grab_focus()
 
 func close_menu() -> void:
 	_is_open = false
 	_inner.visible = false
 	_time_label.visible = false
+	if is_instance_valid(_player):
+		_player.set_ui_locked(false)
 	_player = null
+
+func _unhandled_input(event: InputEvent) -> void:
+	if not _is_open:
+		return
+	if event.is_action_pressed("move_left"):
+		_shift_focus(-1)
+		get_viewport().set_input_as_handled()
+	elif event.is_action_pressed("move_right"):
+		_shift_focus(1)
+		get_viewport().set_input_as_handled()
+
+func _shift_focus(dir: int) -> void:
+	if _pick_buttons.is_empty():
+		return
+	var focused := get_viewport().gui_get_focus_owner()
+	var idx := _pick_buttons.find(focused)
+	_pick_buttons[wrapi(idx + dir, 0, _pick_buttons.size())].grab_focus()
 
 func _rebuild_options(placement: int) -> void:
 	for child in _options_container.get_children():
 		child.queue_free()
+	_pick_buttons.clear()
 
 	var eligible: Array = POWERUPS_LIST.filter(
 		func(pw: Dictionary) -> bool:
@@ -102,6 +128,7 @@ func _make_card(pw: Dictionary) -> Control:
 	btn.add_theme_font_size_override("font_size", 26)
 	btn.pressed.connect(_on_option_pressed.bind(pw.id))
 	vbox.add_child(btn)
+	_pick_buttons.append(btn)
 
 	return panel
 
