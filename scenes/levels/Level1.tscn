@@ -425,7 +425,7 @@ position = Vector2(-327, -30)
 [node name="Stations" type="Node2D" parent="." unique_id=1898748328]
 
 [node name="Bolt1" parent="Stations" unique_id=354063734 instance=ExtResource("7_n5pya")]
-position = Vector2(16, 2)
+position = Vector2(-1905, -57)
 weapon_scene = ExtResource("13_xbvxr")
 
 [node name="Bolt2" parent="Stations" unique_id=183721799 instance=ExtResource("7_n5pya")]
