@@ -198,7 +198,7 @@ func _find_winner() -> int:
 	var best_peer := -1
 	var best_score := -1
 	for peer_id in scores:
-		if scores[peer_id] >= POINTS_TO_WIN and scores[peer_id] > best_score:
+		if scores[peer_id] >= points_to_win and scores[peer_id] > best_score:
 			best_score = scores[peer_id]
 			best_peer = peer_id
 	return best_peer
