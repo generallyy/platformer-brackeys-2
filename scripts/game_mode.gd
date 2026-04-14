@@ -1,6 +1,6 @@
 extends Node
 
-const POINTS_TO_WIN := 30
+var points_to_win: int = 30
 const INTERMISSION_DURATION := 10.0
 const FINISH_POINTS := [10, 7, 4, 2, 1]  # index 0 = 1st place
 const ROUND_START_DELAY := 1.0  # matches HUD.ANNOUNCEMENT_DURATION
@@ -82,8 +82,9 @@ func register_player(peer_id: int) -> void:
 func sync_to_peer(peer_id: int) -> void:
 	_sync_round_state.rpc_id(peer_id, state, scores, round_number, -1, _finishers, _time_limit)
 
-func start_game(time_limit: float = 60.0) -> void:
+func start_game(time_limit: float = 60.0, win_score: int = 30) -> void:
 	_time_limit = time_limit
+	points_to_win = win_score
 	scores.clear()
 	_finish_scores.clear()
 	kills.clear()

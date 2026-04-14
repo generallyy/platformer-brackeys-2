@@ -182,7 +182,7 @@ func _load_level_local(path: String) -> bool:
 	var settings := level_container.get_child(0).get_node_or_null("LevelSettings")
 	if settings and settings.game_mode_enabled:
 		if not NetworkManager.is_active() or multiplayer.is_server():
-			game_mode.start_game(settings.round_time_limit)
+			game_mode.start_game(settings.round_time_limit, settings.points_to_win)
 		hud.get_node("Scores").visible = true
 	else: hud.get_node("Scores").visible = false
 	return true
