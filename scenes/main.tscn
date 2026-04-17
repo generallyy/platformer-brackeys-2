@@ -229,6 +229,7 @@ text = "hi guys"
 [node name="PauseMenu" type="CanvasLayer" parent="." unique_id=1678797512]
 process_mode = 3
 layer = 2
+visible = false
 script = ExtResource("3_7frdm")
 row_template = ExtResource("7_tipki")
 keybind_button = ExtResource("8_85g3d")
@@ -242,6 +243,7 @@ grow_vertical = 2
 color = Color(0.101961, 0.101961, 0.101961, 0.356863)
 
 [node name="PauseMenu" type="CenterContainer" parent="PauseMenu" unique_id=864098775]
+visible = false
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -295,6 +297,7 @@ max_value = 0.0
 value = -40.0
 
 [node name="KeybindsMenu" type="CenterContainer" parent="PauseMenu" unique_id=1038993971]
+visible = false
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
