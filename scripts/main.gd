@@ -4,6 +4,7 @@ const PLAYER_SCENE = preload("res://scenes/characters/Player.tscn")
 
 var spawned_players: Dictionary = {}
 var _player_numbers: Dictionary = {}  # peer_id -> display number (1, 2, 3...)
+var player_names: Dictionary = {}     # peer_id -> display name String
 var current_level_path := "res://scenes/levels/Level0.tscn"
 var _respawn_points: Dictionary = {}
 var _wardrobe_player: Node = null
@@ -38,11 +39,13 @@ func _ready() -> void:
 		multiplayer.peer_disconnected.connect(_on_peer_disconnected)
 		if multiplayer.is_server():
 			_spawn_player(multiplayer.get_unique_id())
+			_register_name(multiplayer.get_unique_id(), NetworkManager.local_name)
 			await _load_level_local(current_level_path)
 		else:
-			_request_state.rpc_id(1)
+			_request_state.rpc_id(1, NetworkManager.local_name)
 	else:
 		_spawn_player(1)
+		_register_name(1, NetworkManager.local_name)
 		await _load_level_local(current_level_path)
 
 func _process(delta: float) -> void:
@@ -69,7 +72,7 @@ func _on_peer_disconnected(id: int):
 
 # Client asks server for current state on join
 @rpc("any_peer", "reliable")
-func _request_state():
+func _request_state(player_name: String = ""):
 	var caller = multiplayer.get_remote_sender_id()
 	# Load the level first so spawned players have a valid spawn/platform context.
 	load_level.rpc_id(caller, current_level_path)
@@ -88,6 +91,10 @@ func _request_state():
 	game_mode.register_player(caller)
 	# Sync current game state to the new client
 	game_mode.sync_to_peer(caller)
+	# Send existing players' names to the new client, then register the new player's name
+	for existing_id in player_names:
+		_sync_player_name.rpc_id(caller, existing_id, player_names[existing_id])
+	_register_name(caller, player_name)
 
 @rpc("authority", "call_local", "reliable")
 func _rpc_spawn(peer_id: int):
@@ -101,6 +108,26 @@ func _rpc_despawn(peer_id: int):
 
 func get_player_number(peer_id: int) -> int:
 	return _player_numbers.get(peer_id, peer_id)
+
+func get_player_display_name(peer_id: int) -> String:
+	var n: String = player_names.get(peer_id, "")
+	if not n.is_empty():
+		return n
+	return "P%d" % _player_numbers.get(peer_id, peer_id)
+
+func _register_name(peer_id: int, raw_name: String) -> void:
+	var n := raw_name.strip_edges()
+	if n.is_empty():
+		n = "P%d" % _player_numbers.get(peer_id, peer_id)
+	player_names[peer_id] = n
+	if NetworkManager.is_active():
+		_sync_player_name.rpc(peer_id, n)
+
+@rpc("authority", "call_local", "reliable")
+func _sync_player_name(peer_id: int, display_name: String) -> void:
+	player_names[peer_id] = display_name
+	hud.update_scores(game_mode.scores, _player_numbers, game_mode.stocks, player_names)
+	hud.update_kda(game_mode.kda_kills, game_mode.kda_deaths, _player_numbers, player_names)
 
 func _spawn_player(peer_id: int):
 	if peer_id in spawned_players:
@@ -332,36 +359,35 @@ func _on_round_started(round_number: int) -> void:
 	powerups_menu.close_menu()
 	_grant_round_powerup_state()
 	hud.show_announcement("GO!" if round_number == 1 else "Round %d — GO!" % round_number)
-	hud.update_scores(game_mode.scores, _player_numbers, game_mode.stocks)
-	hud.update_kda(game_mode.kda_kills, game_mode.kda_deaths, _player_numbers)
+	hud.update_scores(game_mode.scores, _player_numbers, game_mode.stocks, player_names)
+	hud.update_kda(game_mode.kda_kills, game_mode.kda_deaths, _player_numbers, player_names)
 	_freeze_for_all_players(hud.ANNOUNCEMENT_DURATION)
 
 func _on_round_ended(finishers: Array, scores: Dictionary) -> void:
-	hud.update_scores(scores, _player_numbers, game_mode.stocks)
+	hud.update_scores(scores, _player_numbers, game_mode.stocks, player_names)
 	var msg: String
 	if finishers.is_empty():
 		msg = "Time's up! Nobody finished."
 	else:
-		var first_num := get_player_number(finishers[0])
-		msg = "P%d finished first! +%d pts" % [first_num, game_mode.FINISH_POINTS[0]]
+		msg = "%s finished first! +%d pts" % [get_player_display_name(finishers[0]), game_mode.FINISH_POINTS[0]]
 	hud.show_announcement(msg)
 	_freeze_for_all_players(hud.ANNOUNCEMENT_DURATION)
 	for p in spawned_players.values():
 		p.set_finished(false)
 
 func _on_game_over(winner_peer_id: int, scores: Dictionary) -> void:
-	hud.update_scores(scores, _player_numbers)
-	hud.show_announcement("Player %d wins!" % get_player_number(winner_peer_id))
+	hud.update_scores(scores, _player_numbers, {}, player_names)
+	hud.show_announcement("%s wins!" % get_player_display_name(winner_peer_id))
 	respawn_all_at_spawn()
 
 func _on_scores_changed(scores: Dictionary) -> void:
-	hud.update_scores(scores, _player_numbers, game_mode.stocks)
+	hud.update_scores(scores, _player_numbers, game_mode.stocks, player_names)
 
 func _on_stocks_changed(_stocks: Dictionary) -> void:
-	hud.update_scores(game_mode.scores, _player_numbers, _stocks)
+	hud.update_scores(game_mode.scores, _player_numbers, _stocks, player_names)
 
 func _on_kda_changed(kda_kills: Dictionary, kda_deaths: Dictionary) -> void:
-	hud.update_kda(kda_kills, kda_deaths, _player_numbers)
+	hud.update_kda(kda_kills, kda_deaths, _player_numbers, player_names)
 
 func _on_powerups_distribute(_scores: Dictionary, finishers: Array) -> void:
 	var local_peer := multiplayer.get_unique_id() if NetworkManager.is_active() else 1

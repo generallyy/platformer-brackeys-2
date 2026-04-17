@@ -5,6 +5,7 @@ const MAX_PLAYERS = 4
 # Set this to the host part of your playit.gg address (everything before the colon)
 const PLAYIT_HOST := "remember-absorption.gl.at.ply.gg"
 
+var local_name: String = ""
 var is_host := false
 var _active := false
 var _on_mp_connection_failed: Callable

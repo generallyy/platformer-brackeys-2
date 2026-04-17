@@ -2,6 +2,7 @@ extends Control
 
 const CONNECT_TIMEOUT = 10.0
 
+@onready var name_input = $CenterContainer/VBoxContainer/NameInput
 @onready var address_input = $CenterContainer/VBoxContainer/AddressInput
 @onready var join_button = $CenterContainer/VBoxContainer/JoinButton
 @onready var status_label = $CenterContainer/VBoxContainer/StatusLabel
@@ -15,6 +16,7 @@ func _ready():
 
 func _on_host_button_pressed():
 	UiAudio.play_click()
+	NetworkManager.local_name = name_input.text.strip_edges()
 	var err = NetworkManager.host_game()
 	if err != OK:
 		status_label.text = "Failed to host (port %d in use?)" % NetworkManager.DEFAULT_PORT
@@ -23,6 +25,7 @@ func _on_host_button_pressed():
 
 func _on_join_button_pressed():
 	UiAudio.play_click()
+	NetworkManager.local_name = name_input.text.strip_edges()
 	var address = address_input.text.strip_edges()
 	if address.is_empty():
 		status_label.text = "Enter the 5-digit tunnel number."
@@ -65,6 +68,7 @@ func _on_connection_failed():
 
 func _on_solo_button_pressed():
 	UiAudio.play_click()
+	NetworkManager.local_name = name_input.text.strip_edges()
 	NetworkManager.close()
 	get_tree().change_scene_to_file("res://scenes/main.tscn")
 

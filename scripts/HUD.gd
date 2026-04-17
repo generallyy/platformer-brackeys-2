@@ -70,20 +70,21 @@ func _powerup_display_name(id: String) -> String:
 		PowerupIds.HOMER_ONCE:      return "Homer"
 		_:                          return id
 
-func update_scores(scores: Dictionary, player_numbers: Dictionary = {}, stocks: Dictionary = {}) -> void:
+func update_scores(scores: Dictionary, player_numbers: Dictionary = {}, stocks: Dictionary = {}, player_names: Dictionary = {}) -> void:
 	for child in _score_row.get_children():
 		child.queue_free()
 	for peer_id in scores:
 		var display_num: int = player_numbers.get(peer_id, peer_id)
+		var label: String = player_names.get(peer_id, "P%d" % display_num)
 		var lbl := Label.new()
 		lbl.add_theme_font_size_override("font_size", 24)
 		if peer_id in stocks:
-			lbl.text = "  P%d: %d  (%d stocks)" % [display_num, scores[peer_id], stocks[peer_id]]
+			lbl.text = "  %s: %d  (%d stocks)" % [label, scores[peer_id], stocks[peer_id]]
 		else:
-			lbl.text = "  P%d: %d" % [display_num, scores[peer_id]]
+			lbl.text = "  %s: %d" % [label, scores[peer_id]]
 		_score_row.add_child(lbl)
 
-func update_kda(kda_kills: Dictionary, kda_deaths: Dictionary, player_numbers: Dictionary = {}) -> void:
+func update_kda(kda_kills: Dictionary, kda_deaths: Dictionary, player_numbers: Dictionary = {}, player_names: Dictionary = {}) -> void:
 	var vbox := $KDA/VBoxContainer
 	for child in vbox.get_children():
 		child.queue_free()
@@ -91,9 +92,10 @@ func update_kda(kda_kills: Dictionary, kda_deaths: Dictionary, player_numbers: D
 	peers.sort_custom(func(a, b): return player_numbers[a] < player_numbers[b])
 	for peer_id in peers:
 		var display_num: int = player_numbers.get(peer_id, peer_id)
+		var label: String = player_names.get(peer_id, "P%d" % display_num)
 		var lbl := Label.new()
 		lbl.add_theme_font_size_override("font_size", 24)
-		lbl.text = "  P%d  K: %d  D: %d" % [display_num, kda_kills.get(peer_id, 0), kda_deaths.get(peer_id, 0)]
+		lbl.text = "  %s  K: %d  D: %d" % [label, kda_kills.get(peer_id, 0), kda_deaths.get(peer_id, 0)]
 		vbox.add_child(lbl)
 
 func show_announcement(text: String, duration: float = ANNOUNCEMENT_DURATION) -> void:
