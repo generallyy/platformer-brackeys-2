@@ -90,7 +90,6 @@ script = ExtResource("9_gamemd")
 z_index = -115
 
 [node name="HUD" type="CanvasLayer" parent="." unique_id=1023307081]
-visible = false
 script = ExtResource("8_hudsc")
 
 [node name="Hearts" type="HBoxContainer" parent="HUD" unique_id=1937437695]
@@ -145,14 +144,15 @@ text = "P1: 30/10/12"
 horizontal_alignment = 1
 
 [node name="Scores" type="VBoxContainer" parent="HUD" unique_id=1678903393]
-offset_left = 1588.0
+offset_left = 1635.0
 offset_top = 32.0
-offset_right = 1862.0
+offset_right = 1909.0
 offset_bottom = 198.0
 theme = ExtResource("5_tipki")
 
 [node name="dummy label" type="Label" parent="HUD/Scores" unique_id=1850977732]
 layout_mode = 2
+theme_override_font_sizes/font_size = 30
 text = "p1: 680 (Stocks: 41)"
 
 [node name="Announcement" type="CenterContainer" parent="HUD" unique_id=85783049]

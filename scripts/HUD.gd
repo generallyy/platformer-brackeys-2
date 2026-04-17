@@ -77,7 +77,7 @@ func update_scores(scores: Dictionary, player_numbers: Dictionary = {}, stocks: 
 		var display_num: int = player_numbers.get(peer_id, peer_id)
 		var label: String = player_names.get(peer_id, "P%d" % display_num)
 		var lbl := Label.new()
-		lbl.add_theme_font_size_override("font_size", 24)
+		lbl.add_theme_font_size_override("font_size", 30)
 		if peer_id in stocks:
 			lbl.text = "  %s: %d  (%d stocks)" % [label, scores[peer_id], stocks[peer_id]]
 		else:
