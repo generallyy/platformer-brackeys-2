@@ -41,8 +41,8 @@ func _ready():
 	_build_keybinds_panel()
 	_load_keybinds()
 	
-	_keybinds_panel.visible = false
-	$PauseMenu.visible = true
+	#_keybinds_panel.visible = false
+	#$PauseMenu.visible = true
 	
 	
 
@@ -88,12 +88,12 @@ func _build_keybinds_panel() -> void:
 	var kb_header := Label.new()
 	kb_header.text = "Keyboard"
 	kb_header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	kb_header.custom_minimum_size = Vector2(228, 0)  # two 110px buttons + 8px gap
+	kb_header.custom_minimum_size = Vector2(400, 0)  # two 110px buttons + 8px gap
 	header.add_child(kb_header)
 	var ctrl_header := Label.new()
 	ctrl_header.text = "Controller"
 	ctrl_header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	ctrl_header.custom_minimum_size = Vector2(110, 0)
+	ctrl_header.custom_minimum_size = Vector2(200, 0)
 	header.add_child(ctrl_header)
 
 	for action in ACTIONS:
@@ -123,11 +123,14 @@ func _build_keybinds_panel() -> void:
 	var reset := Button.new()
 	reset.text = "RESET TO DEFAULTS"
 	reset.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	reset.custom_minimum_size = Vector2(800, 0)
 	reset.pressed.connect(_reset_keybinds)
 	vbox.add_child(reset)
 
 	var back := Button.new()
 	back.text = "BACK"
+	back.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	back.custom_minimum_size = Vector2(800, 0)
 	back.pressed.connect(_close_keybinds)
 	vbox.add_child(back)
 
