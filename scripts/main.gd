@@ -216,6 +216,9 @@ func _load_level_local(path: String) -> bool:
 		if cam:
 			cam.reset_smoothing()
 		idx += 1
+	# Fire particles once while the loading screen is visible to compile their shader
+	for p in spawned_players.values():
+		p.warmup_effects()
 	await get_tree().create_timer(0.5).timeout
 	loading_screen.visible = false
 	var settings := level_container.get_child(0).get_node_or_null("LevelSettings")

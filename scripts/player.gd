@@ -597,6 +597,10 @@ func _update_damage_flash(delta: float) -> void:
 		animated_sprite.visible = true
 
 
+func warmup_effects() -> void:
+	_boost_particles.restart()
+	_boost_particles.emitting = true
+
 func _play_boost_particles() -> void:
 	_boost_particles.restart()
 	_boost_particles.emitting = true

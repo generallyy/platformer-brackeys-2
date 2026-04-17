@@ -21,6 +21,7 @@ var _bindings       := {}  # action -> Array of InputEvent or null, size SLOTS
 var _rebinding_action := ""
 var _rebinding_slot   := -1
 var _rebinding_button: Button = null
+var _allow_left_click := false
 
 @export var row_template: PackedScene
 @export var keybind_button: PackedScene
@@ -123,6 +124,19 @@ func _build_keybinds_panel() -> void:
 			btns.append(btn)
 		_action_buttons[action] = btns
 
+	var lmb_row := HBoxContainer.new()
+	lmb_row.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	lmb_row.add_theme_constant_override("separation", 16)
+	vbox.add_child(lmb_row)
+	var lmb_label := Label.new()
+	lmb_label.text = "Allow binding Left Click"
+	lmb_label.add_theme_font_size_override("font_size", 24)
+	lmb_row.add_child(lmb_label)
+	var lmb_check := CheckButton.new()
+	lmb_check.add_theme_font_size_override("font_size", 24)
+	lmb_check.toggled.connect(func(on: bool): _allow_left_click = on)
+	lmb_row.add_child(lmb_check)
+
 	var spacer := Control.new()
 	spacer.custom_minimum_size = Vector2(0, 50)
 	vbox.add_child(spacer)
@@ -153,11 +167,24 @@ func _refresh_all_buttons() -> void:
 func _event_display_name(event: InputEvent) -> String:
 	if event is InputEventKey:
 		return event.as_text_physical_keycode()
+	if event is InputEventMouseButton:
+		return _mouse_button_name(event.button_index)
 	if event is InputEventJoypadButton:
 		return _joy_button_name(event.button_index)
 	if event is InputEventJoypadMotion:
 		return _joy_axis_name(event.axis, event.axis_value)
 	return "???"
+
+func _mouse_button_name(index: int) -> String:
+	match index:
+		MOUSE_BUTTON_LEFT:        return "LMB"
+		MOUSE_BUTTON_RIGHT:       return "RMB"
+		MOUSE_BUTTON_MIDDLE:      return "MMB"
+		MOUSE_BUTTON_WHEEL_UP:    return "Wheel Up"
+		MOUSE_BUTTON_WHEEL_DOWN:  return "Wheel Down"
+		MOUSE_BUTTON_XBUTTON1:    return "Mouse 4"
+		MOUSE_BUTTON_XBUTTON2:    return "Mouse 5"
+		_:                        return "Mouse %d" % index
 
 func _joy_button_name(index: int) -> String:
 	match index:
@@ -212,6 +239,8 @@ func _close_keybinds() -> void:
 func _input(event: InputEvent) -> void:
 	if _rebinding_action == "":
 		return
+	if event is InputEventMouseMotion:
+		return
 
 	var is_kb_slot := _rebinding_slot < SLOTS - 1
 
@@ -222,6 +251,15 @@ func _input(event: InputEvent) -> void:
 		elif is_kb_slot:
 			_commit_rebind(event)
 			get_viewport().set_input_as_handled()
+
+	elif event is InputEventMouseButton and event.pressed and is_kb_slot:
+		if event.button_index == MOUSE_BUTTON_LEFT and not _allow_left_click:
+			_commit_rebind(null)
+		else:
+			var e := InputEventMouseButton.new()
+			e.button_index = event.button_index
+			_commit_rebind(e)
+		get_viewport().set_input_as_handled()
 
 	elif not is_kb_slot:
 		if event is InputEventJoypadButton and event.pressed:
@@ -297,6 +335,8 @@ func _load_keybinds() -> void:
 func _serialize_event(event: InputEvent) -> Dictionary:
 	if event is InputEventKey:
 		return {"type": "key", "keycode": event.physical_keycode}
+	if event is InputEventMouseButton:
+		return {"type": "mouse_button", "button_index": event.button_index}
 	if event is InputEventJoypadButton:
 		return {"type": "button", "button_index": event.button_index}
 	if event is InputEventJoypadMotion:
@@ -308,6 +348,10 @@ func _deserialize_event(data: Dictionary) -> InputEvent:
 		"key":
 			var e := InputEventKey.new()
 			e.physical_keycode = data["keycode"] as Key
+			return e
+		"mouse_button":
+			var e := InputEventMouseButton.new()
+			e.button_index = data["button_index"] as MouseButton
 			return e
 		"button":
 			var e := InputEventJoypadButton.new()
