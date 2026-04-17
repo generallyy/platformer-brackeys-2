@@ -1,0 +1,15 @@
+[gd_scene format=3 uid="uid://b5coquxu720o1"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ldbv3"]
+bg_color = Color(0.013068612, 0.07931783, 0.13062194, 1)
+
+[node name="KeybindHeader" type="Label" unique_id=545601524]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 30
+theme_override_styles/normal = SubResource("StyleBoxFlat_ldbv3")
+text = "hi guys"
+horizontal_alignment = 1

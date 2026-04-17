@@ -23,6 +23,8 @@ var _rebinding_button: Button = null
 
 @export var row_template: PackedScene
 @export var keybind_button: PackedScene
+var keybind_header = preload("res://scenes/ui/KeybindHeader.tscn")
+
 
 func _ready():
 	visible = false
@@ -41,8 +43,8 @@ func _ready():
 	_build_keybinds_panel()
 	_load_keybinds()
 	
-	#_keybinds_panel.visible = false
-	#$PauseMenu.visible = true
+	_keybinds_panel.visible = true
+	$PauseMenu.visible = false
 	
 	
 
@@ -85,15 +87,19 @@ func _build_keybinds_panel() -> void:
 	var header_spacer := Label.new()
 	header_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(header_spacer)
-	var kb_header := Label.new()
+	
+	var kb_header := keybind_header.instantiate()
 	kb_header.text = "Keyboard"
 	kb_header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	kb_header.custom_minimum_size = Vector2(400, 0)  # two 110px buttons + 8px gap
+	kb_header.custom_minimum_size = Vector2(408, 0)  # two 110px buttons + 8px gap
+	#kb_header.add_theme_font_size_override("font_size", 30)
 	header.add_child(kb_header)
-	var ctrl_header := Label.new()
+	
+	var ctrl_header := keybind_header.instantiate()
 	ctrl_header.text = "Controller"
 	ctrl_header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	ctrl_header.custom_minimum_size = Vector2(200, 0)
+	#ctrl_header.add_theme_font_size_override("font_size", 30)
 	header.add_child(ctrl_header)
 
 	for action in ACTIONS:

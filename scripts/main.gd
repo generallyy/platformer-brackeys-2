@@ -21,7 +21,7 @@ var _mouse_idle := 0.0
 @onready var powerups_menu = $HUD/PowerupsMenu
 
 func _ready() -> void:
-	pause_menu.visible = false
+	#pause_menu.visible = false
 	wardrobe_menu.visible = false
 	hud.visible = true
 	
