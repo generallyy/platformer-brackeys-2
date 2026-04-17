@@ -53,8 +53,13 @@ func _process(delta: float) -> void:
 		_mouse_idle = 0.0
 		return
 	_mouse_idle += delta
-	if _mouse_idle >= _MOUSE_HIDE_DELAY:
+	if _mouse_idle >= _MOUSE_HIDE_DELAY and get_window().has_focus():
 		Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_APPLICATION_FOCUS_OUT:
+		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+		_mouse_idle = 0.0
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion:
