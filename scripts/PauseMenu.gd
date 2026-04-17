@@ -10,6 +10,7 @@ const ACTIONS := {
 	"melee": "Melee",
 	"shield": "Shield",
 	"interact": "Interact / Equip",
+	"use_active": "Use Active Powerup",
 }
 
 const SLOTS := 3

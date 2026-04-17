@@ -1,7 +1,7 @@
 extends Node
 
 const DEFAULT_PORT = 8080
-const MAX_PLAYERS = 4
+const MAX_PLAYERS = 8
 # Set this to the host part of your playit.gg address (everything before the colon)
 const PLAYIT_HOST := "remember-absorption.gl.at.ply.gg"
 

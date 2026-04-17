@@ -18,6 +18,7 @@ signal stocks_changed(stocks: Dictionary)
 signal kda_changed(kda_kills: Dictionary, kda_deaths: Dictionary)
 
 var state: int = State.INACTIVE
+var sudden_death_peers: Array = []  # non-empty only during a sudden death round
 var _n_picked := 0
 var _intermission_gen := 0
 var scores: Dictionary = {}
@@ -104,10 +105,22 @@ func player_finished(peer_id: int) -> void:
 	if peer_id in _finishers:
 		return
 	_finishers.append(peer_id)
+	if sudden_death_peers.size() > 0 and peer_id in sudden_death_peers:
+		_round_active = false
+		_do_intermission(peer_id, _finishers.duplicate())
+		return
 	_check_all_done()
 
 func _check_all_done() -> void:
 	if not _round_active:
+		return
+	if sudden_death_peers.size() > 0:
+		# During sudden death, only end the round when all tied peers are out of stocks
+		for peer_id in sudden_death_peers:
+			if peer_id in get_parent().spawned_players:
+				if peer_id not in _finishers and stocks.get(peer_id, STOCKS_PER_ROUND) > 0:
+					return
+		_end_round()
 		return
 	for peer_id in get_parent().spawned_players:
 		if peer_id not in _finishers and stocks.get(peer_id, STOCKS_PER_ROUND) > 0:
@@ -118,6 +131,7 @@ func _end_round() -> void:
 	if not _round_active:
 		return
 	_round_active = false
+	sudden_death_peers = []
 	for i in _finishers.size():
 		var pts: int = FINISH_POINTS[i] if i < FINISH_POINTS.size() else 0
 		_finish_scores[_finishers[i]] = _finish_scores.get(_finishers[i], 0) + pts
@@ -127,7 +141,8 @@ func _end_round() -> void:
 	total_kills.clear()
 	_recompute_scores()
 	var winner := _find_winner()
-	_do_intermission(winner, _finishers.duplicate())
+	var tied := _find_tied_leaders() if winner == -1 else []
+	_do_intermission(winner, _finishers.duplicate(), tied)
 
 func record_kill(killer_id: int, victim_id: int) -> void:
 	kda_kills[killer_id] = kda_kills.get(killer_id, 0) + 1
@@ -198,10 +213,24 @@ func _find_winner() -> int:
 	var best_peer := -1
 	var best_score := -1
 	for peer_id in scores:
+		if scores[peer_id] >= points_to_win:
+			if scores[peer_id] > best_score:
+				best_score = scores[peer_id]
+				best_peer = peer_id
+			elif scores[peer_id] == best_score:
+				best_peer = -1  # tied at the top — no single winner
+	return best_peer
+
+func _find_tied_leaders() -> Array:
+	var best_score := -1
+	for peer_id in scores:
 		if scores[peer_id] >= points_to_win and scores[peer_id] > best_score:
 			best_score = scores[peer_id]
-			best_peer = peer_id
-	return best_peer
+	var tied := []
+	for peer_id in scores:
+		if scores[peer_id] == best_score:
+			tied.append(peer_id)
+	return tied
 
 signal _intermission_done
 
@@ -213,7 +242,10 @@ func notify_player_picked() -> void:
 		_n_picked = 0
 		_intermission_done.emit()
 
-func _do_intermission(winner_peer_id: int, finishers: Array) -> void:
+func _do_intermission(winner_peer_id: int, finishers: Array, tied_peers: Array = []) -> void:
+	if winner_peer_id != -1:
+		_broadcast(State.GAME_OVER, scores, round_number, winner_peer_id)
+		return
 	_broadcast(State.INTERMISSION, scores, round_number, winner_peer_id, finishers)
 	# powerups_distribute is emitted by _sync_round_state on all peers (including clients)
 	_n_picked = 0
@@ -227,13 +259,18 @@ func _do_intermission(winner_peer_id: int, finishers: Array) -> void:
 	await _intermission_done
 	if state == State.INACTIVE:
 		return  # level changed while waiting — bail out
-	if winner_peer_id != -1:
-		_broadcast(State.GAME_OVER, scores, round_number, winner_peer_id)
-		return
 	round_number += 1
 	_finishers.clear()
+	if NetworkManager.is_active():
+		_sync_sudden_death.rpc(tied_peers)
+	else:
+		_sync_sudden_death(tied_peers)
 	get_parent().respawn_all_at_spawn()
 	_broadcast(State.PLAYING, scores, round_number, -1)
+
+@rpc("authority", "call_local", "reliable")
+func _sync_sudden_death(peers: Array) -> void:
+	sudden_death_peers = peers
 
 @rpc("authority", "call_local", "reliable")
 func _sync_round_state(new_state: int, new_scores: Dictionary, round_num: int, event_peer_id: int, finishers: Array = [], time_limit: float = 60.0) -> void:

@@ -367,7 +367,14 @@ func _freeze_for_all_players(duration: float) -> void:
 func _on_round_started(round_number: int) -> void:
 	powerups_menu.close_menu()
 	_grant_round_powerup_state()
-	hud.show_announcement("GO!" if round_number == 1 else "Round %d — GO!" % round_number)
+	var msg: String
+	if game_mode.sudden_death_peers.size() > 0:
+		msg = "SUDDEN DEATH!"
+	elif round_number == 1:
+		msg = "GO!"
+	else:
+		msg = "Round %d — GO!" % round_number
+	hud.show_announcement(msg)
 	hud.update_scores(game_mode.scores, _player_numbers, game_mode.stocks, player_names)
 	hud.update_kda(game_mode.kda_kills, game_mode.kda_deaths, _player_numbers, player_names)
 	_freeze_for_all_players(hud.ANNOUNCEMENT_DURATION)
@@ -386,7 +393,7 @@ func _on_round_ended(finishers: Array, scores: Dictionary) -> void:
 
 func _on_game_over(winner_peer_id: int, scores: Dictionary) -> void:
 	hud.update_scores(scores, _player_numbers, {}, player_names)
-	hud.show_announcement("%s wins!" % get_player_display_name(winner_peer_id))
+	hud.show_announcement("%s wins!" % get_player_display_name(winner_peer_id), 3.0)
 	respawn_all_at_spawn()
 
 func _on_scores_changed(scores: Dictionary) -> void:

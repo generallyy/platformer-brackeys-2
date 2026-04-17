@@ -2,12 +2,12 @@ extends Control
 
 const POWERUPS_LIST := [
 	{ "id": PowerupIds.EXTRA_HEARTS,    "name": "Extra Hearts", "desc": "+2 max hearts\n(per round)",                  "is_active": false, "min_place": 0, "max_place": 9999 },
-	{ "id": PowerupIds.SPEED_BOOST,     "name": "Speed Surge",  "desc": "Press G: 2× speed\nfor 2.5s (once/round)",   "is_active": true,  "min_place": 0, "max_place": 9999 },
+	{ "id": PowerupIds.SPEED_BOOST,     "name": "Speed Surge",  "desc": "Press {key}: 2× speed\nfor 2.5s (once/round)",   "is_active": true,  "min_place": 0, "max_place": 9999 },
 	{ "id": PowerupIds.JUMP_BOOST,      "name": "Spring Legs",  "desc": "Jump 35% higher\n(stacks)",                  "is_active": false, "min_place": 0, "max_place": 9999 },
 	{ "id": PowerupIds.LOW_GRAVITY,     "name": "Featherweight","desc": "Half gravity,\nfloat further",                "is_active": false, "min_place": 0, "max_place": 9999 },
 	{ "id": PowerupIds.KNOCKBACK_BOOST, "name": "Knock Out",    "desc": "1.6× knockback\non all attacks (stacks)",    "is_active": false, "min_place": 0, "max_place": 9999 },
 	{ "id": PowerupIds.DAMAGE_BOOST,    "name": "Heavy Hitter", "desc": "+1 heart damage\nper attack (stacks)",        "is_active": false, "min_place": 0, "max_place": 9999 },
-	{ "id": PowerupIds.HOMER_ONCE,      "name": "Seeker",       "desc": "Press G: fire Homer\nonce per round",         "is_active": true,  "min_place": 0, "max_place": 9999 },
+	{ "id": PowerupIds.HOMER_ONCE,      "name": "Seeker",       "desc": "Press {key}: fire Homer\nonce per round",         "is_active": true,  "min_place": 0, "max_place": 9999 },
 ]
 
 signal powerup_picked
@@ -89,6 +89,12 @@ func _rebuild_options(placement: int) -> void:
 	for pw in chosen:
 		_options_container.add_child(_make_card(pw))
 
+func _get_use_active_key() -> String:
+	for e in InputMap.action_get_events("use_active"):
+		if e is InputEventKey:
+			return e.as_text_physical_keycode()
+	return "G"
+
 func _make_card(pw: Dictionary) -> Control:
 	var panel := PanelContainer.new()
 	panel.custom_minimum_size = Vector2(320, 240)
@@ -105,7 +111,7 @@ func _make_card(pw: Dictionary) -> Control:
 	vbox.add_child(name_lbl)
 
 	var desc_lbl := Label.new()
-	desc_lbl.text = pw.desc
+	desc_lbl.text = pw.desc.replace("{key}", _get_use_active_key())
 	desc_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	desc_lbl.add_theme_font_size_override("font_size", 22)
 	desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -113,7 +119,7 @@ func _make_card(pw: Dictionary) -> Control:
 
 	if pw.is_active:
 		var tag_lbl := Label.new()
-		tag_lbl.text = "[ Active: G ]"
+		tag_lbl.text = "[ Active: %s ]" % _get_use_active_key()
 		tag_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		tag_lbl.add_theme_font_size_override("font_size", 18)
 		vbox.add_child(tag_lbl)
