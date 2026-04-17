@@ -46,7 +46,7 @@ func open_for_player(player: Node, placement: int, time_left: float) -> void:
 	_time_label.visible = true
 	# Wait one frame for the buttons to enter the tree, then focus the first one
 	await get_tree().process_frame
-	if _pick_buttons.size() > 0:
+	if _pick_buttons.size() > 0 and get_window().has_focus():
 		_pick_buttons[0].grab_focus()
 
 func close_menu() -> void:

@@ -11,6 +11,7 @@ var _wardrobe_player: Node = null
 
 const _MOUSE_HIDE_DELAY := 2.0
 var _mouse_idle := 0.0
+var _window_focused := true
 
 @onready var pause_menu = $PauseMenu
 @onready var level_container = $LevelContainer
@@ -21,6 +22,12 @@ var _mouse_idle := 0.0
 @onready var powerups_menu = $HUD/PowerupsMenu
 
 func _ready() -> void:
+	get_window().focus_entered.connect(func(): _window_focused = true)
+	get_window().focus_exited.connect(func():
+		_window_focused = false
+		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+		_mouse_idle = 0.0
+	)
 	#pause_menu.visible = false
 	wardrobe_menu.visible = false
 	hud.visible = true
@@ -49,17 +56,11 @@ func _ready() -> void:
 		await _load_level_local(current_level_path)
 
 func _process(delta: float) -> void:
-	if pause_menu.visible:
-		_mouse_idle = 0.0
+	if not _window_focused or pause_menu.visible:
 		return
 	_mouse_idle += delta
-	if _mouse_idle >= _MOUSE_HIDE_DELAY and get_window().has_focus():
+	if _mouse_idle >= _MOUSE_HIDE_DELAY:
 		Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
-
-func _notification(what: int) -> void:
-	if what == NOTIFICATION_APPLICATION_FOCUS_OUT:
-		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
-		_mouse_idle = 0.0
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion:
@@ -334,6 +335,8 @@ func _req_goal_reached(peer_id: int) -> void:
 	game_mode.player_finished(peer_id)
 
 func respawn_all_at_spawn() -> void:
+	if NetworkManager.is_active() and not multiplayer.is_server():
+		return
 	_respawn_points.clear()
 	var spawn: Marker2D = _get_spawn()
 	var pos: Vector2 = spawn.global_position if spawn else Vector2.ZERO
