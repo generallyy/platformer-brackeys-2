@@ -41,7 +41,7 @@ var _state: PlayerState = PlayerState.GROUNDED
 @onready var audio_stream_player: AudioStreamPlayer = $AudioStreamPlayer
 @onready var _effects_anchor:     Node2D            = $EffectsAnchor
 @onready var _boost_particles:    GPUParticles2D    = $EffectsAnchor/BoostParticles
-@onready var _collision_shape:    CollisionShape2D  = $CollisionShape2D
+#@onready var _collision_shape:    CollisionShape2D  = $CollisionShape2D
 
 # ============================================================
 # SIGNALS

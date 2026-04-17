@@ -52,8 +52,8 @@ func update_powerups(passive: Array, active: String) -> void:
 	for id in passive:
 		counts[id] = counts.get(id, 0) + 1
 	for id in counts:
-		var name := _powerup_display_name(id)
-		lines.append(name if counts[id] == 1 else "%s x%d" % [name, counts[id]])
+		var powerup_name := _powerup_display_name(id)
+		lines.append(powerup_name if counts[id] == 1 else "%s x%d" % [powerup_name, counts[id]])
 	if active != "":
 		lines.append("[%s]" % _powerup_display_name(active))
 	_powerups_label.text = "\n".join(lines)

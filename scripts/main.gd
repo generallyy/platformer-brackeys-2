@@ -22,6 +22,8 @@ var _mouse_idle := 0.0
 func _ready() -> void:
 	pause_menu.visible = false
 	wardrobe_menu.visible = false
+	hud.visible = true
+	
 	hud.set_game_mode(game_mode)
 	game_mode.round_started.connect(_on_round_started)
 	game_mode.round_ended.connect(_on_round_ended)

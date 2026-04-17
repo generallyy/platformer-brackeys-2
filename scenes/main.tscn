@@ -4,6 +4,8 @@
 [ext_resource type="PackedScene" uid="uid://dg30pfci4cpnd" path="res://scenes/ui/WardrobeMenu.tscn" id="2_wardrobe"]
 [ext_resource type="Script" uid="uid://cbcey5h2tbcht" path="res://scripts/PauseMenu.gd" id="3_7frdm"]
 [ext_resource type="Theme" uid="uid://2p378flu0i2e" path="res://assets/fonts/labrada.tres" id="5_tipki"]
+[ext_resource type="PackedScene" uid="uid://djmiku3mt7d5h" path="res://scenes/ui/KeybindRow.tscn" id="7_tipki"]
+[ext_resource type="PackedScene" uid="uid://c5atg8aw0o11q" path="res://scenes/ui/KeybindButton.tscn" id="8_85g3d"]
 [ext_resource type="Script" uid="uid://dvcw37gjvs81r" path="res://scripts/HUD.gd" id="8_hudsc"]
 [ext_resource type="Script" uid="uid://b8u5llodnp4b0" path="res://scripts/game_mode.gd" id="9_gamemd"]
 [ext_resource type="Script" uid="uid://d0ngr678ycifw" path="res://scripts/PowerupsMenu.gd" id="10_powerups"]
@@ -61,6 +63,22 @@ expand_margin_top = 70.0
 expand_margin_right = 70.0
 expand_margin_bottom = 70.0
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_85g3d"]
+bg_color = Color(0.09803922, 0.13333334, 0.16470589, 1)
+border_width_left = 20
+border_width_top = 20
+border_width_right = 20
+border_width_bottom = 20
+border_blend = true
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+expand_margin_left = 40.0
+expand_margin_top = 20.0
+expand_margin_right = 40.0
+expand_margin_bottom = 20.0
+
 [node name="Main" type="Node2D" unique_id=1378921661]
 texture_filter = 1
 script = ExtResource("1_exn86")
@@ -72,6 +90,7 @@ script = ExtResource("9_gamemd")
 z_index = -115
 
 [node name="HUD" type="CanvasLayer" parent="." unique_id=1023307081]
+visible = false
 script = ExtResource("8_hudsc")
 
 [node name="Hearts" type="HBoxContainer" parent="HUD" unique_id=1937437695]
@@ -210,8 +229,9 @@ text = "hi guys"
 [node name="PauseMenu" type="CanvasLayer" parent="." unique_id=1678797512]
 process_mode = 3
 layer = 2
-visible = false
 script = ExtResource("3_7frdm")
+row_template = ExtResource("7_tipki")
+keybind_button = ExtResource("8_85g3d")
 
 [node name="ColorRect" type="ColorRect" parent="PauseMenu" unique_id=413221137]
 anchors_preset = 15
@@ -221,7 +241,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.101961, 0.101961, 0.101961, 0.356863)
 
-[node name="CenterContainer" type="CenterContainer" parent="PauseMenu" unique_id=864098775]
+[node name="PauseMenu" type="CenterContainer" parent="PauseMenu" unique_id=864098775]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -231,48 +251,69 @@ grow_horizontal = 2
 grow_vertical = 2
 theme = ExtResource("5_tipki")
 
-[node name="PanelContainer" type="PanelContainer" parent="PauseMenu/CenterContainer" unique_id=2002907725]
+[node name="PanelContainer" type="PanelContainer" parent="PauseMenu/PauseMenu" unique_id=2002907725]
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_w7i0f")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="PauseMenu/CenterContainer/PanelContainer" unique_id=696854177]
+[node name="VBoxContainer" type="VBoxContainer" parent="PauseMenu/PauseMenu/PanelContainer" unique_id=696854177]
 layout_mode = 2
 
-[node name="Resume" type="Button" parent="PauseMenu/CenterContainer/PanelContainer/VBoxContainer" unique_id=762986903]
+[node name="Resume" type="Button" parent="PauseMenu/PauseMenu/PanelContainer/VBoxContainer" unique_id=762986903]
 layout_mode = 2
 text = "RESUME"
 
-[node name="Restart" type="Button" parent="PauseMenu/CenterContainer/PanelContainer/VBoxContainer" unique_id=587080837]
+[node name="Restart" type="Button" parent="PauseMenu/PauseMenu/PanelContainer/VBoxContainer" unique_id=587080837]
 layout_mode = 2
 text = "RESTART"
 
-[node name="Title" type="Button" parent="PauseMenu/CenterContainer/PanelContainer/VBoxContainer" unique_id=557476786]
+[node name="Title" type="Button" parent="PauseMenu/PauseMenu/PanelContainer/VBoxContainer" unique_id=557476786]
 layout_mode = 2
 text = "TITLE"
 
-[node name="Keybinds" type="Button" parent="PauseMenu/CenterContainer/PanelContainer/VBoxContainer" unique_id=709852834]
+[node name="Keybinds" type="Button" parent="PauseMenu/PauseMenu/PanelContainer/VBoxContainer" unique_id=709852834]
 layout_mode = 2
 text = "KEYBINDS"
 
-[node name="Quit" type="Button" parent="PauseMenu/CenterContainer/PanelContainer/VBoxContainer" unique_id=1764489245]
+[node name="Quit" type="Button" parent="PauseMenu/PauseMenu/PanelContainer/VBoxContainer" unique_id=1764489245]
 layout_mode = 2
 text = "QUIT"
 
-[node name="HBoxContainer" type="HBoxContainer" parent="PauseMenu/CenterContainer/PanelContainer/VBoxContainer" unique_id=1070403504]
+[node name="HBoxContainer" type="HBoxContainer" parent="PauseMenu/PauseMenu/PanelContainer/VBoxContainer" unique_id=1070403504]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="PauseMenu/CenterContainer/PanelContainer/VBoxContainer/HBoxContainer" unique_id=1276151076]
+[node name="Label" type="Label" parent="PauseMenu/PauseMenu/PanelContainer/VBoxContainer/HBoxContainer" unique_id=1276151076]
 texture_filter = 2
 layout_mode = 2
 text = "🔊"
 
-[node name="HSlider" type="HSlider" parent="PauseMenu/CenterContainer/PanelContainer/VBoxContainer/HBoxContainer" unique_id=583168976]
+[node name="HSlider" type="HSlider" parent="PauseMenu/PauseMenu/PanelContainer/VBoxContainer/HBoxContainer" unique_id=583168976]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 1
 min_value = -40.0
 max_value = 0.0
 value = -40.0
+
+[node name="KeybindsMenu" type="CenterContainer" parent="PauseMenu" unique_id=1038993971]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("5_tipki")
+
+[node name="PanelContainer" type="PanelContainer" parent="PauseMenu/KeybindsMenu" unique_id=565778131]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_85g3d")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PauseMenu/KeybindsMenu/PanelContainer" unique_id=493555564]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Title" type="Label" parent="PauseMenu/KeybindsMenu/PanelContainer/VBoxContainer" unique_id=855624226]
+layout_mode = 2
+text = "KEYBINDS"
+horizontal_alignment = 1
 
 [node name="WardrobeMenu" parent="." unique_id=2125863574 instance=ExtResource("2_wardrobe")]
 
@@ -301,9 +342,9 @@ theme = ExtResource("5_tipki")
 theme_override_font_sizes/font_size = 80
 text = "Loading..."
 
-[connection signal="pressed" from="PauseMenu/CenterContainer/PanelContainer/VBoxContainer/Resume" to="PauseMenu" method="_on_resume_pressed"]
-[connection signal="pressed" from="PauseMenu/CenterContainer/PanelContainer/VBoxContainer/Restart" to="PauseMenu" method="_on_restart_pressed"]
-[connection signal="pressed" from="PauseMenu/CenterContainer/PanelContainer/VBoxContainer/Title" to="PauseMenu" method="_on_title_pressed"]
-[connection signal="pressed" from="PauseMenu/CenterContainer/PanelContainer/VBoxContainer/Keybinds" to="PauseMenu" method="_on_keybinds_pressed"]
-[connection signal="pressed" from="PauseMenu/CenterContainer/PanelContainer/VBoxContainer/Quit" to="PauseMenu" method="_on_quit_pressed"]
-[connection signal="value_changed" from="PauseMenu/CenterContainer/PanelContainer/VBoxContainer/HBoxContainer/HSlider" to="PauseMenu" method="_on_h_slider_value_changed"]
+[connection signal="pressed" from="PauseMenu/PauseMenu/PanelContainer/VBoxContainer/Resume" to="PauseMenu" method="_on_resume_pressed"]
+[connection signal="pressed" from="PauseMenu/PauseMenu/PanelContainer/VBoxContainer/Restart" to="PauseMenu" method="_on_restart_pressed"]
+[connection signal="pressed" from="PauseMenu/PauseMenu/PanelContainer/VBoxContainer/Title" to="PauseMenu" method="_on_title_pressed"]
+[connection signal="pressed" from="PauseMenu/PauseMenu/PanelContainer/VBoxContainer/Keybinds" to="PauseMenu" method="_on_keybinds_pressed"]
+[connection signal="pressed" from="PauseMenu/PauseMenu/PanelContainer/VBoxContainer/Quit" to="PauseMenu" method="_on_quit_pressed"]
+[connection signal="value_changed" from="PauseMenu/PauseMenu/PanelContainer/VBoxContainer/HBoxContainer/HSlider" to="PauseMenu" method="_on_h_slider_value_changed"]

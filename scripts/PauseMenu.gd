@@ -1,3 +1,4 @@
+@tool
 extends CanvasLayer
 
 const ACTIONS := {
@@ -20,10 +21,13 @@ var _rebinding_action := ""
 var _rebinding_slot   := -1
 var _rebinding_button: Button = null
 
+@export var row_template: PackedScene
+@export var keybind_button: PackedScene
+
 func _ready():
 	visible = false
 
-	for button in get_node("CenterContainer/PanelContainer/VBoxContainer").get_children():
+	for button in get_node("PauseMenu/PanelContainer/VBoxContainer").get_children():
 		if button is Button:
 			button.mouse_entered.connect(func():
 				button.grab_focus()
@@ -36,6 +40,12 @@ func _ready():
 	_init_bindings()
 	_build_keybinds_panel()
 	_load_keybinds()
+	
+	_keybinds_panel.visible = false
+	$PauseMenu.visible = true
+	
+	
+
 
 # ============================================================
 # BINDINGS DATA
@@ -63,23 +73,10 @@ func _apply_bindings(action: String) -> void:
 # ============================================================
 
 func _build_keybinds_panel() -> void:
-	var center := CenterContainer.new()
-	center.set_anchors_preset(Control.PRESET_FULL_RECT)
-	center.visible = false
-	add_child(center)
-	_keybinds_panel = center
+	_keybinds_panel = $KeybindsMenu
+	_keybinds_panel.visible = false
 
-	var panel := PanelContainer.new()
-	center.add_child(panel)
-
-	var vbox := VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 8)
-	panel.add_child(vbox)
-
-	var title := Label.new()
-	title.text = "KEYBINDS"
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	vbox.add_child(title)
+	var vbox := _keybinds_panel.get_node("PanelContainer/VBoxContainer")
 
 	# Column headers
 	var header := HBoxContainer.new()
@@ -104,22 +101,28 @@ func _build_keybinds_panel() -> void:
 		hbox.add_theme_constant_override("separation", 8)
 		vbox.add_child(hbox)
 
-		var lbl := Label.new()
+		var lbl: Label = row_template.instantiate()
 		lbl.text = ACTIONS[action]
 		lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		lbl.custom_minimum_size = Vector2(400, 0)
 		hbox.add_child(lbl)
 
 		var btns := []
 		for slot in SLOTS:
-			var btn := Button.new()
-			btn.custom_minimum_size = Vector2(110, 0)
+			var btn := keybind_button.instantiate()
+			#btn.custom_minimum_size = Vector2(110, 0)
 			btn.pressed.connect(_start_rebind.bind(action, slot, btn))
 			hbox.add_child(btn)
 			btns.append(btn)
 		_action_buttons[action] = btns
 
+	var spacer := Control.new()
+	spacer.custom_minimum_size = Vector2(0, 50)
+	vbox.add_child(spacer)
+
 	var reset := Button.new()
 	reset.text = "RESET TO DEFAULTS"
+	reset.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	reset.pressed.connect(_reset_keybinds)
 	vbox.add_child(reset)
 
@@ -190,7 +193,7 @@ func _start_rebind(action: String, slot: int, btn: Button) -> void:
 
 func _close_keybinds() -> void:
 	_keybinds_panel.visible = false
-	$CenterContainer.visible = true
+	$PauseMenu.visible = true
 
 # ============================================================
 # INPUT — rebind capture
@@ -257,8 +260,14 @@ func _save_keybinds() -> void:
 	for action in ACTIONS:
 		for slot in SLOTS:
 			var e = _bindings[action][slot]
-			cfg.set_value("keybinds", "%s/%d" % [action, slot],
-					_serialize_event(e) if e != null else null)
+			# 1. Create a variable to hold the result
+			var save_data = null 
+			# 2. Use a standard IF block instead of the one-liner
+			if e != null:
+				save_data = _serialize_event(e)
+				
+			# 3. Save the result (ConfigFile handles 'null' perfectly)
+			cfg.set_value("keybinds", "%s/%d" % [action, slot], save_data)
 	cfg.save("user://keybinds.cfg")
 
 func _load_keybinds() -> void:
@@ -321,7 +330,7 @@ func pause_game():
 	get_tree().paused = true
 	visible = true
 	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
-	$CenterContainer/PanelContainer/VBoxContainer/Resume.grab_focus()
+	$PauseMenu/PanelContainer/VBoxContainer/Resume.grab_focus()
 
 func resume_game():
 	visible = false
@@ -340,7 +349,7 @@ func _on_title_pressed():
 	get_tree().change_scene_to_file("res://scenes/UI/TitleScreen.tscn")
 
 func _on_keybinds_pressed():
-	$CenterContainer.visible = false
+	$PauseMenu.visible = false
 	_keybinds_panel.visible = true
 
 func _on_quit_pressed():

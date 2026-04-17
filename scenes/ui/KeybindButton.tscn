@@ -1,0 +1,15 @@
+[gd_scene format=3 uid="uid://c5atg8aw0o11q"]
+
+[node name="KeybindButton" type="Button" unique_id=842079588]
+custom_minimum_size = Vector2(200, 0)
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 12.0
+offset_top = -1.0
+offset_right = 12.0
+offset_bottom = -1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/h_separation = 50
+theme_override_font_sizes/font_size = 30

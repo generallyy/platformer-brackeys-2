@@ -1,0 +1,9 @@
+[gd_scene format=3 uid="uid://djmiku3mt7d5h"]
+
+[node name="KeybindRow" type="Label" unique_id=532628409]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 30
