@@ -41,6 +41,7 @@ var _state: PlayerState = PlayerState.GROUNDED
 @onready var audio_stream_player: AudioStreamPlayer = $AudioStreamPlayer
 @onready var _effects_anchor:     Node2D            = $EffectsAnchor
 @onready var _boost_particles:    GPUParticles2D    = $EffectsAnchor/BoostParticles
+@onready var _name_label:         Label             = $Label
 #@onready var _collision_shape:    CollisionShape2D  = $CollisionShape2D
 
 # ============================================================
@@ -49,6 +50,9 @@ var _state: PlayerState = PlayerState.GROUNDED
 
 signal health_changed(new_health: int, max_health: int)
 signal powerups_changed(passive: Array, active: String)
+
+func set_display_name(display_name: String) -> void:
+	_name_label.text = display_name
 
 # ============================================================
 # PLAYER STATE

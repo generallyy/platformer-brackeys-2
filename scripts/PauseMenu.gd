@@ -43,8 +43,8 @@ func _ready():
 	_build_keybinds_panel()
 	_load_keybinds()
 	
-	_keybinds_panel.visible = true
-	$PauseMenu.visible = false
+	_keybinds_panel.visible = false
+	$PauseMenu.visible = true
 	
 	
 

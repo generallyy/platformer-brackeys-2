@@ -120,12 +120,16 @@ func _register_name(peer_id: int, raw_name: String) -> void:
 	if n.is_empty():
 		n = "P%d" % _player_numbers.get(peer_id, peer_id)
 	player_names[peer_id] = n
+	if peer_id in spawned_players:
+		spawned_players[peer_id].set_display_name(n)
 	if NetworkManager.is_active():
 		_sync_player_name.rpc(peer_id, n)
 
 @rpc("authority", "call_local", "reliable")
 func _sync_player_name(peer_id: int, display_name: String) -> void:
 	player_names[peer_id] = display_name
+	if peer_id in spawned_players:
+		spawned_players[peer_id].set_display_name(display_name)
 	hud.update_scores(game_mode.scores, _player_numbers, game_mode.stocks, player_names)
 	hud.update_kda(game_mode.kda_kills, game_mode.kda_deaths, _player_numbers, player_names)
 
