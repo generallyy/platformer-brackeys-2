@@ -177,7 +177,7 @@ func _physics_process(delta: float) -> void:
 			velocity.y = 0.0
 		PlayerState.DASH:
 			velocity.x = facing_direction * stats.dash_speed
-			if not NetworkManager.is_active() or multiplayer.is_server():
+			if not NetworkManager.is_active() or is_multiplayer_authority():
 				for t in _passthrough_targets:
 					if is_instance_valid(t) and t.is_in_group("player"):
 						if global_position.distance_to(t.global_position) < 12.0:
@@ -697,8 +697,6 @@ func _play_boost_particles() -> void:
 
 @rpc("any_peer", "reliable")
 func _rpc_receive_dash_push(push_velocity_x: float) -> void:
-	if NetworkManager.is_active() and multiplayer.get_remote_sender_id() != 1:
-		return
 	velocity.x = push_velocity_x
 
 @rpc("authority", "unreliable")
