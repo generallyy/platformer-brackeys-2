@@ -386,6 +386,21 @@ func _update_shield(delta: float) -> void:
 
 
 func _handle_ghost_input() -> void:
+	# Jump / double jump
+	if Input.is_action_just_pressed("jump") and _input_cooldown <= 0.0:
+		if is_on_floor():
+			_do_jump()
+		elif not has_dbj and _boost_dbj_lockout <= 0.0:
+			_transition_to(PlayerState.DOUBLE_JUMP)
+
+	# Dash / air boost
+	if Input.is_action_just_pressed("f"):
+		if is_on_floor() and _dash_cooldown <= 0.0:
+			_transition_to(PlayerState.DASH)
+		elif not is_on_floor() and not has_air_boosted and _dbj_boost_lockout <= 0.0:
+			_transition_to(PlayerState.AIR_BOOST)
+
+	# Bomb placement
 	if not _ghost_can_bomb:
 		return
 	if Input.is_action_just_pressed("attack") and _ghost_bomb_cooldown <= 0.0 and not in_safe_zone:
@@ -420,11 +435,21 @@ func activate_ghost_mode(can_bomb: bool = true, spawn_pos: Vector2 = Vector2.ZER
 	modulate.a = 0.4 if can_bomb else 0.0
 	if _state == PlayerState.UI_LOCKED or _state == PlayerState.KNOCKED_BACK:
 		_transition_to(PlayerState.AIRBORNE if not is_on_floor() else PlayerState.GROUNDED)
+	for p in get_tree().get_nodes_in_group("player"):
+		if p != self:
+			add_collision_exception_with(p)
+			p.add_collision_exception_with(self)
 
 
 func deactivate_ghost_mode() -> void:
+	if not is_ghost:
+		return
 	is_ghost   = false
 	modulate.a = 1.0
+	for p in get_tree().get_nodes_in_group("player"):
+		if p != self:
+			remove_collision_exception_with(p)
+			p.remove_collision_exception_with(self)
 
 
 func _handle_input(_delta: float) -> void:
@@ -719,6 +744,13 @@ func take_damage(amount: int, knockback: Vector2 = Vector2.ZERO, attacker_peer_i
 
 func die() -> void:
 	if is_ghost:
+		var ghost_main := get_tree().get_root().get_node_or_null("Main")
+		if ghost_main:
+			var ghost_pid := multiplayer.get_unique_id() if NetworkManager.is_active() else 1
+			var ghost_spawn: Node2D = ghost_main.get_current_spawn_for_peer(ghost_pid)
+			if ghost_spawn:
+				global_position = ghost_spawn.global_position
+		velocity = Vector2.ZERO
 		return
 	is_invuln = true
 	velocity = Vector2.ZERO

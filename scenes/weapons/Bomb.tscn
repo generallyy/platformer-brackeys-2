@@ -1,7 +1,7 @@
-[gd_scene format=3 uid="uid://b0mb_scene_01"]
+[gd_scene format=3 uid="uid://besr223fe04ic"]
 
-[ext_resource type="Script" path="res://scripts/bomb.gd" id="1_bomb"]
+[ext_resource type="Script" uid="uid://c4yv2lfyf7pyu" path="res://scripts/bomb.gd" id="1_bomb"]
 
-[node name="Bomb" type="Node2D"]
-script = ExtResource("1_bomb")
+[node name="Bomb" type="Node2D" unique_id=1148317668]
 z_index = 5
+script = ExtResource("1_bomb")

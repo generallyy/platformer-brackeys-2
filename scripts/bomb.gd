@@ -1,7 +1,7 @@
 extends Node2D
 
 const FUSE_TIME         := 2.0
-const DAMAGE            := 2
+const DAMAGE            := 1
 const EXPLOSION_RADIUS  := 60.0
 const EXPLOSION_SHOW    := 0.2  # seconds the explosion flash is visible
 
