@@ -177,6 +177,11 @@ func _physics_process(delta: float) -> void:
 			velocity.y = 0.0
 		PlayerState.DASH:
 			velocity.x = facing_direction * stats.dash_speed
+			if not NetworkManager.is_active() or multiplayer.is_server():
+				for t in _passthrough_targets:
+					if is_instance_valid(t) and t.is_in_group("player"):
+						if global_position.distance_to(t.global_position) < 12.0:
+							t.velocity.x = -facing_direction * stats.dash_speed
 		PlayerState.DOUBLE_JUMP:
 			if _dbj_frozen:
 				return
