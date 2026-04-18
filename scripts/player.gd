@@ -114,6 +114,10 @@ var _active_used_this_round := false
 var _speed_surge_active     := false
 var _speed_surge_timer      := 0.0
 
+# --- Overhead passthrough ---
+var _passthrough_targets: Array = []
+var _passthrough_timer   := 0.0
+
 # --- Network ---
 var _sync_peers: Array = []
 var _input_cooldown := 0.0
@@ -270,6 +274,37 @@ func _tick_timers(delta: float) -> void:
 	if _dash_cooldown > 0.0:
 		_dash_cooldown -= delta
 
+	if _passthrough_timer > 0.0:
+		_passthrough_timer -= delta
+		if _passthrough_timer <= 0.0:
+			_clear_passthrough()
+
+
+func _get_overhead_players() -> Array:
+	var result := []
+	for p in get_tree().get_nodes_in_group("player"):
+		if p == self or not is_instance_valid(p):
+			continue
+		var diff: Vector2 = p.global_position - global_position
+		# Circle radius 5, center offset -5 → another player standing on our head
+		# puts their origin roughly 10 px above ours.  Use a generous window.
+		if diff.y < 0.0 and diff.y > -28.0 and abs(diff.x) < 14.0:
+			result.append(p)
+	return result
+
+func _add_passthrough(targets: Array, duration: float) -> void:
+	for t in targets:
+		if is_instance_valid(t) and t not in _passthrough_targets:
+			add_collision_exception_with(t)
+			_passthrough_targets.append(t)
+	if targets.size() > 0:
+		_passthrough_timer = max(_passthrough_timer, duration)
+
+func _clear_passthrough() -> void:
+	for t in _passthrough_targets:
+		if is_instance_valid(t):
+			remove_collision_exception_with(t)
+	_passthrough_targets.clear()
 
 func _apply_gravity(delta: float) -> void:
 	if is_on_floor() or _state == PlayerState.AIR_BOOST:
@@ -298,6 +333,7 @@ func _update_shield(delta: float) -> void:
 func _handle_input(_delta: float) -> void:
 	if Input.is_action_just_pressed("jump") and not _is_shielding and _input_cooldown <= 0.0:
 		if is_on_floor():
+			_add_passthrough(_get_overhead_players(), 0.4)
 			_do_jump()
 		elif not has_dbj and _boost_dbj_lockout <= 0.0:
 			_transition_to(PlayerState.DOUBLE_JUMP)
@@ -337,6 +373,7 @@ func _handle_input(_delta: float) -> void:
 func _apply_movement(delta: float) -> void:
 	var effective_speed := stats.speed_surge_speed if _speed_surge_active else stats.speed
 	if _input_direction:
+		_add_passthrough(_get_overhead_players(), 0.12)  # refreshed every frame while walking
 		var turning := _input_direction * velocity.x < 0.0
 		var accel: float
 		if turning:
@@ -404,7 +441,8 @@ func run_dbj(_delta = null) -> void:
 
 
 func end_dbj() -> void:
-	_transition_to(PlayerState.AIRBORNE)
+	if _state == PlayerState.DOUBLE_JUMP:
+		_transition_to(PlayerState.AIRBORNE)
 
 # ============================================================
 # JUMP

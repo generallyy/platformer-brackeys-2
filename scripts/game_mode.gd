@@ -171,6 +171,14 @@ func record_death(victim_id: int) -> void:
 	_broadcast_stocks()
 	_check_all_done()
 
+func reset_stocks_for_peer(peer_id: int) -> void:
+	if not _round_active:
+		return
+	if peer_id not in stocks:
+		return
+	stocks[peer_id] = STOCKS_PER_ROUND
+	_broadcast_stocks()
+
 func can_respawn(peer_id: int) -> bool:
 	if state == State.GAME_OVER or state == State.INACTIVE:
 		return true

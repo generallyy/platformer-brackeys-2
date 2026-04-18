@@ -5,6 +5,7 @@ const PLAYER_SCENE = preload("res://scenes/characters/Player.tscn")
 var spawned_players: Dictionary = {}
 var _player_numbers: Dictionary = {}  # peer_id -> display number (1, 2, 3...)
 var player_names: Dictionary = {}     # peer_id -> display name String
+var team_colors: Dictionary = {}      # peer_id -> Color (unused until teams are implemented)
 var current_level_path := "res://scenes/levels/Level0.tscn"
 var _respawn_points: Dictionary = {}
 var _wardrobe_player: Node = null
@@ -121,6 +122,9 @@ func get_player_display_name(peer_id: int) -> String:
 		return n
 	return "P%d" % _player_numbers.get(peer_id, peer_id)
 
+func _local_peer_id() -> int:
+	return multiplayer.get_unique_id() if NetworkManager.is_active() else 1
+
 func _register_name(peer_id: int, raw_name: String) -> void:
 	var n := raw_name.strip_edges()
 	if n.is_empty():
@@ -137,7 +141,7 @@ func _sync_player_name(peer_id: int, display_name: String) -> void:
 	if peer_id in spawned_players:
 		spawned_players[peer_id].set_display_name(display_name)
 	hud.update_scores(game_mode.scores, _player_numbers, game_mode.stocks, player_names)
-	hud.update_kda(game_mode.kda_kills, game_mode.kda_deaths, _player_numbers, player_names, game_mode.kda_damage)
+	hud.update_kda(game_mode.kda_kills, game_mode.kda_deaths, _player_numbers, player_names, game_mode.kda_damage, _local_peer_id(), team_colors)
 
 func _spawn_player(peer_id: int):
 	if peer_id in spawned_players:
@@ -269,6 +273,7 @@ func _set_checkpoint(checkpoint: Node2D, peer_id: int) -> void:
 		_sync_checkpoint.rpc(peer_id, checkpoint.get_path())
 	else:
 		_sync_checkpoint(peer_id, checkpoint.get_path())
+	game_mode.reset_stocks_for_peer(peer_id)
 
 @rpc("authority", "call_local", "reliable")
 func _sync_reset_checkpoint(peer_id: int, checkpoint_path: NodePath) -> void:
@@ -382,7 +387,7 @@ func _on_round_started(round_number: int) -> void:
 		msg = "Round %d — GO!" % round_number
 	hud.show_announcement(msg)
 	hud.update_scores(game_mode.scores, _player_numbers, game_mode.stocks, player_names)
-	hud.update_kda(game_mode.kda_kills, game_mode.kda_deaths, _player_numbers, player_names, game_mode.kda_damage)
+	hud.update_kda(game_mode.kda_kills, game_mode.kda_deaths, _player_numbers, player_names, game_mode.kda_damage, _local_peer_id(), team_colors)
 	_freeze_for_all_players(hud.ANNOUNCEMENT_DURATION)
 
 func _on_round_ended(finishers: Array, scores: Dictionary) -> void:
@@ -409,7 +414,7 @@ func _on_stocks_changed(_stocks: Dictionary) -> void:
 	hud.update_scores(game_mode.scores, _player_numbers, _stocks, player_names)
 
 func _on_kda_changed(kda_kills: Dictionary, kda_deaths: Dictionary, kda_damage: Dictionary) -> void:
-	hud.update_kda(kda_kills, kda_deaths, _player_numbers, player_names, kda_damage)
+	hud.update_kda(kda_kills, kda_deaths, _player_numbers, player_names, kda_damage, _local_peer_id(), team_colors)
 
 func _on_powerups_distribute(_scores: Dictionary, finishers: Array) -> void:
 	var local_peer := multiplayer.get_unique_id() if NetworkManager.is_active() else 1
