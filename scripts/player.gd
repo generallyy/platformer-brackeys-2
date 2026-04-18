@@ -216,6 +216,8 @@ func _enter_state(state: PlayerState) -> void:
 			_dash_timer    = stats.dash_duration
 			_dash_cooldown = stats.dash_cooldown
 			velocity.x = facing_direction * stats.dash_speed
+			var others := get_tree().get_nodes_in_group("player").filter(func(p): return p != self)
+			_add_passthrough(others, stats.dash_duration + 0.15)
 		PlayerState.AIR_BOOST:
 			_boost_timer       = stats.boost_duration
 			has_air_boosted    = true
@@ -598,7 +600,7 @@ func _do_spawn_zap(dir: int, thrower_id: int, dmg: int = 1, kbs: float = 1.0) ->
 func take_damage(amount: int, knockback: Vector2 = Vector2.ZERO, attacker_peer_id: int = -1) -> void:
 	if NetworkManager.is_active() and not is_multiplayer_authority():
 		return
-	if is_invuln or _is_shielding:
+	if is_invuln or _is_shielding or _state == PlayerState.UI_LOCKED:
 		return
 	if attacker_peer_id != -1:
 		_last_attacker_peer_id = attacker_peer_id
