@@ -42,6 +42,7 @@ var _state: PlayerState = PlayerState.GROUNDED
 @onready var _effects_anchor:     Node2D            = $EffectsAnchor
 @onready var _boost_particles:    GPUParticles2D    = $EffectsAnchor/BoostParticles
 @onready var _name_label:         Label             = $Label
+@onready var _kill_indicator:     Label             = $KillIndicator
 #@onready var _collision_shape:    CollisionShape2D  = $CollisionShape2D
 
 # ============================================================
@@ -114,6 +115,11 @@ var _active_used_this_round := false
 var _speed_surge_active     := false
 var _speed_surge_timer      := 0.0
 
+# --- Kill indicator ---
+const KILL_INDICATOR_DURATION := 1.0
+var _kill_count            := 0
+var _kill_indicator_timer  := 0.0
+
 # --- Overhead passthrough ---
 var _passthrough_targets: Array = []
 var _passthrough_timer   := 0.0
@@ -134,6 +140,7 @@ func _ready() -> void:
 		stats = PlayerStats.new()
 	health        = stats.max_health
 	shield_charge = stats.shield_max
+	_kill_indicator.visible = false
 	add_to_group("player")
 	_outfit = PlayerOutfit.new()
 	_outfit.setup(animated_sprite)
@@ -273,6 +280,12 @@ func _tick_timers(delta: float) -> void:
 
 	if _dash_cooldown > 0.0:
 		_dash_cooldown -= delta
+
+	if _kill_indicator_timer > 0.0:
+		_kill_indicator_timer -= delta
+		if _kill_indicator_timer <= 0.0:
+			_kill_count = 0
+			_kill_indicator.visible = false
 
 	if _passthrough_timer > 0.0:
 		_passthrough_timer -= delta
@@ -611,6 +624,9 @@ func take_damage(amount: int, knockback: Vector2 = Vector2.ZERO, attacker_peer_i
 func die() -> void:
 	is_invuln = true
 	velocity = Vector2.ZERO
+	_kill_count = 0
+	_kill_indicator_timer = 0.0
+	_kill_indicator.visible = false
 	hide()
 	await get_tree().create_timer(stats.respawn_delay).timeout
 	health = get_effective_max_health()
@@ -629,6 +645,12 @@ func die() -> void:
 # ============================================================
 # EFFECTS
 # ============================================================
+
+func show_kill() -> void:
+	_kill_count += 1
+	_kill_indicator.text = "+%d" % _kill_count
+	_kill_indicator.visible = true
+	_kill_indicator_timer = KILL_INDICATOR_DURATION
 
 func _update_damage_flash(delta: float) -> void:
 	if not is_invuln:

@@ -463,12 +463,29 @@ func notify_kill(killer_peer_id: int, victim_peer_id: int) -> void:
 		_req_notify_kill.rpc_id(1, killer_peer_id, victim_peer_id)
 		return
 	game_mode.record_kill(killer_peer_id, victim_peer_id)
+	_notify_kill_indicator(killer_peer_id)
 
 @rpc("any_peer", "reliable")
 func _req_notify_kill(killer_peer_id: int, victim_peer_id: int) -> void:
 	if multiplayer.get_remote_sender_id() != victim_peer_id:
 		return
 	game_mode.record_kill(killer_peer_id, victim_peer_id)
+	_notify_kill_indicator(killer_peer_id)
+
+func _notify_kill_indicator(killer_peer_id: int) -> void:
+	var local_id := multiplayer.get_unique_id() if NetworkManager.is_active() else 1
+	if killer_peer_id == local_id:
+		var player: Node2D = spawned_players.get(killer_peer_id)
+		if player:
+			player.show_kill()
+	elif NetworkManager.is_active():
+		_rpc_kill_indicator.rpc_id(killer_peer_id, killer_peer_id)
+
+@rpc("authority", "reliable")
+func _rpc_kill_indicator(killer_peer_id: int) -> void:
+	var player: Node2D = spawned_players.get(killer_peer_id)
+	if player:
+		player.show_kill()
 
 func notify_self_death(victim_peer_id: int) -> void:
 	if NetworkManager.is_active() and not multiplayer.is_server():
