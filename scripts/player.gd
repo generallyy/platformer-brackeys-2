@@ -181,7 +181,11 @@ func _physics_process(delta: float) -> void:
 				for t in _passthrough_targets:
 					if is_instance_valid(t) and t.is_in_group("player"):
 						if global_position.distance_to(t.global_position) < 12.0:
-							t.velocity.x = -facing_direction * stats.dash_speed
+							var push_x := -facing_direction * stats.dash_speed
+							if NetworkManager.is_active():
+								t._rpc_receive_dash_push.rpc_id(t.get_multiplayer_authority(), push_x)
+							else:
+								t.velocity.x = push_x
 		PlayerState.DOUBLE_JUMP:
 			if _dbj_frozen:
 				return
@@ -690,6 +694,12 @@ func _play_boost_particles() -> void:
 	_boost_particles.restart()
 	_boost_particles.emitting = true
 
+
+@rpc("any_peer", "reliable")
+func _rpc_receive_dash_push(push_velocity_x: float) -> void:
+	if NetworkManager.is_active() and multiplayer.get_remote_sender_id() != 1:
+		return
+	velocity.x = push_velocity_x
 
 @rpc("authority", "unreliable")
 func _rpc_effect_boost(anchor_x: float, anchor_y: float, dir: Vector3) -> void:
