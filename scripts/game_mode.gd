@@ -15,7 +15,7 @@ signal game_over(winner_peer_id: int, scores: Dictionary)
 signal powerups_distribute(scores: Dictionary, finishers: Array)
 signal scores_changed(scores: Dictionary)
 signal stocks_changed(stocks: Dictionary)
-signal kda_changed(kda_kills: Dictionary, kda_deaths: Dictionary)
+signal kda_changed(kda_kills: Dictionary, kda_deaths: Dictionary, kda_damage: Dictionary)
 
 var state: int = State.INACTIVE
 var sudden_death_peers: Array = []  # non-empty only during a sudden death round
@@ -25,6 +25,7 @@ var scores: Dictionary = {}
 var stocks: Dictionary = {}
 var kda_kills: Dictionary = {}
 var kda_deaths: Dictionary = {}
+var kda_damage: Dictionary = {}
 var round_number: int = 0
 var _round_active := false
 var _finishers: Array = []
@@ -72,7 +73,8 @@ func stop_game() -> void:
 	state = State.INACTIVE
 	kda_kills.clear()
 	kda_deaths.clear()
-	kda_changed.emit(kda_kills, kda_deaths)
+	kda_damage.clear()
+	kda_changed.emit(kda_kills, kda_deaths, kda_damage)
 
 func register_player(peer_id: int) -> void:
 	if state != State.INACTIVE and peer_id not in scores:
@@ -187,15 +189,20 @@ func _sync_stocks_rpc(new_stocks: Dictionary) -> void:
 
 func _broadcast_kda() -> void:
 	if NetworkManager.is_active():
-		_sync_kda_rpc.rpc(kda_kills, kda_deaths)
+		_sync_kda_rpc.rpc(kda_kills, kda_deaths, kda_damage)
 	else:
-		_sync_kda_rpc(kda_kills, kda_deaths)
+		_sync_kda_rpc(kda_kills, kda_deaths, kda_damage)
 
 @rpc("authority", "call_local", "reliable")
-func _sync_kda_rpc(new_kills: Dictionary, new_deaths: Dictionary) -> void:
+func _sync_kda_rpc(new_kills: Dictionary, new_deaths: Dictionary, new_damage: Dictionary) -> void:
 	kda_kills = new_kills
 	kda_deaths = new_deaths
-	kda_changed.emit(kda_kills, kda_deaths)
+	kda_damage = new_damage
+	kda_changed.emit(kda_kills, kda_deaths, kda_damage)
+
+func record_damage(attacker_id: int, amount: int) -> void:
+	kda_damage[attacker_id] = kda_damage.get(attacker_id, 0) + amount
+	_broadcast_kda()
 
 func _compute_kill_points(peer_id: int) -> int:
 	var pts := 0

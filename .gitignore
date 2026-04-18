@@ -3,3 +3,4 @@
 *.exe
 *.pck
 .claude
+export_presets.cfg

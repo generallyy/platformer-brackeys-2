@@ -84,7 +84,7 @@ func update_scores(scores: Dictionary, player_numbers: Dictionary = {}, stocks: 
 			lbl.text = "  %s: %d" % [label, scores[peer_id]]
 		_score_row.add_child(lbl)
 
-func update_kda(kda_kills: Dictionary, kda_deaths: Dictionary, player_numbers: Dictionary = {}, player_names: Dictionary = {}) -> void:
+func update_kda(kda_kills: Dictionary, kda_deaths: Dictionary, player_numbers: Dictionary = {}, player_names: Dictionary = {}, kda_damage: Dictionary = {}) -> void:
 	var vbox := $KDA/VBoxContainer
 	for child in vbox.get_children():
 		child.queue_free()
@@ -95,7 +95,7 @@ func update_kda(kda_kills: Dictionary, kda_deaths: Dictionary, player_numbers: D
 		var label: String = player_names.get(peer_id, "P%d" % display_num)
 		var lbl := Label.new()
 		lbl.add_theme_font_size_override("font_size", 24)
-		lbl.text = "  %s  K: %d  D: %d" % [label, kda_kills.get(peer_id, 0), kda_deaths.get(peer_id, 0)]
+		lbl.text = "  %s  K: %d  D: %d  DMG: %d" % [label, kda_kills.get(peer_id, 0), kda_deaths.get(peer_id, 0), kda_damage.get(peer_id, 0)]
 		vbox.add_child(lbl)
 
 func show_announcement(text: String, duration: float = ANNOUNCEMENT_DURATION) -> void:

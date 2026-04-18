@@ -137,7 +137,7 @@ func _sync_player_name(peer_id: int, display_name: String) -> void:
 	if peer_id in spawned_players:
 		spawned_players[peer_id].set_display_name(display_name)
 	hud.update_scores(game_mode.scores, _player_numbers, game_mode.stocks, player_names)
-	hud.update_kda(game_mode.kda_kills, game_mode.kda_deaths, _player_numbers, player_names)
+	hud.update_kda(game_mode.kda_kills, game_mode.kda_deaths, _player_numbers, player_names, game_mode.kda_damage)
 
 func _spawn_player(peer_id: int):
 	if peer_id in spawned_players:
@@ -382,7 +382,7 @@ func _on_round_started(round_number: int) -> void:
 		msg = "Round %d — GO!" % round_number
 	hud.show_announcement(msg)
 	hud.update_scores(game_mode.scores, _player_numbers, game_mode.stocks, player_names)
-	hud.update_kda(game_mode.kda_kills, game_mode.kda_deaths, _player_numbers, player_names)
+	hud.update_kda(game_mode.kda_kills, game_mode.kda_deaths, _player_numbers, player_names, game_mode.kda_damage)
 	_freeze_for_all_players(hud.ANNOUNCEMENT_DURATION)
 
 func _on_round_ended(finishers: Array, scores: Dictionary) -> void:
@@ -408,8 +408,8 @@ func _on_scores_changed(scores: Dictionary) -> void:
 func _on_stocks_changed(_stocks: Dictionary) -> void:
 	hud.update_scores(game_mode.scores, _player_numbers, _stocks, player_names)
 
-func _on_kda_changed(kda_kills: Dictionary, kda_deaths: Dictionary) -> void:
-	hud.update_kda(kda_kills, kda_deaths, _player_numbers, player_names)
+func _on_kda_changed(kda_kills: Dictionary, kda_deaths: Dictionary, kda_damage: Dictionary) -> void:
+	hud.update_kda(kda_kills, kda_deaths, _player_numbers, player_names, kda_damage)
 
 func _on_powerups_distribute(_scores: Dictionary, finishers: Array) -> void:
 	var local_peer := multiplayer.get_unique_id() if NetworkManager.is_active() else 1
@@ -476,6 +476,18 @@ func _req_notify_self_death(victim_peer_id: int) -> void:
 	if multiplayer.get_remote_sender_id() != victim_peer_id:
 		return
 	game_mode.record_death(victim_peer_id)
+
+func notify_damage(attacker_peer_id: int, victim_peer_id: int, amount: int) -> void:
+	if NetworkManager.is_active() and not multiplayer.is_server():
+		_req_notify_damage.rpc_id(1, attacker_peer_id, victim_peer_id, amount)
+		return
+	game_mode.record_damage(attacker_peer_id, amount)
+
+@rpc("any_peer", "reliable")
+func _req_notify_damage(attacker_peer_id: int, victim_peer_id: int, amount: int) -> void:
+	if multiplayer.get_remote_sender_id() != victim_peer_id:
+		return
+	game_mode.record_damage(attacker_peer_id, amount)
 
 func respawn_player_by_id(peer_id: int):
 	if NetworkManager.is_active() and not multiplayer.is_server():

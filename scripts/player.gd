@@ -552,8 +552,14 @@ func take_damage(amount: int, knockback: Vector2 = Vector2.ZERO, attacker_peer_i
 	if attacker_peer_id != -1:
 		_last_attacker_peer_id = attacker_peer_id
 		_last_hit_timer        = stats.kill_credit_window
+	var actual := mini(amount, health)
 	health -= amount
 	health_changed.emit(health, get_effective_max_health())
+	if attacker_peer_id != -1:
+		var peer_id := multiplayer.get_unique_id() if NetworkManager.is_active() else 1
+		var main := get_tree().get_root().get_node_or_null("Main")
+		if main:
+			main.notify_damage(attacker_peer_id, peer_id, actual)
 	if health <= 0:
 		die()
 		return
