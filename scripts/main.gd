@@ -576,15 +576,17 @@ func _req_respawn(peer_id: int):
 		_do_respawn(peer_id)
 
 func _activate_ghost(peer_id: int) -> void:
+	var spawn := get_current_spawn_for_peer(peer_id)
+	var pos   := spawn.global_position if spawn else Vector2.ZERO
 	if NetworkManager.is_active():
-		_sync_activate_ghost.rpc(peer_id, ghost_bombs_enabled)
+		_sync_activate_ghost.rpc(peer_id, ghost_bombs_enabled, pos)
 	else:
-		_sync_activate_ghost(peer_id, ghost_bombs_enabled)
+		_sync_activate_ghost(peer_id, ghost_bombs_enabled, pos)
 
 @rpc("authority", "call_local", "reliable")
-func _sync_activate_ghost(peer_id: int, can_bomb: bool) -> void:
+func _sync_activate_ghost(peer_id: int, can_bomb: bool, pos: Vector2) -> void:
 	if peer_id in spawned_players:
-		spawned_players[peer_id].activate_ghost_mode(can_bomb)
+		spawned_players[peer_id].activate_ghost_mode(can_bomb, pos)
 
 func _do_respawn(peer_id: int):
 	if not peer_id in spawned_players:

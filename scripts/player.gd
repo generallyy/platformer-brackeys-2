@@ -409,11 +409,13 @@ func _do_spawn_bomb(pos: Vector2, thrower_id: int) -> void:
 	bomb.global_position = pos
 
 
-func activate_ghost_mode(can_bomb: bool = true) -> void:
+func activate_ghost_mode(can_bomb: bool = true, spawn_pos: Vector2 = Vector2.ZERO) -> void:
 	is_ghost             = true
 	_ghost_can_bomb      = can_bomb
 	_ghost_bomb_cooldown = 0.0
 	health               = 1  # keep non-zero so normal death logic doesn't re-trigger
+	global_position      = spawn_pos
+	velocity             = Vector2.ZERO
 	show()
 	modulate.a = 0.4 if can_bomb else 0.0
 	if _state == PlayerState.UI_LOCKED or _state == PlayerState.KNOCKED_BACK:
@@ -716,6 +718,8 @@ func take_damage(amount: int, knockback: Vector2 = Vector2.ZERO, attacker_peer_i
 
 
 func die() -> void:
+	if is_ghost:
+		return
 	is_invuln = true
 	velocity = Vector2.ZERO
 	_kill_count = 0
