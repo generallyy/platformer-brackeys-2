@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://c7k0nwhuq35hj"]
 
 [ext_resource type="Script" uid="uid://42dgn02omc40" path="res://scripts/goal_zone.gd" id="1_script"]
+[ext_resource type="Theme" uid="uid://2p378flu0i2e" path="res://assets/fonts/labrada.tres" id="2_vfn32"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_zone"]
 size = Vector2(24, 48)
@@ -22,10 +23,13 @@ position = Vector2(0, -20)
 shape = SubResource("RectangleShape2D_zone")
 
 [node name="Label" type="Label" parent="." unique_id=1000000005]
+texture_filter = 2
 offset_left = -48.0
 offset_top = -66.0
 offset_right = 48.0
 offset_bottom = -43.0
+theme = ExtResource("2_vfn32")
+theme_override_font_sizes/font_size = 20
 text = "GOAL"
 horizontal_alignment = 1
 

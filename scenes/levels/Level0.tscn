@@ -677,11 +677,15 @@ target_level_path = "uid://djmyjt6r4opt4"
 [node name="WardrobeZone" parent="." unique_id=1252420101 instance=ExtResource("14_wardrobe")]
 position = Vector2(-106, -9)
 
+[node name="Map2 Door" parent="." unique_id=1798051524 instance=ExtResource("16_l5fl4")]
+position = Vector2(280, -42)
+target_level_path = "uid://dcj2pfgu4o14r"
+
 [node name="SafeZone" parent="." unique_id=108348627 instance=ExtResource("18_nx170")]
 position = Vector2(75, -100)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="SafeZone" unique_id=1034426737]
-position = Vector2(92.5, -4.5)
+position = Vector2(510, -4)
 shape = SubResource("RectangleShape2D_h27y2")
 
 [connection signal="body_entered" from="LevelTransition" to="LevelTransition" method="_on_body_entered"]

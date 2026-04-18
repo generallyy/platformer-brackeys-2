@@ -34,6 +34,10 @@ window/stretch/mode="viewport"
 
 movie_writer/movie_file="C:/Users/AYW/Videos/Screen Recordings/test.ogv"
 
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/parallax2d_preview/plugin.cfg")
+
 [input]
 
 ui_up={
