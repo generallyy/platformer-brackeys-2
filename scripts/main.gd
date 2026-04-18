@@ -13,6 +13,7 @@ var _player_numbers: Dictionary = {}  # peer_id -> display number (1, 2, 3...)
 var player_names: Dictionary = {}     # peer_id -> display name String
 var team_colors: Dictionary = {}      # peer_id -> Color
 var player_teams: Dictionary = {}     # peer_id -> team_id (0 = no team)
+var ghost_bombs_enabled: bool = true
 var current_level_path := "res://scenes/levels/Level0.tscn"
 var _respawn_points: Dictionary = {}
 var _wardrobe_player: Node = null
@@ -237,6 +238,7 @@ func _load_level_local(path: String) -> bool:
 	await get_tree().create_timer(0.5).timeout
 	loading_screen.visible = false
 	var settings := level_container.get_child(0).get_node_or_null("LevelSettings")
+	ghost_bombs_enabled = settings.ghost_bombs_enabled if settings != null else true
 	if settings and settings.game_mode_enabled:
 		if not NetworkManager.is_active() or multiplayer.is_server():
 			game_mode.start_game(settings.round_time_limit, settings.points_to_win)
@@ -575,14 +577,14 @@ func _req_respawn(peer_id: int):
 
 func _activate_ghost(peer_id: int) -> void:
 	if NetworkManager.is_active():
-		_sync_activate_ghost.rpc(peer_id)
+		_sync_activate_ghost.rpc(peer_id, ghost_bombs_enabled)
 	else:
-		_sync_activate_ghost(peer_id)
+		_sync_activate_ghost(peer_id, ghost_bombs_enabled)
 
 @rpc("authority", "call_local", "reliable")
-func _sync_activate_ghost(peer_id: int) -> void:
+func _sync_activate_ghost(peer_id: int, can_bomb: bool) -> void:
 	if peer_id in spawned_players:
-		spawned_players[peer_id].activate_ghost_mode()
+		spawned_players[peer_id].activate_ghost_mode(can_bomb)
 
 func _do_respawn(peer_id: int):
 	if not peer_id in spawned_players:

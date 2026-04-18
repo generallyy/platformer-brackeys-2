@@ -99,7 +99,8 @@ var _dash_cooldown      := 0.0
 var team_id: int = 0  # 0 = no team
 
 # --- Ghost ---
-var is_ghost            := false
+var is_ghost             := false
+var _ghost_can_bomb      := true
 var _ghost_bomb_cooldown := 0.0
 
 # --- Combat ---
@@ -385,6 +386,8 @@ func _update_shield(delta: float) -> void:
 
 
 func _handle_ghost_input() -> void:
+	if not _ghost_can_bomb:
+		return
 	if Input.is_action_just_pressed("attack") and _ghost_bomb_cooldown <= 0.0 and not in_safe_zone:
 		_ghost_bomb_cooldown = GHOST_BOMB_COOLDOWN
 		var pid := multiplayer.get_unique_id() if NetworkManager.is_active() else -1
@@ -406,12 +409,13 @@ func _do_spawn_bomb(pos: Vector2, thrower_id: int) -> void:
 	bomb.global_position = pos
 
 
-func activate_ghost_mode() -> void:
+func activate_ghost_mode(can_bomb: bool = true) -> void:
 	is_ghost             = true
+	_ghost_can_bomb      = can_bomb
 	_ghost_bomb_cooldown = 0.0
 	health               = 1  # keep non-zero so normal death logic doesn't re-trigger
 	show()
-	modulate.a = 0.4
+	modulate.a = 0.4 if can_bomb else 0.0
 	if _state == PlayerState.UI_LOCKED or _state == PlayerState.KNOCKED_BACK:
 		_transition_to(PlayerState.AIRBORNE if not is_on_floor() else PlayerState.GROUNDED)
 
