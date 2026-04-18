@@ -1,0 +1,60 @@
+[gd_scene format=3 uid="uid://cqv3v4ijcgxo4"]
+
+[ext_resource type="Theme" uid="uid://swm642j7u26w" path="res://assets/fonts/pixel_theme.tres" id="1_2wotf"]
+[ext_resource type="Script" uid="uid://cvlt11prb2qx8" path="res://scripts/team_pedestal.gd" id="2_teamped"]
+
+[sub_resource type="Gradient" id="Gradient_s8diq"]
+offsets = PackedFloat32Array(0.07862903, 1)
+colors = PackedColorArray(1, 1, 1, 1, 0.19219694, 0.19219697, 0.19219697, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_1eanv"]
+gradient = SubResource("Gradient_s8diq")
+width = 128
+height = 128
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ov6ft"]
+size = Vector2(13, 19.5)
+
+[sub_resource type="Gradient" id="Gradient_rlass"]
+offsets = PackedFloat32Array(0.33669356)
+colors = PackedColorArray(1, 1, 1, 1)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_ybguv"]
+gradient = SubResource("Gradient_rlass")
+
+[node name="TeamPedestal" type="Area2D" unique_id=1079013491]
+script = ExtResource("2_teamped")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=215750482]
+position = Vector2(0, -8)
+scale = Vector2(0.093, 0.125)
+texture = SubResource("GradientTexture2D_1eanv")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1984609442]
+visible = false
+position = Vector2(0, -10)
+shape = SubResource("RectangleShape2D_ov6ft")
+
+[node name="PromptLabel" type="Label" parent="." unique_id=414873501]
+texture_filter = 1
+offset_left = -87.0
+offset_top = -36.0
+offset_right = 88.0
+offset_bottom = -13.0
+theme = ExtResource("1_2wotf")
+theme_override_font_sizes/font_size = 8
+text = "no team"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Color" type="Sprite2D" parent="." unique_id=168246253]
+position = Vector2(-6.03, -20)
+scale = Vector2(0.047, 3.9999995)
+texture = SubResource("GradientTexture1D_ybguv")
+centered = false
+
+[connection signal="body_entered" from="." to="." method="_on_body_entered"]
+[connection signal="body_exited" from="." to="." method="_on_body_exited"]

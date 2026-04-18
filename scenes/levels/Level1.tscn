@@ -23,6 +23,7 @@
 [ext_resource type="PackedScene" uid="uid://cnyg8hvr1lhvg" path="res://scenes/world/LevelTransition.tscn" id="19_xbvxr"]
 [ext_resource type="PackedScene" uid="uid://dghf2fi812ufr" path="res://scenes/world/CollisionToggle.tscn" id="22_usw5k"]
 [ext_resource type="PackedScene" uid="uid://ci71fpxtxsgj7" path="res://scenes/world/hazards/Spikes.tscn" id="23_jsker"]
+[ext_resource type="PackedScene" uid="uid://cqv3v4ijcgxo4" path="res://scenes/world/TeamPedestal.tscn" id="24_6ex7q"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_bspq0"]
 texture = ExtResource("2_lc44e")
@@ -517,3 +518,8 @@ position = Vector2(-21, -14)
 [node name="Spikes" parent="." unique_id=1386707205 instance=ExtResource("23_jsker")]
 position = Vector2(90.00001, -27.999992)
 rotation = 0.5772796
+
+[node name="TeamPedestals" type="Node2D" parent="." unique_id=658800159]
+
+[node name="TeamPedestal" parent="TeamPedestals" unique_id=1079013491 instance=ExtResource("24_6ex7q")]
+position = Vector2(-106, -2)

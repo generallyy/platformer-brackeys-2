@@ -55,6 +55,13 @@ signal powerups_changed(passive: Array, active: String)
 func set_display_name(display_name: String) -> void:
 	_name_label.text = display_name
 
+func set_team(tid: int, color: Color) -> void:
+	team_id = tid
+	if tid == 0:
+		_name_label.remove_theme_color_override("font_color")
+	else:
+		_name_label.add_theme_color_override("font_color", color)
+
 # ============================================================
 # PLAYER STATE
 # ============================================================
@@ -84,6 +91,9 @@ var _boost_dbj_lockout  := 0.0
 var _boost_timer        := 0.0
 var _dash_timer         := 0.0
 var _dash_cooldown      := 0.0
+
+# --- Team ---
+var team_id: int = 0  # 0 = no team
 
 # --- Combat ---
 var in_safe_zone          := false
@@ -623,6 +633,13 @@ func take_damage(amount: int, knockback: Vector2 = Vector2.ZERO, attacker_peer_i
 		return
 	if is_invuln or _is_shielding or _state == PlayerState.UI_LOCKED:
 		return
+	# Friendly-fire prevention
+	if attacker_peer_id != -1 and team_id != 0:
+		var _main := get_tree().get_root().get_node_or_null("Main")
+		if _main:
+			var attacker_team: int = _main.player_teams.get(attacker_peer_id, 0)
+			if attacker_team != 0 and attacker_team == team_id:
+				return
 	if attacker_peer_id != -1:
 		_last_attacker_peer_id = attacker_peer_id
 		_last_hit_timer        = stats.kill_credit_window

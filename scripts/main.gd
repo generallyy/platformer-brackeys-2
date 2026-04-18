@@ -2,10 +2,17 @@ extends Node2D
 
 const PLAYER_SCENE = preload("res://scenes/characters/Player.tscn")
 
+const TEAM_DEFINITIONS := [
+	{ "id": 0, "name": "No Team", "color": Color(0.65, 0.65, 0.65) },
+	{ "id": 1, "name": "Red",     "color": Color(1.0, 0.3, 0.3) },
+	{ "id": 2, "name": "Blue",    "color": Color(0.35, 0.6, 1.0) },
+]
+
 var spawned_players: Dictionary = {}
 var _player_numbers: Dictionary = {}  # peer_id -> display number (1, 2, 3...)
 var player_names: Dictionary = {}     # peer_id -> display name String
-var team_colors: Dictionary = {}      # peer_id -> Color (unused until teams are implemented)
+var team_colors: Dictionary = {}      # peer_id -> Color
+var player_teams: Dictionary = {}     # peer_id -> team_id (0 = no team)
 var current_level_path := "res://scenes/levels/Level0.tscn"
 var _respawn_points: Dictionary = {}
 var _wardrobe_player: Node = null
@@ -102,6 +109,10 @@ func _request_state(player_name: String = ""):
 	for existing_id in player_names:
 		_sync_player_name.rpc_id(caller, existing_id, player_names[existing_id])
 	_register_name(caller, player_name)
+	# Sync team assignments to the new client
+	for existing_id in player_teams:
+		if player_teams[existing_id] != 0:
+			_sync_team_change.rpc_id(caller, existing_id, player_teams[existing_id])
 
 @rpc("authority", "call_local", "reliable")
 func _rpc_spawn(peer_id: int):
@@ -457,6 +468,45 @@ func _spawn_offset(index: int) -> Vector2:
 func free_children(node: Node):
 	for child in node.get_children():
 		child.queue_free()
+
+func get_team_color(tid: int) -> Color:
+	if tid < TEAM_DEFINITIONS.size():
+		return TEAM_DEFINITIONS[tid]["color"]
+	return Color.WHITE
+
+func get_team_name(tid: int) -> String:
+	if tid < TEAM_DEFINITIONS.size():
+		return TEAM_DEFINITIONS[tid]["name"]
+	return "Team %d" % tid
+
+func request_team_change(peer_id: int, tid: int) -> void:
+	if NetworkManager.is_active() and not multiplayer.is_server():
+		_req_team_change.rpc_id(1, peer_id, tid)
+		return
+	_apply_team_change(peer_id, tid)
+
+@rpc("any_peer", "reliable")
+func _req_team_change(peer_id: int, tid: int) -> void:
+	if multiplayer.get_remote_sender_id() != peer_id:
+		return
+	_apply_team_change(peer_id, tid)
+
+func _apply_team_change(peer_id: int, tid: int) -> void:
+	if NetworkManager.is_active():
+		_sync_team_change.rpc(peer_id, tid)
+	else:
+		_sync_team_change(peer_id, tid)
+
+@rpc("authority", "call_local", "reliable")
+func _sync_team_change(peer_id: int, tid: int) -> void:
+	player_teams[peer_id] = tid
+	if tid == 0:
+		team_colors.erase(peer_id)
+	else:
+		team_colors[peer_id] = get_team_color(tid)
+	if peer_id in spawned_players:
+		spawned_players[peer_id].set_team(tid, get_team_color(tid))
+	hud.update_kda(game_mode.kda_kills, game_mode.kda_deaths, _player_numbers, player_names, game_mode.kda_damage, _local_peer_id(), team_colors)
 
 func notify_kill(killer_peer_id: int, victim_peer_id: int) -> void:
 	if NetworkManager.is_active() and not multiplayer.is_server():
