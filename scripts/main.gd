@@ -199,6 +199,9 @@ func _load_level_local(path: String) -> bool:
 	_clear_all_player_powerups()
 	for p in spawned_players.values():
 		p.is_frozen = false
+		p.health = p.get_effective_max_health()
+		p.health_changed.emit(p.health, p.get_effective_max_health())
+		print(p.health)
 	loading_screen.visible = true
 	close_wardrobe()
 	powerups_menu.close_menu()
