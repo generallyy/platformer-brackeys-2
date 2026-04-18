@@ -292,7 +292,19 @@ func _tick_timers(delta: float) -> void:
 	if _passthrough_timer > 0.0:
 		_passthrough_timer -= delta
 		if _passthrough_timer <= 0.0:
-			_clear_passthrough()
+			# Don't drop the exception while still overlapping — sudden depenetration causes floating
+			var still_overlapping := false
+			for t in _passthrough_targets:
+				if is_instance_valid(t):
+					# Circle center is offset (0, -5) from origin, radius 5 each → overlap < 10
+					var dist := (global_position + Vector2(0, -5)).distance_to(t.global_position + Vector2(0, -5))
+					if dist < 11.0:
+						still_overlapping = true
+						break
+			if still_overlapping:
+				_passthrough_timer = 0.05
+			else:
+				_clear_passthrough()
 
 
 func _get_overhead_players() -> Array:
