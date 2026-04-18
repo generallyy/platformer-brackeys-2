@@ -521,5 +521,12 @@ rotation = 0.5772796
 
 [node name="TeamPedestals" type="Node2D" parent="." unique_id=658800159]
 
-[node name="TeamPedestal" parent="TeamPedestals" unique_id=1079013491 instance=ExtResource("24_6ex7q")]
+[node name="RedTeam" parent="TeamPedestals" unique_id=1079013491 instance=ExtResource("24_6ex7q")]
 position = Vector2(-106, -2)
+
+[node name="BlueTeam" parent="TeamPedestals" unique_id=860064601 instance=ExtResource("24_6ex7q")]
+team_id = 2
+
+[node name="NoTeam" parent="TeamPedestals" unique_id=333196948 instance=ExtResource("24_6ex7q")]
+position = Vector2(-191, -42)
+team_id = 0

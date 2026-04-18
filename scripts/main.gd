@@ -368,6 +368,7 @@ func respawn_all_at_spawn() -> void:
 func _sync_respawn_all(pos: Vector2) -> void:
 	var idx := 0
 	for p in spawned_players.values():
+		p.deactivate_ghost_mode()
 		p.global_position = pos + _spawn_offset(idx)
 		p.velocity = Vector2.ZERO
 		p.is_frozen = false
@@ -572,10 +573,23 @@ func _req_respawn(peer_id: int):
 	if multiplayer.get_remote_sender_id() == peer_id:
 		_do_respawn(peer_id)
 
+func _activate_ghost(peer_id: int) -> void:
+	if NetworkManager.is_active():
+		_sync_activate_ghost.rpc(peer_id)
+	else:
+		_sync_activate_ghost(peer_id)
+
+@rpc("authority", "call_local", "reliable")
+func _sync_activate_ghost(peer_id: int) -> void:
+	if peer_id in spawned_players:
+		spawned_players[peer_id].activate_ghost_mode()
+
 func _do_respawn(peer_id: int):
 	if not peer_id in spawned_players:
 		return
 	if not game_mode.can_respawn(peer_id):
+		if game_mode.state == game_mode.State.PLAYING:
+			_activate_ghost(peer_id)
 		return
 	var spawn = get_current_spawn_for_peer(peer_id)
 	var pos = spawn.global_position if spawn else Vector2.ZERO

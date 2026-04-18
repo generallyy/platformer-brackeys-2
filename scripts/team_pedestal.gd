@@ -1,3 +1,4 @@
+@tool
 extends Area2D
 
 @export var team_id: int = 1  # 0 = no team

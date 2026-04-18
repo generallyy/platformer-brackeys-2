@@ -9,6 +9,9 @@ const MELEE_SCENE  = preload("res://scenes/weapons/MeleeHitbox.tscn")
 const ZAP_SCENE    = preload("res://scenes/weapons/Zap.tscn")
 const SHIELD_SCENE = preload("res://scenes/weapons/Shield.tscn")
 const HOMER_SCENE  = preload("res://scenes/weapons/Homer.tscn")
+const BOMB_SCENE   = preload("res://scenes/weapons/Bomb.tscn")
+
+const GHOST_BOMB_COOLDOWN := 3.0
 
 const _JUMP_SFX  = preload("res://assets/sounds/my_jump.wav")
 const _DBJ_SFX   = preload("res://assets/sounds/dbj.wav")
@@ -94,6 +97,10 @@ var _dash_cooldown      := 0.0
 
 # --- Team ---
 var team_id: int = 0  # 0 = no team
+
+# --- Ghost ---
+var is_ghost            := false
+var _ghost_bomb_cooldown := 0.0
 
 # --- Combat ---
 var in_safe_zone          := false
@@ -268,9 +275,10 @@ func _tick_timers(delta: float) -> void:
 		if _last_hit_timer <= 0.0:
 			_last_attacker_peer_id = -1
 
-	_input_cooldown      = max(0.0, _input_cooldown      - delta)
-	_melee_cooldown      = max(0.0, _melee_cooldown      - delta)
-	_projectile_cooldown = max(0.0, _projectile_cooldown - delta)
+	_input_cooldown       = max(0.0, _input_cooldown       - delta)
+	_melee_cooldown       = max(0.0, _melee_cooldown       - delta)
+	_projectile_cooldown  = max(0.0, _projectile_cooldown  - delta)
+	_ghost_bomb_cooldown  = max(0.0, _ghost_bomb_cooldown  - delta)
 	_dbj_boost_lockout   = max(0.0, _dbj_boost_lockout   - delta)
 	_boost_dbj_lockout   = max(0.0, _boost_dbj_lockout   - delta)
 
@@ -376,7 +384,47 @@ func _update_shield(delta: float) -> void:
 	_shield_node.update_charge(shield_charge, stats.shield_max)
 
 
+func _handle_ghost_input() -> void:
+	if Input.is_action_just_pressed("attack") and _ghost_bomb_cooldown <= 0.0 and not in_safe_zone:
+		_ghost_bomb_cooldown = GHOST_BOMB_COOLDOWN
+		var pid := multiplayer.get_unique_id() if NetworkManager.is_active() else -1
+		if NetworkManager.is_active():
+			_rpc_place_bomb.rpc(global_position, pid)
+		else:
+			_do_spawn_bomb(global_position, pid)
+
+
+@rpc("authority", "call_local", "reliable")
+func _rpc_place_bomb(pos: Vector2, thrower_id: int) -> void:
+	_do_spawn_bomb(pos, thrower_id)
+
+
+func _do_spawn_bomb(pos: Vector2, thrower_id: int) -> void:
+	var bomb := BOMB_SCENE.instantiate()
+	bomb.thrower_peer_id = thrower_id
+	get_parent().add_child(bomb)
+	bomb.global_position = pos
+
+
+func activate_ghost_mode() -> void:
+	is_ghost             = true
+	_ghost_bomb_cooldown = 0.0
+	health               = 1  # keep non-zero so normal death logic doesn't re-trigger
+	show()
+	modulate.a = 0.4
+	if _state == PlayerState.UI_LOCKED or _state == PlayerState.KNOCKED_BACK:
+		_transition_to(PlayerState.AIRBORNE if not is_on_floor() else PlayerState.GROUNDED)
+
+
+func deactivate_ghost_mode() -> void:
+	is_ghost   = false
+	modulate.a = 1.0
+
+
 func _handle_input(_delta: float) -> void:
+	if is_ghost:
+		_handle_ghost_input()
+		return
 	if Input.is_action_just_pressed("jump") and not _is_shielding and _input_cooldown <= 0.0:
 		if is_on_floor():
 			_add_passthrough(_get_overhead_players(), 0.4)
@@ -630,6 +678,8 @@ func _do_spawn_zap(dir: int, thrower_id: int, dmg: int = 1, kbs: float = 1.0) ->
 
 func take_damage(amount: int, knockback: Vector2 = Vector2.ZERO, attacker_peer_id: int = -1) -> void:
 	if NetworkManager.is_active() and not is_multiplayer_authority():
+		return
+	if is_ghost:
 		return
 	if is_invuln or _is_shielding or _state == PlayerState.UI_LOCKED:
 		return

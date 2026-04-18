@@ -200,3 +200,4 @@ target_level_path = "uid://dedncck66f1ak"
 
 [node name="LevelSettings" parent="." unique_id=853737155 instance=ExtResource("5_0w6la")]
 round_time_limit = 30.0
+points_to_win = 50
