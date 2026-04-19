@@ -85,25 +85,53 @@ func update_scores(scores: Dictionary, player_numbers: Dictionary = {}, stocks: 
 		_score_row.add_child(lbl)
 
 func update_kda(kda_kills: Dictionary, kda_deaths: Dictionary, player_numbers: Dictionary = {}, player_names: Dictionary = {}, kda_damage: Dictionary = {}, local_peer_id: int = -1, team_colors: Dictionary = {}) -> void:
-	var vbox := $KDA/VBoxContainer
-	for child in vbox.get_children():
+	var grid := $KDA/GridContainer
+	grid.columns = 5
+	for child in grid.get_children():
 		child.queue_free()
+
+	# Header row
+	for i in 5:
+		var header_text: String = ["", "Name", "Kills", "Deaths", "Dmg Dealt"][i]
+		var h := Label.new()
+		h.add_theme_font_size_override("font_size", 30)
+		h.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0, 1.0))
+		if i != 0:
+			h.custom_minimum_size.x = 150
+		h.text = header_text
+		if i == 1:
+			h.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		grid.add_child(h)
+
 	var peers := player_numbers.keys()
 	peers.sort_custom(func(a, b): return player_numbers[a] < player_numbers[b])
 	for peer_id in peers:
 		var display_num: int = player_numbers.get(peer_id, peer_id)
-		var label: String = player_names.get(peer_id, "P%d" % display_num)
+		var name_str: String = player_names.get(peer_id, "P%d" % display_num)
 		var is_local: bool = peer_id == local_peer_id
-		var lbl := Label.new()
-		lbl.add_theme_font_size_override("font_size", 24)
+		var color: Color
 		if peer_id in team_colors:
 			var c: Color = team_colors[peer_id]
-			lbl.add_theme_color_override("font_color", c.lightened(0.3) if is_local else c)
+			color = c.lightened(0.3) if is_local else c
 		elif is_local:
-			lbl.add_theme_color_override("font_color", Color(1.0, 0.9, 0.4))
-		var prefix := "▶ " if is_local else "  "
-		lbl.text = "%s%s  K: %d  D: %d  DMG: %d" % [prefix, label, kda_kills.get(peer_id, 0), kda_deaths.get(peer_id, 0), kda_damage.get(peer_id, 0)]
-		vbox.add_child(lbl)
+			color = Color(1.0, 0.9, 0.4)
+		else:
+			color = Color.WHITE
+		var prefix := "▶" if is_local else ""
+		var cells := [prefix, name_str, str(kda_kills.get(peer_id, 0)), str(kda_deaths.get(peer_id, 0)), str(kda_damage.get(peer_id, 0))]
+		for i in 5:
+			var lbl := Label.new()
+			lbl.add_theme_font_size_override("font_size", 40)
+			lbl.add_theme_color_override("font_color", color)
+			if i != 0:
+				lbl.custom_minimum_size.x = 150
+			else:
+				lbl.custom_minimum_size.x = 40
+				lbl.add_theme_font_size_override("font_size", 30)
+			lbl.text = cells[i]
+			if i == 1:
+				lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			grid.add_child(lbl)
 
 func show_announcement(text: String, duration: float = ANNOUNCEMENT_DURATION) -> void:
 	_announcement_label.text = text

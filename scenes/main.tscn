@@ -143,10 +143,6 @@ theme_override_font_sizes/font_size = 40
 text = "P1: 30/10/12"
 horizontal_alignment = 1
 
-[node name="VBoxContainer" type="VBoxContainer" parent="HUD/KDA" unique_id=1504450340]
-visible = false
-layout_mode = 2
-
 [node name="Scores" type="VBoxContainer" parent="HUD" unique_id=1678903393]
 offset_left = 1635.0
 offset_top = 32.0
@@ -191,7 +187,6 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="PowerupsMenu" type="Control" parent="HUD" unique_id=2139590217]
-visible = false
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0

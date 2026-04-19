@@ -9,7 +9,7 @@ input_name = "color"
 
 [sub_resource type="VisualShaderNodeVec4Constant" id="VisualShaderNodeVec4Constant_2cx33"]
 expanded_output_ports = [0]
-constant = Quaternion(0.7, 0.7, 0.7, 1)
+constant = Quaternion(0.2, 0.2, 0.2, 1)
 
 [sub_resource type="VisualShaderNodeVectorOp" id="VisualShaderNodeVectorOp_cp7m7"]
 default_input_values = [0, Quaternion(0, 0, 0, 0), 1, Quaternion(0, 0, 0, 0)]
@@ -17,11 +17,12 @@ op_type = 2
 operator = 2
 
 [resource]
+resource_local_to_scene = true
 mode = 1
 flags/light_only = false
 nodes/vertex/0/position = Vector2(640, 80)
 nodes/vertex/2/node = SubResource("VisualShaderNodeInput_nh5t4")
-nodes/vertex/2/position = Vector2(40, 60)
+nodes/vertex/2/position = Vector2(32, 64)
 nodes/vertex/3/node = SubResource("VisualShaderNodeVec4Constant_2cx33")
 nodes/vertex/3/position = Vector2(-60, 240)
 nodes/vertex/4/node = SubResource("VisualShaderNodeVectorOp_cp7m7")
