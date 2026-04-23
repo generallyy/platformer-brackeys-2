@@ -40,6 +40,7 @@ var _state: PlayerState = PlayerState.GROUNDED
 @export var stats: PlayerStats
 
 @onready var animated_sprite:     AnimatedSprite2D  = $AnimatedSprite2D
+@onready var stick_rig:           StickFigureRig    = $StickRig
 @onready var animation_player:    AnimationPlayer   = $AnimationPlayer
 @onready var audio_stream_player: AudioStreamPlayer = $AudioStreamPlayer
 @onready var _effects_anchor:     Node2D            = $EffectsAnchor
@@ -163,6 +164,9 @@ func _ready() -> void:
 	_outfit = PlayerOutfit.new()
 	_outfit.setup(animated_sprite)
 	outfit_id = _outfit.apply_visuals(outfit_id)
+	_apply_rig_outfit_color(outfit_id)
+	animated_sprite.visible = false
+	_play_visual_animation(&"idle")
 	equip_weapon(DAGGER_SCENE)
 	_shield_node = SHIELD_SCENE.instantiate()
 	add_child(_shield_node)
@@ -238,6 +242,8 @@ func _enter_state(state: PlayerState) -> void:
 			has_dbj            = true
 			_dbj_boost_lockout = stats.dbj_boost_lockout
 			_dbj_frozen        = false
+			_play_visual_animation(&"dbj")
+			animated_sprite.play(&"dbj")
 			animation_player.play("dbj")
 		PlayerState.DASH:
 			_dash_timer    = stats.dash_duration
@@ -528,15 +534,35 @@ func _check_landing() -> void:
 
 func update_direction(direction: float) -> void:
 	if direction != 0.0:
-		facing_direction = sign(direction)
+		facing_direction = 1 if direction > 0.0 else -1
 	animated_sprite.flip_h = (facing_direction == -1)
+	stick_rig.set_facing(facing_direction)
 
 
 func update_animation() -> void:
+	var next_animation: StringName
 	if is_on_floor():
-		animated_sprite.play("idle" if abs(velocity.x) < 1.0 else "run")
+		if abs(velocity.x) < 1.0:
+			next_animation = &"idle"
+		else:
+			next_animation = &"run"
 	elif _state != PlayerState.DOUBLE_JUMP:
-		animated_sprite.play("jump")
+		next_animation = &"jump"
+	else:
+		return
+	animated_sprite.play(next_animation)
+	_play_visual_animation(next_animation)
+
+
+func _play_visual_animation(animation_name: StringName) -> void:
+	if stick_rig != null:
+		stick_rig.play(animation_name)
+
+
+func _set_visual_visible(is_visible: bool) -> void:
+	if stick_rig != null:
+		stick_rig.visible = is_visible
+	animated_sprite.visible = false
 
 # ============================================================
 # DBJ ANIMATION CALLBACKS  (called by AnimationPlayer tracks)
@@ -784,13 +810,13 @@ func show_kill() -> void:
 
 func _update_damage_flash(delta: float) -> void:
 	if not is_invuln:
-		animated_sprite.visible = true
+		_set_visual_visible(true)
 		return
 	_invuln_timer -= delta
-	animated_sprite.visible = fmod(_invuln_timer, stats.iframes_blink_interval) > stats.iframes_blink_threshold
+	_set_visual_visible(fmod(_invuln_timer, stats.iframes_blink_interval) > stats.iframes_blink_threshold)
 	if _invuln_timer <= 0.0:
-		is_invuln               = false
-		animated_sprite.visible = true
+		is_invuln = false
+		_set_visual_visible(true)
 
 
 func warmup_effects() -> void:
@@ -911,6 +937,18 @@ func request_outfit_change(new_outfit_id: int) -> void:
 
 func set_outfit_from_sync(new_outfit_id: int) -> void:
 	outfit_id = _outfit.apply_visuals(new_outfit_id)
+	_apply_rig_outfit_color(outfit_id)
+
+
+func _apply_rig_outfit_color(new_outfit_id: int) -> void:
+	if stick_rig == null or _outfit == null:
+		return
+	var options := _outfit.get_options()
+	if options.is_empty():
+		return
+	var outfit := options[clampi(new_outfit_id, 0, options.size() - 1)] as Dictionary
+	var accent := outfit.get("cape_primary", Color(0.1, 0.48, 0.95, 1.0)) as Color
+	stick_rig.set_accent_color(accent)
 
 # ============================================================
 # NETWORKING
@@ -929,28 +967,35 @@ func _send_state_sync() -> void:
 	if not NetworkManager.is_active():
 		return
 	var shield_visible: bool = _shield_node.visible if _shield_node else false
+	var visual_visible := true
+	var visual_animation := str(animated_sprite.animation)
+	if stick_rig != null:
+		visual_visible = stick_rig.visible
+		visual_animation = str(stick_rig.current_animation)
 	if multiplayer.is_server():
 		for pid in _sync_peers:
 			_sync_state.rpc_id(pid, global_position, animated_sprite.flip_h,
-					animated_sprite.animation, visible, animated_sprite.visible, shield_visible)
+					visual_animation, visible, visual_visible, shield_visible)
 	else:
 		_sync_state.rpc_id(1, global_position, animated_sprite.flip_h,
-				animated_sprite.animation, visible, animated_sprite.visible, shield_visible)
+				visual_animation, visible, visual_visible, shield_visible)
 
 
 @rpc("any_peer", "unreliable_ordered")
-func _sync_state(pos: Vector2, flip: bool, anim: String, body_visible: bool, sprite_visible: bool, shield_visible: bool) -> void:
+func _sync_state(pos: Vector2, flip: bool, anim: String, body_visible: bool, visual_visible: bool, shield_visible: bool) -> void:
 	if is_multiplayer_authority():
 		return
 	global_position         = pos
 	visible                 = body_visible
-	animated_sprite.visible = sprite_visible
 	animated_sprite.flip_h  = flip
 	if animated_sprite.animation != anim:
 		animated_sprite.play(anim)
+	stick_rig.set_facing(-1 if flip else 1)
+	_play_visual_animation(StringName(anim))
+	_set_visual_visible(visual_visible)
 	_shield_node.set_active(shield_visible)
 	if multiplayer.is_server():
 		var sender := multiplayer.get_remote_sender_id()
 		for pid in _sync_peers:
 			if pid != sender:
-				_sync_state.rpc_id(pid, pos, flip, anim, body_visible, sprite_visible, shield_visible)
+				_sync_state.rpc_id(pid, pos, flip, anim, body_visible, visual_visible, shield_visible)
