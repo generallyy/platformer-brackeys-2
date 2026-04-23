@@ -6,6 +6,7 @@
 [ext_resource type="Texture2D" uid="uid://d4no0dlt7wndt" path="res://assets/sprites/knightfly.png" id="2_o2dby"]
 [ext_resource type="Texture2D" uid="uid://da6r0ki7buguf" path="res://assets/sprites/white_circle.png" id="3_a8hje"]
 [ext_resource type="Theme" uid="uid://2p378flu0i2e" path="res://assets/fonts/labrada.tres" id="6_rpfb3"]
+[ext_resource type="Script" uid="uid://b4sv4e2lh3sqr" path="res://scripts/stick_figure_rig.gd" id="7_stick"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_ngcs4"]
 radius = 5.0
@@ -273,6 +274,320 @@ _data = {
 &"dbj": SubResource("Animation_f5hmw")
 }
 
+[sub_resource type="Animation" id="Animation_stick_idle"]
+resource_name = "idle"
+length = 1.2
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Root:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.6, 1.2),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(0, 0), Vector2(0, -0.6), Vector2(0, 0)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Root/ArmFrontUpper:rotation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [-0.2]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Root/ArmBackUpper:rotation")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [0.2]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Root/LegFrontUpper:rotation")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [-0.12]
+}
+tracks/4/type = "value"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath("Root/LegBackUpper:rotation")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [0.12]
+}
+
+[sub_resource type="Animation" id="Animation_stick_run"]
+resource_name = "run"
+length = 0.45
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Root:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.225, 0.45),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(0, 0), Vector2(0, -1.3), Vector2(0, 0)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Root/ArmFrontUpper:rotation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.225, 0.45),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [0.75, -0.75, 0.75]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Root/ArmBackUpper:rotation")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 0.225, 0.45),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [-0.75, 0.75, -0.75]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Root/LegFrontUpper:rotation")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0, 0.225, 0.45),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [-0.8, 0.8, -0.8]
+}
+tracks/4/type = "value"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath("Root/LegBackUpper:rotation")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/keys = {
+"times": PackedFloat32Array(0, 0.225, 0.45),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [0.8, -0.8, 0.8]
+}
+tracks/5/type = "value"
+tracks/5/imported = false
+tracks/5/enabled = true
+tracks/5/path = NodePath("Root/ArmFrontUpper/ArmFrontLower:rotation")
+tracks/5/interp = 1
+tracks/5/loop_wrap = true
+tracks/5/keys = {
+"times": PackedFloat32Array(0, 0.225, 0.45),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [0.35, 0.75, 0.35]
+}
+tracks/6/type = "value"
+tracks/6/imported = false
+tracks/6/enabled = true
+tracks/6/path = NodePath("Root/ArmBackUpper/ArmBackLower:rotation")
+tracks/6/interp = 1
+tracks/6/loop_wrap = true
+tracks/6/keys = {
+"times": PackedFloat32Array(0, 0.225, 0.45),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [0.75, 0.35, 0.75]
+}
+tracks/7/type = "value"
+tracks/7/imported = false
+tracks/7/enabled = true
+tracks/7/path = NodePath("Root/LegFrontUpper/LegFrontLower:rotation")
+tracks/7/interp = 1
+tracks/7/loop_wrap = true
+tracks/7/keys = {
+"times": PackedFloat32Array(0, 0.225, 0.45),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [0.75, 0.15, 0.75]
+}
+tracks/8/type = "value"
+tracks/8/imported = false
+tracks/8/enabled = true
+tracks/8/path = NodePath("Root/LegBackUpper/LegBackLower:rotation")
+tracks/8/interp = 1
+tracks/8/loop_wrap = true
+tracks/8/keys = {
+"times": PackedFloat32Array(0, 0.225, 0.45),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [0.15, 0.75, 0.15]
+}
+tracks/9/type = "value"
+tracks/9/imported = false
+tracks/9/enabled = true
+tracks/9/path = NodePath("Root/Scarf:rotation")
+tracks/9/interp = 1
+tracks/9/loop_wrap = true
+tracks/9/keys = {
+"times": PackedFloat32Array(0, 0.225, 0.45),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [0.15, -0.15, 0.15]
+}
+
+[sub_resource type="Animation" id="Animation_stick_jump"]
+resource_name = "jump"
+length = 0.4
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Root:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(0, -1)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Root/ArmFrontUpper:rotation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [-1.35]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Root/ArmBackUpper:rotation")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [1.35]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Root/LegFrontUpper:rotation")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [-0.45]
+}
+tracks/4/type = "value"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath("Root/LegBackUpper:rotation")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [0.45]
+}
+
+[sub_resource type="Animation" id="Animation_stick_dbj"]
+resource_name = "dbj"
+length = 0.5
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Root:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.25, 0.5),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(0, -2), Vector2(0, -3.5), Vector2(0, -2)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Root/ArmFrontUpper:rotation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.25, 0.5),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [-1.4, 1.4, -1.4]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Root/ArmBackUpper:rotation")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 0.25, 0.5),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [1.4, -1.4, 1.4]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Root/Scarf:rotation")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0, 0.25, 0.5),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [-0.35, 0.35, -0.35]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_stick"]
+_data = {
+&"dbj": SubResource("Animation_stick_dbj"),
+&"idle": SubResource("Animation_stick_idle"),
+&"jump": SubResource("Animation_stick_jump"),
+&"run": SubResource("Animation_stick_run")
+}
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_rpfb3"]
 bg_color = Color(0.04434038, 0.04434038, 0.04434038, 0.33333334)
 
@@ -286,12 +601,107 @@ position = Vector2(0, -5)
 shape = SubResource("CircleShape2D_ngcs4")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1279863303]
+visible = false
 z_index = 1
 texture_filter = 1
 position = Vector2(0, -12)
 sprite_frames = SubResource("SpriteFrames_sqkdx")
 animation = &"idle"
 autoplay = "idle"
+
+[node name="StickRig" type="Node2D" parent="." unique_id=1765512735]
+z_index = 2
+script = ExtResource("7_stick")
+
+[node name="RigAnimationPlayer" type="AnimationPlayer" parent="StickRig" unique_id=1854967117]
+libraries/ = SubResource("AnimationLibrary_stick")
+
+[node name="Root" type="Node2D" parent="StickRig" unique_id=1667525452]
+
+[node name="ArmBackUpper" type="Node2D" parent="StickRig/Root" unique_id=645780420]
+position = Vector2(0, -18)
+rotation = 0.2
+
+[node name="Line" type="Line2D" parent="StickRig/Root/ArmBackUpper" unique_id=1072965159]
+points = PackedVector2Array(0, 0, 0, 6)
+width = 2.0
+default_color = Color(0.04, 0.04, 0.04, 1)
+
+[node name="ArmBackLower" type="Node2D" parent="StickRig/Root/ArmBackUpper" unique_id=168547088]
+position = Vector2(0, 6)
+
+[node name="Line" type="Line2D" parent="StickRig/Root/ArmBackUpper/ArmBackLower" unique_id=893894336]
+points = PackedVector2Array(0, 0, 0, 5)
+width = 2.0
+default_color = Color(0.04, 0.04, 0.04, 1)
+
+[node name="LegBackUpper" type="Node2D" parent="StickRig/Root" unique_id=1119789380]
+position = Vector2(0, -10)
+rotation = 0.12
+
+[node name="Line" type="Line2D" parent="StickRig/Root/LegBackUpper" unique_id=524831142]
+points = PackedVector2Array(0, 0, 0, 5)
+width = 2.0
+default_color = Color(0.04, 0.04, 0.04, 1)
+
+[node name="LegBackLower" type="Node2D" parent="StickRig/Root/LegBackUpper" unique_id=438037452]
+position = Vector2(0, 5)
+
+[node name="Line" type="Line2D" parent="StickRig/Root/LegBackUpper/LegBackLower" unique_id=1830179475]
+points = PackedVector2Array(0, 0, 0, 5)
+width = 2.0
+default_color = Color(0.04, 0.04, 0.04, 1)
+
+[node name="Body" type="Line2D" parent="StickRig/Root" unique_id=1589026311]
+points = PackedVector2Array(0, -21, 0, -18, 0, -10)
+width = 2.0
+default_color = Color(0.04, 0.04, 0.04, 1)
+
+[node name="Head" type="Line2D" parent="StickRig/Root" unique_id=743812302]
+position = Vector2(0, -24)
+points = PackedVector2Array(4, 0, 2.82843, 2.82843, 0, 4, -2.82843, 2.82843, -4, 0, -2.82843, -2.82843, 0, -4, 2.82843, -2.82843)
+closed = true
+width = 2.0
+default_color = Color(0.04, 0.04, 0.04, 1)
+
+[node name="ArmFrontUpper" type="Node2D" parent="StickRig/Root" unique_id=1387042490]
+position = Vector2(0, -18)
+rotation = -0.2
+
+[node name="Line" type="Line2D" parent="StickRig/Root/ArmFrontUpper" unique_id=2090273637]
+points = PackedVector2Array(0, 0, 0, 6)
+width = 2.0
+default_color = Color(0.04, 0.04, 0.04, 1)
+
+[node name="ArmFrontLower" type="Node2D" parent="StickRig/Root/ArmFrontUpper" unique_id=2036784142]
+position = Vector2(0, 6)
+
+[node name="Line" type="Line2D" parent="StickRig/Root/ArmFrontUpper/ArmFrontLower" unique_id=1517345641]
+points = PackedVector2Array(0, 0, 0, 5)
+width = 2.0
+default_color = Color(0.04, 0.04, 0.04, 1)
+
+[node name="LegFrontUpper" type="Node2D" parent="StickRig/Root" unique_id=1597730718]
+position = Vector2(0, -10)
+rotation = -0.12
+
+[node name="Line" type="Line2D" parent="StickRig/Root/LegFrontUpper" unique_id=2092606320]
+points = PackedVector2Array(0, 0, 0, 5)
+width = 2.0
+default_color = Color(0.04, 0.04, 0.04, 1)
+
+[node name="LegFrontLower" type="Node2D" parent="StickRig/Root/LegFrontUpper" unique_id=1827919272]
+position = Vector2(0, 5)
+
+[node name="Line" type="Line2D" parent="StickRig/Root/LegFrontUpper/LegFrontLower" unique_id=1003254670]
+points = PackedVector2Array(0, 0, 0, 5)
+width = 2.0
+default_color = Color(0.04, 0.04, 0.04, 1)
+
+[node name="Scarf" type="Line2D" parent="StickRig/Root" unique_id=2048518827]
+points = PackedVector2Array(-2, -20, -7, -19)
+width = 2.0
+default_color = Color(0.1, 0.48, 0.95, 1)
 
 [node name="EffectsAnchor" type="Node2D" parent="." unique_id=1762507634]
 
