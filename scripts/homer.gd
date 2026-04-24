@@ -12,12 +12,8 @@ func _init() -> void:
 func _find_enemy_players() -> Array:
 	var enemies: Array = []
 	for p in get_tree().get_nodes_in_group("player"):
-		if NetworkManager.is_active():
-			if p.get_multiplayer_authority() == thrower_peer_id:
-				continue
-		else:
-			if p == owner_node:
-				continue
+		if p.get_multiplayer_authority() == thrower_peer_id:
+			continue
 		enemies.append(p)
 	return enemies
 

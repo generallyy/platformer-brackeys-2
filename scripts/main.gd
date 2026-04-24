@@ -50,19 +50,16 @@ func _ready() -> void:
 	game_mode.kda_changed.connect(_on_kda_changed)
 	game_mode.powerups_distribute.connect(_on_powerups_distribute)
 	powerups_menu.powerup_picked.connect(_on_powerup_picked)
-	if NetworkManager.is_active():
+	if NetworkManager.is_online():
 		multiplayer.peer_connected.connect(_on_peer_connected)
 		multiplayer.peer_disconnected.connect(_on_peer_disconnected)
-		if multiplayer.is_server():
-			_spawn_player(multiplayer.get_unique_id())
-			_register_name(multiplayer.get_unique_id(), NetworkManager.local_name)
-			await _load_level_local(current_level_path)
-		else:
-			_request_state.rpc_id(1, NetworkManager.local_name)
-	else:
-		_spawn_player(1)
-		_register_name(1, NetworkManager.local_name)
+
+	if multiplayer.is_server():
+		_spawn_player(multiplayer.get_unique_id())
+		_register_name(multiplayer.get_unique_id(), NetworkManager.local_name)
 		await _load_level_local(current_level_path)
+	else:
+		_request_state.rpc_id(1, NetworkManager.local_name)
 
 func _process(delta: float) -> void:
 	if not _window_focused or pause_menu.visible:
@@ -135,7 +132,7 @@ func get_player_display_name(peer_id: int) -> String:
 	return "P%d" % _player_numbers.get(peer_id, peer_id)
 
 func _local_peer_id() -> int:
-	return multiplayer.get_unique_id() if NetworkManager.is_active() else 1
+	return multiplayer.get_unique_id()
 
 func _active_player_numbers() -> Dictionary:
 	var result := {}
@@ -151,8 +148,7 @@ func _register_name(peer_id: int, raw_name: String) -> void:
 	player_names[peer_id] = n
 	if peer_id in spawned_players:
 		spawned_players[peer_id].set_display_name(n)
-	if NetworkManager.is_active():
-		_sync_player_name.rpc(peer_id, n)
+	_sync_player_name.rpc(peer_id, n)
 
 @rpc("authority", "call_local", "reliable")
 func _sync_player_name(peer_id: int, display_name: String) -> void:
@@ -177,7 +173,7 @@ func _spawn_player(peer_id: int):
 		p.set_physics_process(true)
 	else:
 		p.set_physics_process(false)
-	if not NetworkManager.is_active() or peer_id == multiplayer.get_unique_id():
+	if peer_id == multiplayer.get_unique_id():
 		var cam = p.get_node("Camera2D")
 		cam.make_current()
 		p.health_changed.connect(hud.update_hearts)
@@ -185,10 +181,10 @@ func _spawn_player(peer_id: int):
 		p.nudge_changed.connect(hud.set_nudge)
 
 func request_load_level(path: String) -> void:
-	if NetworkManager.is_active() and not multiplayer.is_server():
+	if NetworkManager.is_online() and not multiplayer.is_server():
 		_req_load_level.rpc_id(1, path)
 		return
-	if NetworkManager.is_active():
+	if NetworkManager.is_online():
 		load_level.rpc(path)
 	else:
 		await load_level(path)
@@ -251,7 +247,7 @@ func _load_level_local(path: String) -> bool:
 	var settings := level_container.get_child(0).get_node_or_null("LevelSettings")
 	ghost_bombs_enabled = settings.ghost_bombs_enabled if settings != null else true
 	if settings and settings.game_mode_enabled:
-		if not NetworkManager.is_active() or multiplayer.is_server():
+		if multiplayer.is_server():
 			game_mode.start_game(settings.round_time_limit, settings.points_to_win)
 		hud.get_node("Scores").visible = true
 	else: hud.get_node("Scores").visible = false
@@ -271,7 +267,7 @@ func get_current_spawn_for_peer(peer_id: int) -> Node2D:
 	return _get_spawn()
 
 func activate_checkpoint(checkpoint: Node2D, peer_id: int) -> void:
-	if NetworkManager.is_active() and not multiplayer.is_server():
+	if NetworkManager.is_online() and not multiplayer.is_server():
 		_req_activate_checkpoint.rpc_id(1, checkpoint.get_path(), peer_id)
 		return
 	_set_checkpoint(checkpoint, peer_id)
@@ -288,15 +284,9 @@ func _set_checkpoint(checkpoint: Node2D, peer_id: int) -> void:
 	if peer_id in _respawn_points:
 		var old: Node2D = _respawn_points[peer_id]
 		if is_instance_valid(old) and old != checkpoint:
-			if NetworkManager.is_active():
-				_sync_reset_checkpoint.rpc(peer_id, old.get_path())
-			else:
-				_sync_reset_checkpoint(peer_id, old.get_path())
+			_sync_reset_checkpoint.rpc(peer_id, old.get_path())
 	_respawn_points[peer_id] = checkpoint
-	if NetworkManager.is_active():
-		_sync_checkpoint.rpc(peer_id, checkpoint.get_path())
-	else:
-		_sync_checkpoint(peer_id, checkpoint.get_path())
+	_sync_checkpoint.rpc(peer_id, checkpoint.get_path())
 	game_mode.reset_stocks_for_peer(peer_id)
 
 @rpc("authority", "call_local", "reliable")
@@ -312,8 +302,7 @@ func _sync_checkpoint(peer_id: int, checkpoint_path: NodePath) -> void:
 		_respawn_points[peer_id] = checkpoint
 
 func open_wardrobe(player: Node) -> void:
-	var local_peer_id := multiplayer.get_unique_id() if NetworkManager.is_active() else 1
-	if player.get_multiplayer_authority() != local_peer_id:
+	if player.get_multiplayer_authority() != multiplayer.get_unique_id():
 		return
 	if _wardrobe_player == player and wardrobe_menu.visible:
 		return
@@ -330,7 +319,7 @@ func close_wardrobe() -> void:
 	wardrobe_menu.close_menu()
 
 func request_player_outfit_change(peer_id: int, outfit_id: int) -> void:
-	if NetworkManager.is_active() and not multiplayer.is_server():
+	if NetworkManager.is_online() and not multiplayer.is_server():
 		_req_player_outfit_change.rpc_id(1, peer_id, outfit_id)
 		return
 	_apply_player_outfit(peer_id, outfit_id)
@@ -344,10 +333,7 @@ func _req_player_outfit_change(peer_id: int, outfit_id: int) -> void:
 func _apply_player_outfit(peer_id: int, outfit_id: int) -> void:
 	if not peer_id in spawned_players:
 		return
-	if NetworkManager.is_active():
-		_sync_player_outfit.rpc(peer_id, outfit_id)
-	else:
-		_sync_player_outfit(peer_id, outfit_id)
+	_sync_player_outfit.rpc(peer_id, outfit_id)
 
 @rpc("authority", "call_local", "reliable")
 func _sync_player_outfit(peer_id: int, outfit_id: int) -> void:
@@ -355,7 +341,7 @@ func _sync_player_outfit(peer_id: int, outfit_id: int) -> void:
 		spawned_players[peer_id].set_outfit_from_sync(outfit_id)
 
 func goal_reached(peer_id: int) -> void:
-	if NetworkManager.is_active() and not multiplayer.is_server():
+	if NetworkManager.is_online() and not multiplayer.is_server():
 		_req_goal_reached.rpc_id(1, peer_id)
 		return
 	game_mode.player_finished(peer_id)
@@ -367,15 +353,12 @@ func _req_goal_reached(peer_id: int) -> void:
 	game_mode.player_finished(peer_id)
 
 func respawn_all_at_spawn() -> void:
-	if NetworkManager.is_active() and not multiplayer.is_server():
+	if NetworkManager.is_online() and not multiplayer.is_server():
 		return
 	_respawn_points.clear()
 	var spawn: Marker2D = _get_spawn()
 	var pos: Vector2 = spawn.global_position if spawn else Vector2.ZERO
-	if NetworkManager.is_active():
-		_sync_respawn_all.rpc(pos)
-	else:
-		_sync_respawn_all(pos)
+	_sync_respawn_all.rpc(pos)
 
 @rpc("authority", "call_local", "reliable")
 func _sync_respawn_all(pos: Vector2) -> void:
@@ -442,7 +425,7 @@ func _on_kda_changed(kda_kills: Dictionary, kda_deaths: Dictionary, kda_damage: 
 	hud.update_kda(kda_kills, kda_deaths, _player_numbers, player_names, kda_damage, _local_peer_id(), team_colors)
 
 func _on_powerups_distribute(_scores: Dictionary, finishers: Array) -> void:
-	var local_peer := multiplayer.get_unique_id() if NetworkManager.is_active() else 1
+	var local_peer := multiplayer.get_unique_id()
 	var player = spawned_players.get(local_peer)
 	if player == null:
 		return
@@ -456,7 +439,7 @@ func _on_powerups_distribute(_scores: Dictionary, finishers: Array) -> void:
 		powerups_menu.open_for_player(player, placement, time_left)
 
 func _on_powerup_picked() -> void:
-	if NetworkManager.is_active() and not multiplayer.is_server():
+	if NetworkManager.is_online() and not multiplayer.is_server():
 		_req_notify_picked.rpc_id(1)
 	else:
 		game_mode.notify_player_picked()
@@ -494,7 +477,7 @@ func get_team_name(tid: int) -> String:
 	return "Team %d" % tid
 
 func request_team_change(peer_id: int, tid: int) -> void:
-	if NetworkManager.is_active() and not multiplayer.is_server():
+	if NetworkManager.is_online() and not multiplayer.is_server():
 		_req_team_change.rpc_id(1, peer_id, tid)
 		return
 	_apply_team_change(peer_id, tid)
@@ -506,10 +489,7 @@ func _req_team_change(peer_id: int, tid: int) -> void:
 	_apply_team_change(peer_id, tid)
 
 func _apply_team_change(peer_id: int, tid: int) -> void:
-	if NetworkManager.is_active():
-		_sync_team_change.rpc(peer_id, tid)
-	else:
-		_sync_team_change(peer_id, tid)
+	_sync_team_change.rpc(peer_id, tid)
 
 @rpc("authority", "call_local", "reliable")
 func _sync_team_change(peer_id: int, tid: int) -> void:
@@ -523,7 +503,7 @@ func _sync_team_change(peer_id: int, tid: int) -> void:
 	hud.update_kda(game_mode.kda_kills, game_mode.kda_deaths, _active_player_numbers(), player_names, game_mode.kda_damage, _local_peer_id(), team_colors)
 
 func notify_kill(killer_peer_id: int, victim_peer_id: int) -> void:
-	if NetworkManager.is_active() and not multiplayer.is_server():
+	if NetworkManager.is_online() and not multiplayer.is_server():
 		_req_notify_kill.rpc_id(1, killer_peer_id, victim_peer_id)
 		return
 	game_mode.record_kill(killer_peer_id, victim_peer_id)
@@ -537,12 +517,11 @@ func _req_notify_kill(killer_peer_id: int, victim_peer_id: int) -> void:
 	_notify_kill_indicator(killer_peer_id)
 
 func _notify_kill_indicator(killer_peer_id: int) -> void:
-	var local_id := multiplayer.get_unique_id() if NetworkManager.is_active() else 1
-	if killer_peer_id == local_id:
+	if killer_peer_id == multiplayer.get_unique_id():
 		var player: Node2D = spawned_players.get(killer_peer_id)
 		if player:
 			player.show_kill()
-	elif NetworkManager.is_active():
+	elif NetworkManager.is_online():
 		_rpc_kill_indicator.rpc_id(killer_peer_id, killer_peer_id)
 
 @rpc("authority", "reliable")
@@ -552,7 +531,7 @@ func _rpc_kill_indicator(killer_peer_id: int) -> void:
 		player.show_kill()
 
 func notify_self_death(victim_peer_id: int) -> void:
-	if NetworkManager.is_active() and not multiplayer.is_server():
+	if NetworkManager.is_online() and not multiplayer.is_server():
 		_req_notify_self_death.rpc_id(1, victim_peer_id)
 		return
 	game_mode.record_death(victim_peer_id)
@@ -564,7 +543,7 @@ func _req_notify_self_death(victim_peer_id: int) -> void:
 	game_mode.record_death(victim_peer_id)
 
 func notify_damage(attacker_peer_id: int, victim_peer_id: int, amount: int) -> void:
-	if NetworkManager.is_active() and not multiplayer.is_server():
+	if NetworkManager.is_online() and not multiplayer.is_server():
 		_req_notify_damage.rpc_id(1, attacker_peer_id, victim_peer_id, amount)
 		return
 	game_mode.record_damage(attacker_peer_id, amount)
@@ -576,7 +555,7 @@ func _req_notify_damage(attacker_peer_id: int, victim_peer_id: int, amount: int)
 	game_mode.record_damage(attacker_peer_id, amount)
 
 func respawn_player_by_id(peer_id: int):
-	if NetworkManager.is_active() and not multiplayer.is_server():
+	if NetworkManager.is_online() and not multiplayer.is_server():
 		_req_respawn.rpc_id(1, peer_id)
 		return
 	_do_respawn(peer_id)
@@ -589,10 +568,7 @@ func _req_respawn(peer_id: int):
 func _activate_ghost(peer_id: int) -> void:
 	var spawn := get_current_spawn_for_peer(peer_id)
 	var pos   := spawn.global_position if spawn else Vector2.ZERO
-	if NetworkManager.is_active():
-		_sync_activate_ghost.rpc(peer_id, ghost_bombs_enabled, pos)
-	else:
-		_sync_activate_ghost(peer_id, ghost_bombs_enabled, pos)
+	_sync_activate_ghost.rpc(peer_id, ghost_bombs_enabled, pos)
 
 @rpc("authority", "call_local", "reliable")
 func _sync_activate_ghost(peer_id: int, can_bomb: bool, pos: Vector2) -> void:
@@ -614,7 +590,7 @@ func _update_spectator_visibility() -> void:
 			p.modulate.a = 0.4 if can_see else 0.0
 
 func request_enter_spectator(peer_id: int) -> void:
-	if NetworkManager.is_active() and not multiplayer.is_server():
+	if NetworkManager.is_online() and not multiplayer.is_server():
 		_req_enter_spectator.rpc_id(1, peer_id)
 		return
 	_do_enter_spectator(peer_id)
@@ -631,10 +607,7 @@ func _do_enter_spectator(peer_id: int) -> void:
 	if peer_id not in spawned_players:
 		return
 	var pos: Vector2 = spawned_players[peer_id].global_position
-	if NetworkManager.is_active():
-		_sync_enter_spectator.rpc(peer_id, pos)
-	else:
-		_sync_enter_spectator(peer_id, pos)
+	_sync_enter_spectator.rpc(peer_id, pos)
 
 @rpc("authority", "call_local", "reliable")
 func _sync_enter_spectator(peer_id: int, pos: Vector2) -> void:
@@ -643,7 +616,7 @@ func _sync_enter_spectator(peer_id: int, pos: Vector2) -> void:
 		_update_spectator_visibility()
 
 func request_exit_spectator(peer_id: int) -> void:
-	if NetworkManager.is_active() and not multiplayer.is_server():
+	if NetworkManager.is_online() and not multiplayer.is_server():
 		_req_exit_spectator.rpc_id(1, peer_id)
 		return
 	_do_exit_spectator(peer_id)
@@ -659,10 +632,7 @@ func _req_exit_spectator(peer_id: int) -> void:
 func _do_exit_spectator(peer_id: int) -> void:
 	if peer_id not in spawned_players:
 		return
-	if NetworkManager.is_active():
-		_sync_exit_spectator.rpc(peer_id)
-	else:
-		_sync_exit_spectator(peer_id)
+	_sync_exit_spectator.rpc(peer_id)
 
 @rpc("authority", "call_local", "reliable")
 func _sync_exit_spectator(peer_id: int) -> void:
@@ -679,10 +649,7 @@ func _do_respawn(peer_id: int):
 		return
 	var spawn = get_current_spawn_for_peer(peer_id)
 	var pos = spawn.global_position if spawn else Vector2.ZERO
-	if NetworkManager.is_active():
-		_sync_respawn.rpc(peer_id, pos)
-	else:
-		_sync_respawn(peer_id, pos)
+	_sync_respawn.rpc(peer_id, pos)
 
 @rpc("authority", "call_local", "reliable")
 func _sync_respawn(peer_id: int, pos: Vector2):

@@ -21,7 +21,7 @@ func _on_body_entered(body: Node2D) -> void:
 	if body == get_parent():
 		return
 	if body.is_in_group("player"):
-		if NetworkManager.is_active() and body.get_multiplayer_authority() == thrower_peer_id:
+		if body.get_multiplayer_authority() == thrower_peer_id:
 			return
 		_hit.append(body)
 		# Strong horizontal knockback like a forward aerial — mostly sideways, slight upward

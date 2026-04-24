@@ -7,7 +7,6 @@ const PLAYIT_HOST := "remember-absorption.gl.at.ply.gg"
 
 var local_name: String = ""
 var is_host := false
-var _active := false
 var _on_mp_connection_failed: Callable
 var _on_mp_server_disconnected: Callable
 
@@ -21,7 +20,6 @@ func host_game() -> Error:
 		return err
 	multiplayer.multiplayer_peer = peer
 	is_host = true
-	_active = true
 	return OK
 
 func join_game(address: String) -> Error:
@@ -44,7 +42,6 @@ func join_game(address: String) -> Error:
 	multiplayer.connection_failed.connect(_on_mp_connection_failed)
 	multiplayer.server_disconnected.connect(_on_mp_server_disconnected)
 	is_host = false
-	_active = true
 	return OK
 
 func close():
@@ -56,17 +53,19 @@ func close():
 		multiplayer.multiplayer_peer.close()
 	multiplayer.multiplayer_peer = null
 	is_host = false
-	_active = false
 
-func is_active() -> bool:
-	return _active
+func is_online() -> bool:
+	return multiplayer.multiplayer_peer is ENetMultiplayerPeer
+
+func play_solo() -> void:
+	close()
+	multiplayer.multiplayer_peer = OfflineMultiplayerPeer.new()
+	is_host = true
 
 func _handle_connection_failed():
 	connection_failed.emit()
 	multiplayer.multiplayer_peer = null
-	_active = false
 
 func _handle_server_disconnected():
 	server_disconnected.emit()
 	multiplayer.multiplayer_peer = null
-	_active = false

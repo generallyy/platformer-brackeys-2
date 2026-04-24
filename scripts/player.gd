@@ -183,7 +183,7 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
-	if NetworkManager.is_active() and not is_multiplayer_authority():
+	if not is_multiplayer_authority():
 		return
 
 	_tick_timers(delta)
@@ -211,12 +211,12 @@ func _physics_process(delta: float) -> void:
 			velocity.y = 0.0
 		PlayerState.DASH:
 			velocity.x = facing_direction * stats.dash_speed
-			if not NetworkManager.is_active() or is_multiplayer_authority():
+			if is_multiplayer_authority():
 				for t in _passthrough_targets:
 					if is_instance_valid(t) and t.is_in_group("player"):
 						if global_position.distance_to(t.global_position) < 12.0:
 							var push_x := -facing_direction * stats.dash_speed
-							if NetworkManager.is_active():
+							if NetworkManager.is_online():
 								t._rpc_receive_dash_push.rpc_id(t.get_multiplayer_authority(), push_x)
 							else:
 								t.velocity.x = push_x
@@ -274,7 +274,7 @@ func _enter_state(state: PlayerState) -> void:
 			_effects_anchor.position = Vector2(-facing_direction * 10.0, 0.0)
 			_boost_particles.process_material.direction = Vector3(-facing_direction, 0.0, 0.0)
 			_play_boost_particles()
-			if NetworkManager.is_active():
+			if NetworkManager.is_online():
 				_rpc_effect_boost.rpc(-facing_direction * 10.0, 0.0, Vector3(-facing_direction, 0.0, 0.0))
 		PlayerState.KNOCKED_BACK:
 			_knockback_timer = stats.knockback_duration
@@ -404,13 +404,8 @@ func _update_shield(delta: float) -> void:
 
 
 func _local_peer_id_or_1() -> int:
-	return multiplayer.get_unique_id() if NetworkManager.is_active() else 1
+	return multiplayer.get_unique_id()
 
-func _action_key_name(action: String) -> String:
-	for e in InputMap.action_get_events(action):
-		if e is InputEventKey:
-			return e.as_text_physical_keycode()
-	return "?"
 
 
 func enter_spectator_mode(pos: Vector2) -> void:
@@ -424,8 +419,8 @@ func enter_spectator_mode(pos: Vector2) -> void:
 	get_parent().add_child(_goal_marker)
 	_goal_marker.global_position = pos + animated_sprite.position
 	activate_ghost_mode(false, pos)
-	nudge_changed.emit("Press [%s] to enter spectate mode." % _action_key_name("interact"))
-	if not NetworkManager.is_active() or is_multiplayer_authority():
+	nudge_changed.emit("Press [%s] to enter spectate mode." % InputUtils.get_action_key("interact"))
+	if is_multiplayer_authority():
 		get_node("Camera2D").make_current()
 
 
@@ -439,7 +434,7 @@ func exit_spectator_mode() -> void:
 		_finished_at_goal = true
 		global_position = _spectator_return_pos
 		_transition_to(PlayerState.UI_LOCKED)
-		nudge_changed.emit("You finished! Press [%s] to enter spectate mode." % _action_key_name("interact"))
+		nudge_changed.emit("You finished! Press [%s] to enter spectate mode." % InputUtils.get_action_key("interact"))
 	else:
 		_transition_to(PlayerState.GROUNDED if is_on_floor() else PlayerState.AIRBORNE)
 
@@ -448,14 +443,14 @@ func _enter_camera_lock_mode() -> void:
 	_spectator_mode = 1
 	modulate.a      = 0.0  # hide ghost body locally while watching another player
 	_spectate_idx   = 0
-	nudge_changed.emit("Press [%s] to enter ghost mode." % _action_key_name("interact"))
+	nudge_changed.emit("Press [%s] to enter ghost mode." % InputUtils.get_action_key("interact"))
 	_advance_spectate_target(0)
 
 
 func _exit_camera_lock_mode() -> void:
 	_spectator_mode = 0
 	modulate.a      = 0.4  # restore ghost visibility
-	nudge_changed.emit("Press [%s] to enter spectate mode." % _action_key_name("interact"))
+	nudge_changed.emit("Press [%s] to enter spectate mode." % InputUtils.get_action_key("interact"))
 	get_node("Camera2D").make_current()
 
 
@@ -513,11 +508,7 @@ func _handle_ghost_input() -> void:
 		return
 	if Input.is_action_just_pressed("attack") and _ghost_bomb_cooldown <= 0.0 and not in_safe_zone:
 		_ghost_bomb_cooldown = GHOST_BOMB_COOLDOWN
-		var pid := multiplayer.get_unique_id() if NetworkManager.is_active() else -1
-		if NetworkManager.is_active():
-			_rpc_place_bomb.rpc(global_position, pid)
-		else:
-			_do_spawn_bomb(global_position, pid)
+		_rpc_place_bomb.rpc(global_position, multiplayer.get_unique_id())
 
 
 @rpc("authority", "call_local", "reliable")
@@ -544,7 +535,7 @@ func activate_ghost_mode(can_bomb: bool = true, spawn_pos: Vector2 = Vector2.ZER
 	if _state == PlayerState.UI_LOCKED or _state == PlayerState.KNOCKED_BACK:
 		_transition_to(PlayerState.AIRBORNE if not is_on_floor() else PlayerState.GROUNDED)
 	if can_bomb and not is_spectator:
-		nudge_changed.emit("You are dead! Press [%s] to drop a bomb." % _action_key_name("attack"))
+		nudge_changed.emit("You are dead! Press [%s] to drop a bomb." % InputUtils.get_action_key("attack"))
 	for p in get_tree().get_nodes_in_group("player"):
 		if p != self:
 			add_collision_exception_with(p)
@@ -555,7 +546,7 @@ func deactivate_ghost_mode() -> void:
 	if not is_ghost:
 		return
 	if is_spectator:
-		if not NetworkManager.is_active() or is_multiplayer_authority():
+		if is_multiplayer_authority():
 			get_node("Camera2D").make_current()
 		is_spectator      = false
 		_spectator_mode   = 0
@@ -573,7 +564,7 @@ func deactivate_ghost_mode() -> void:
 
 
 func _input(event: InputEvent) -> void:
-	if NetworkManager.is_active() and not is_multiplayer_authority():
+	if not is_multiplayer_authority():
 		return
 	if _finished_at_goal and not is_spectator and _state == PlayerState.UI_LOCKED:
 		if event.is_action_pressed("interact"):
@@ -714,7 +705,7 @@ func run_dbj(_delta = null) -> void:
 	_effects_anchor.position.y = 10.0
 	_boost_particles.process_material.direction = Vector3(0.0, 1.0, 0.0)
 	_play_boost_particles()
-	if NetworkManager.is_active():
+	if NetworkManager.is_online():
 		_rpc_effect_boost.rpc(0.0, 10.0, Vector3(0.0, 1.0, 0.0))
 
 
@@ -766,11 +757,7 @@ func _throw_weapon(scene: PackedScene, dir: int, extra_offset: Vector2 = Vector2
 		push_error("%s tried to throw a null weapon scene" % name)
 		return
 	var spawn_pos := global_position + stats.weapon_spawn_offset * Vector2(dir, 1) + extra_offset
-	var pid       := multiplayer.get_unique_id() if NetworkManager.is_active() else -1
-	if NetworkManager.is_active():
-		_rpc_throw_weapon.rpc(scene.resource_path, dir, spawn_pos, pid, _effective_damage(), _effective_knockback_scale())
-	else:
-		_do_spawn_weapon(scene, dir, spawn_pos, pid, _effective_damage(), _effective_knockback_scale())
+	_rpc_throw_weapon.rpc(scene.resource_path, dir, spawn_pos, multiplayer.get_unique_id(), _effective_damage(), _effective_knockback_scale())
 
 
 @rpc("authority", "call_local", "reliable")
@@ -792,11 +779,11 @@ func _do_spawn_weapon(scene: PackedScene, dir: int, pos: Vector2, thrower_id: in
 	p.thrower_peer_id = thrower_id
 	p.damage          = dmg
 	p.knockback       = p.knockback * kbs
-	if not NetworkManager.is_active():
+	if not NetworkManager.is_online():
 		p.owner_node = self
 	get_parent().add_child(p)
 	p.global_position = pos
-	if _equipped_returns and (not NetworkManager.is_active() or is_multiplayer_authority()):
+	if _equipped_returns and is_multiplayer_authority():
 		p.tree_exiting.connect(_on_projectile_returned)
 
 
@@ -810,11 +797,7 @@ func _on_projectile_returned() -> void:
 
 func _do_melee() -> void:
 	_melee_cooldown = stats.melee_cooldown
-	var pid := multiplayer.get_unique_id() if NetworkManager.is_active() else -1
-	if NetworkManager.is_active():
-		_rpc_throw_melee.rpc(facing_direction, pid, _effective_damage(), _effective_knockback_scale())
-	else:
-		_do_spawn_melee(facing_direction, pid, _effective_damage(), _effective_knockback_scale())
+	_rpc_throw_melee.rpc(facing_direction, multiplayer.get_unique_id(), _effective_damage(), _effective_knockback_scale())
 
 
 @rpc("authority", "call_local", "reliable")
@@ -835,11 +818,7 @@ func _do_spawn_melee(dir: int, thrower_id: int, dmg: int = 1, kbs: float = 1.0) 
 
 func _do_zap() -> void:
 	_melee_cooldown = stats.melee_cooldown
-	var pid := multiplayer.get_unique_id() if NetworkManager.is_active() else -1
-	if NetworkManager.is_active():
-		_rpc_throw_zap.rpc(facing_direction, pid, _effective_damage(), _effective_knockback_scale())
-	else:
-		_do_spawn_zap(facing_direction, pid, _effective_damage(), _effective_knockback_scale())
+	_rpc_throw_zap.rpc(facing_direction, multiplayer.get_unique_id(), _effective_damage(), _effective_knockback_scale())
 
 
 @rpc("authority", "call_local", "reliable")
@@ -861,7 +840,7 @@ func _do_spawn_zap(dir: int, thrower_id: int, dmg: int = 1, kbs: float = 1.0) ->
 # ============================================================
 
 func take_damage(amount: int, knockback: Vector2 = Vector2.ZERO, attacker_peer_id: int = -1) -> void:
-	if NetworkManager.is_active() and not is_multiplayer_authority():
+	if not is_multiplayer_authority():
 		return
 	if is_ghost:
 		return
@@ -881,10 +860,9 @@ func take_damage(amount: int, knockback: Vector2 = Vector2.ZERO, attacker_peer_i
 	health -= amount
 	health_changed.emit(health, get_effective_max_health())
 	if attacker_peer_id != -1:
-		var peer_id := multiplayer.get_unique_id() if NetworkManager.is_active() else 1
 		var main := get_tree().get_root().get_node_or_null("Main")
 		if main:
-			main.notify_damage(attacker_peer_id, peer_id, actual)
+			main.notify_damage(attacker_peer_id, multiplayer.get_unique_id(), actual)
 	if health <= 0:
 		die()
 		return
@@ -899,8 +877,7 @@ func die() -> void:
 	if is_ghost:
 		var ghost_main := get_tree().get_root().get_node_or_null("Main")
 		if ghost_main:
-			var ghost_pid := multiplayer.get_unique_id() if NetworkManager.is_active() else 1
-			var ghost_spawn: Node2D = ghost_main.get_current_spawn_for_peer(ghost_pid)
+			var ghost_spawn: Node2D = ghost_main.get_current_spawn_for_peer(multiplayer.get_unique_id())
 			if ghost_spawn:
 				global_position = ghost_spawn.global_position
 		velocity = Vector2.ZERO
@@ -916,7 +893,7 @@ func die() -> void:
 	health_changed.emit(health, get_effective_max_health())
 	_state = PlayerState.GROUNDED
 	var main    := get_tree().get_root().get_node("Main")
-	var peer_id := multiplayer.get_unique_id() if NetworkManager.is_active() else 1
+	var peer_id := multiplayer.get_unique_id()
 	if _last_attacker_peer_id != -1 and _last_attacker_peer_id != peer_id:
 		main.notify_kill(_last_attacker_peer_id, peer_id)
 	else:
@@ -970,7 +947,7 @@ func _rpc_effect_boost(anchor_x: float, anchor_y: float, dir: Vector3) -> void:
 # ============================================================
 
 func _resolve_body_collisions() -> void:
-	if NetworkManager.is_active() and not multiplayer.is_server():
+	if NetworkManager.is_online() and not multiplayer.is_server():
 		return
 	for i in get_slide_collision_count():
 		var col   := get_slide_collision(i)
@@ -994,10 +971,7 @@ func set_ui_locked(locked: bool) -> void:
 
 
 func set_finished(finished: bool) -> void:
-	if NetworkManager.is_active():
-		_rpc_set_finished.rpc(finished)
-	else:
-		_rpc_set_finished(finished)
+	_rpc_set_finished.rpc(finished)
 
 
 @rpc("any_peer", "call_local", "reliable")
@@ -1005,7 +979,7 @@ func _rpc_set_finished(finished: bool) -> void:
 	_finished_at_goal = finished
 	if finished:
 		_transition_to(PlayerState.UI_LOCKED)
-		nudge_changed.emit("You have finished! Press [%s] to enter spectate mode." % _action_key_name("interact"))
+		nudge_changed.emit("You have finished! Press [%s] to enter spectate mode." % InputUtils.get_action_key("interact"))
 	else:
 		_transition_to(PlayerState.GROUNDED if is_on_floor() else PlayerState.AIRBORNE)
 		nudge_changed.emit("")
@@ -1023,6 +997,8 @@ func apply_powerup(id: String) -> void:
 		active_powerup          = id
 		_active_used_this_round = false
 	else:
+		if passive_powerups.count(id) >= PowerupIds.get_max_stacks(id):
+			return
 		passive_powerups.append(id)
 		if id == PowerupIds.EXTRA_HEARTS:
 			health = mini(health + 2, get_effective_max_health())
@@ -1061,8 +1037,7 @@ func get_outfit_id() -> int:
 
 
 func request_outfit_change(new_outfit_id: int) -> void:
-	var peer_id := multiplayer.get_unique_id() if NetworkManager.is_active() else 1
-	get_tree().get_root().get_node("Main").request_player_outfit_change(peer_id, new_outfit_id)
+	get_tree().get_root().get_node("Main").request_player_outfit_change(multiplayer.get_unique_id(), new_outfit_id)
 
 
 func set_outfit_from_sync(new_outfit_id: int) -> void:
@@ -1094,7 +1069,7 @@ func remove_sync_peer(peer_id: int) -> void:
 
 
 func _send_state_sync() -> void:
-	if not NetworkManager.is_active():
+	if not NetworkManager.is_online():
 		return
 	var shield_visible: bool = _shield_node.visible if _shield_node else false
 	var visual_visible := true

@@ -7,19 +7,13 @@ func _process(_delta: float) -> void:
 		get_tree().get_root().get_node("Main").open_wardrobe(_player_nearby)
 		#$PromptLabel.text = "Equipped!"
 
-func _get_interact_key() -> String:
-	for e in InputMap.action_get_events("interact"):
-		if e is InputEventKey:
-			return OS.get_keycode_string(e.physical_keycode)
-	return "?"
-
 func _on_body_entered(body: Node2D) -> void:
 	if not body.is_in_group("player"):
 		return
-	if NetworkManager.is_active() and not body.is_multiplayer_authority():
+	if not body.is_multiplayer_authority():
 		return
 	_player_nearby = body
-	$PromptLabel.text = "Press %s to change outfit!" % _get_interact_key()
+	$PromptLabel.text = "Press %s to change outfit!" % InputUtils.get_action_key("interact")
 	$PromptLabel.visible = true
 	
 

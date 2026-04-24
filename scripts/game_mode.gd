@@ -48,20 +48,14 @@ func _process(delta: float) -> void:
 	_time_remaining -= delta
 	if _time_remaining <= 0.0:
 		_time_remaining = 0.0
-		if not NetworkManager.is_active() or multiplayer.is_server():
+		if multiplayer.is_server():
 			_end_round()
 
 func _broadcast(new_state: int, new_scores: Dictionary, round_num: int, event_peer_id: int, finishers: Array = []) -> void:
-	if NetworkManager.is_active():
-		_sync_round_state.rpc(new_state, new_scores, round_num, event_peer_id, finishers, _time_limit)
-	else:
-		_sync_round_state(new_state, new_scores, round_num, event_peer_id, finishers, _time_limit)
+	_sync_round_state.rpc(new_state, new_scores, round_num, event_peer_id, finishers, _time_limit)
 
 func _broadcast_scores() -> void:
-	if NetworkManager.is_active():
-		_sync_scores.rpc(scores)
-	else:
-		_sync_scores(scores)
+	_sync_scores.rpc(scores)
 
 @rpc("authority", "call_local", "reliable")
 func _sync_scores(new_scores: Dictionary) -> void:
@@ -185,10 +179,7 @@ func can_respawn(peer_id: int) -> bool:
 	return stocks.get(peer_id, STOCKS_PER_ROUND) > 0
 
 func _broadcast_stocks() -> void:
-	if NetworkManager.is_active():
-		_sync_stocks_rpc.rpc(stocks)
-	else:
-		_sync_stocks_rpc(stocks)
+	_sync_stocks_rpc.rpc(stocks)
 
 @rpc("authority", "call_local", "reliable")
 func _sync_stocks_rpc(new_stocks: Dictionary) -> void:
@@ -196,10 +187,7 @@ func _sync_stocks_rpc(new_stocks: Dictionary) -> void:
 	stocks_changed.emit(stocks)
 
 func _broadcast_kda() -> void:
-	if NetworkManager.is_active():
-		_sync_kda_rpc.rpc(kda_kills, kda_deaths, kda_damage)
-	else:
-		_sync_kda_rpc(kda_kills, kda_deaths, kda_damage)
+	_sync_kda_rpc.rpc(kda_kills, kda_deaths, kda_damage)
 
 @rpc("authority", "call_local", "reliable")
 func _sync_kda_rpc(new_kills: Dictionary, new_deaths: Dictionary, new_damage: Dictionary) -> void:
@@ -276,10 +264,7 @@ func _do_intermission(winner_peer_id: int, finishers: Array, tied_peers: Array =
 		return  # level changed while waiting — bail out
 	round_number += 1
 	_finishers.clear()
-	if NetworkManager.is_active():
-		_sync_sudden_death.rpc(tied_peers)
-	else:
-		_sync_sudden_death(tied_peers)
+	_sync_sudden_death.rpc(tied_peers)
 	get_parent().respawn_all_at_spawn()
 	_broadcast(State.PLAYING, scores, round_number, -1)
 

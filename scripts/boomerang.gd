@@ -37,7 +37,7 @@ func _on_body_entered(body: Node2D) -> void:
 	if body in _hit_targets:
 		return
 	if body.is_in_group("player"):
-		if NetworkManager.is_active() and body.get_multiplayer_authority() == thrower_peer_id:
+		if body.get_multiplayer_authority() == thrower_peer_id:
 			return
 		_hit_targets.append(body)
 		body.take_damage(damage, Vector2(direction * knockback.x, knockback.y))

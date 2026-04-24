@@ -42,7 +42,7 @@ func _on_join_button_pressed():
 	set_process(true)
 
 func _process(delta):
-	if not NetworkManager.is_active():
+	if not NetworkManager.is_online():
 		_fail("Connection lost.")
 		return
 	match multiplayer.multiplayer_peer.get_connection_status():
@@ -69,7 +69,7 @@ func _on_connection_failed():
 func _on_solo_button_pressed():
 	UiAudio.play_click()
 	NetworkManager.local_name = name_input.text.strip_edges()
-	NetworkManager.close()
+	NetworkManager.play_solo()
 	get_tree().change_scene_to_file("res://scenes/main.tscn")
 
 func _on_back_button_pressed():

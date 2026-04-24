@@ -25,10 +25,7 @@ func _process(delta: float) -> void:
 func take_damage(amount: int) -> void:
 	if _dead:
 		return
-	if NetworkManager.is_active():
-		_rpc_blink_on_hit.rpc()
-	else:
-		_start_blink()
+	_rpc_blink_on_hit.rpc()
 	health -= amount
 	if health <= 0:
 		_die()
