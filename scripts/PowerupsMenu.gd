@@ -8,6 +8,7 @@ const POWERUPS_LIST := [
 	{ "id": PowerupIds.KNOCKBACK_BOOST,    "name": "Knock Out",        "desc": "1.6× knockback\non all attacks (stacks)",     "is_active": false, "min_place": 0, "max_place": 9999 },
 	{ "id": PowerupIds.DAMAGE_BOOST,       "name": "Heavy Hitter",     "desc": "+1 heart damage\nper attack (stacks)",         "is_active": false, "min_place": 0, "max_place": 9999 },
 	{ "id": PowerupIds.HOMER_ONCE,         "name": "Seeker",           "desc": "Press {key}: fire Homer\nonce per round",      "is_active": true,  "min_place": 0, "max_place": 9999 },
+	{ "id": PowerupIds.SPEED_UP,           "name": "Swift",            "desc": "+10% move speed\n(stacks ×3)",                  "is_active": false, "min_place": 0, "max_place": 9999 },
 	{ "id": PowerupIds.EXTRA_JUMP,         "name": "Extra Jump",       "desc": "+1 air jump (max 2 extra)\nstacks",            "is_active": false, "min_place": 0, "max_place": 9999 },
 	{ "id": PowerupIds.GET_BIGGER,         "name": "Grow",             "desc": "+25% size, +15% speed\nbigger hitbox",         "is_active": false, "min_place": 0, "max_place": 9999 },
 	{ "id": PowerupIds.GET_SMALLER,        "name": "Shrink",           "desc": "-25% size, -20% speed\nharder to hit",         "is_active": false, "min_place": 0, "max_place": 9999 },

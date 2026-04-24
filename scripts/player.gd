@@ -690,6 +690,9 @@ func _handle_input(_delta: float) -> void:
 
 func _apply_movement(delta: float) -> void:
 	var effective_speed := stats.speed_surge_speed if _speed_surge_active else stats.speed
+	var speed_up_stacks := passive_powerups.count(PowerupIds.SPEED_UP)
+	if speed_up_stacks > 0:
+		effective_speed *= pow(1.10, speed_up_stacks)
 	if PowerupIds.GET_BIGGER in passive_powerups:
 		effective_speed *= 1.15
 	if PowerupIds.GET_SMALLER in passive_powerups:

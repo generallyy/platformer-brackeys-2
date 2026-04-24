@@ -9,6 +9,7 @@ const DAMAGE_BOOST      := "damage_boost"
 const KNOCKBACK_BOOST   := "knockback_boost"
 const EXTRA_HEARTS      := "extra_hearts"
 const LOW_GRAVITY       := "low_gravity"
+const SPEED_UP          := "speed_up"
 const EXTRA_JUMP        := "extra_jump"
 const GET_BIGGER        := "get_bigger"
 const GET_SMALLER       := "get_smaller"
@@ -42,6 +43,7 @@ const MAX_STACKS: Dictionary = {
 	LOW_GRAVITY:       1,
 	SPEED_BOOST:       1,
 	HOMER_ONCE:        1,
+	SPEED_UP:          3,
 	EXTRA_JUMP:        2,
 	GET_BIGGER:        1,
 	GET_SMALLER:       1,
