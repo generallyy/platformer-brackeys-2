@@ -8,6 +8,12 @@ var thrower_peer_id := -1
 var damage := 1
 var knockback_scale := 1.0
 
+var slow_on_hit: bool = false
+var shield_spike_dmg: int = 0
+var parry_stun: bool = false
+
+signal hit_landed
+
 # Track what we've already hit this swing so multi-frame overlap only hits once
 var _hit: Array = []
 
@@ -24,8 +30,20 @@ func _on_body_entered(body: Node2D) -> void:
 		if body.get_multiplayer_authority() == thrower_peer_id:
 			return
 		_hit.append(body)
-		# Strong horizontal knockback like a forward aerial — mostly sideways, slight upward
+
+		# SHIELD_SPIKE / PARRY_STUN: check before taking damage
+		if body.get("_is_shielding") == true:
+			if shield_spike_dmg > 0:
+				get_parent().take_damage(shield_spike_dmg, Vector2.ZERO, body.get_multiplayer_authority())
+			if parry_stun:
+				get_parent().apply_stun(1.0)
+			return  # shielded player takes no damage
+
 		body.take_damage(damage, Vector2(direction * KNOCKBACK_BASE.x, KNOCKBACK_BASE.y) * knockback_scale, thrower_peer_id)
+		hit_landed.emit()
+
+		if slow_on_hit:
+			body.apply_slow(1.5)
 
 func _on_area_entered(area: Area2D) -> void:
 	if area in _hit:

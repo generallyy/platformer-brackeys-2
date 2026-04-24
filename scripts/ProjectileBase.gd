@@ -14,6 +14,7 @@ var thrower_peer_id: int = -1
 var owner_node: Node2D = null   # singleplayer self-hit prevention
 var damage: int = 1
 var knockback := Vector2(100.0, -150.0)
+var slow_on_hit: bool = false
 
 # Private flight state
 var _t := 0.0
@@ -67,6 +68,8 @@ func _on_body_entered(body: Node2D) -> void:
 		if body.get_multiplayer_authority() == thrower_peer_id:
 			return
 		body.take_damage(damage, Vector2(direction * knockback.x, knockback.y), thrower_peer_id)
+		if slow_on_hit:
+			body.apply_slow(1.5)
 		_on_hit_character(body)
 		return
 	if body is CharacterBody2D or body.is_in_group("enemy"):

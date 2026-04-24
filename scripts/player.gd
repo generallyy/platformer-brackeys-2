@@ -4,12 +4,13 @@ extends CharacterBody2D
 # PRELOADS
 # ============================================================
 
-const DAGGER_SCENE = preload("res://scenes/weapons/Dagger.tscn")
-const MELEE_SCENE  = preload("res://scenes/weapons/MeleeHitbox.tscn")
-const ZAP_SCENE    = preload("res://scenes/weapons/Zap.tscn")
-const SHIELD_SCENE = preload("res://scenes/weapons/Shield.tscn")
-const HOMER_SCENE  = preload("res://scenes/weapons/Homer.tscn")
-const BOMB_SCENE   = preload("res://scenes/weapons/Bomb.tscn")
+const DAGGER_SCENE        = preload("res://scenes/weapons/Dagger.tscn")
+const MELEE_SCENE         = preload("res://scenes/weapons/MeleeHitbox.tscn")
+const ZAP_SCENE           = preload("res://scenes/weapons/Zap.tscn")
+const SHIELD_SCENE        = preload("res://scenes/weapons/Shield.tscn")
+const HOMER_SCENE         = preload("res://scenes/weapons/Homer.tscn")
+const BOMB_SCENE          = preload("res://scenes/weapons/Bomb.tscn")
+const CONFUSION_RAY_SCENE = preload("res://scenes/weapons/ConfusionRay.tscn")
 
 const GHOST_BOMB_COOLDOWN := 3.0
 
@@ -143,6 +144,19 @@ var _active_used_this_round := false
 var _speed_surge_active     := false
 var _speed_surge_timer      := 0.0
 
+# --- Status effects (from powerups) ---
+var _extra_jumps_used  := 0
+var _lifesteal_hits    := 0
+var _is_slowed         := false
+var _slow_timer        := 0.0
+var _is_stunned        := false
+var _stun_timer        := 0.0
+var _is_invisible      := false
+var _invisible_timer   := 0.0
+var _is_confused       := false
+var _confusion_timer   := 0.0
+const INVISIBLE_DURATION := 3.0
+
 # --- Kill indicator ---
 const KILL_INDICATOR_DURATION := 1.0
 var _kill_count            := 0
@@ -196,6 +210,8 @@ func _physics_process(delta: float) -> void:
 
 	_input_direction = 0.0 if (_state == PlayerState.KNOCKED_BACK or _is_shielding or _input_locked) \
 			else Input.get_axis("move_left", "move_right")
+	if _is_confused:
+		_input_direction = -_input_direction
 	update_direction(_input_direction)
 	update_animation()
 
@@ -207,10 +223,10 @@ func _physics_process(delta: float) -> void:
 		PlayerState.KNOCKED_BACK:
 			pass  # gravity applied; no input
 		PlayerState.AIR_BOOST:
-			velocity.x = facing_direction * stats.boost_speed
+			velocity.x = facing_direction * stats.boost_speed * pow(1.30, passive_powerups.count(PowerupIds.DASH_BOOST_AIR))
 			velocity.y = 0.0
 		PlayerState.DASH:
-			velocity.x = facing_direction * stats.dash_speed
+			velocity.x = facing_direction * stats.dash_speed * pow(1.30, passive_powerups.count(PowerupIds.DASH_BOOST_GROUND))
 			if is_multiplayer_authority():
 				for t in _passthrough_targets:
 					if is_instance_valid(t) and t.is_in_group("player"):
@@ -260,14 +276,16 @@ func _enter_state(state: PlayerState) -> void:
 		PlayerState.DASH:
 			_dash_timer    = stats.dash_duration
 			_dash_cooldown = stats.dash_cooldown
-			velocity.x = facing_direction * stats.dash_speed
+			var ground_mult := pow(1.30, passive_powerups.count(PowerupIds.DASH_BOOST_GROUND))
+			velocity.x = facing_direction * stats.dash_speed * ground_mult
 			var others := get_tree().get_nodes_in_group("player").filter(func(p): return p != self)
 			_add_passthrough(others, stats.dash_duration + 0.15)
 		PlayerState.AIR_BOOST:
 			_boost_timer       = stats.boost_duration
 			has_air_boosted    = true
 			_boost_dbj_lockout = stats.boost_dbj_lockout
-			velocity.x = facing_direction * stats.boost_speed
+			var air_mult := pow(1.30, passive_powerups.count(PowerupIds.DASH_BOOST_AIR))
+			velocity.x = facing_direction * stats.boost_speed * air_mult
 			velocity.y = 0.0
 			audio_stream_player.stream = _BOOST_SFX
 			audio_stream_player.play()
@@ -305,6 +323,31 @@ func _tick_timers(delta: float) -> void:
 		_speed_surge_timer -= delta
 		if _speed_surge_timer <= 0.0:
 			_speed_surge_active = false
+
+	if _is_slowed:
+		_slow_timer -= delta
+		if _slow_timer <= 0.0:
+			_is_slowed = false
+
+	if _is_stunned:
+		_stun_timer -= delta
+		if _stun_timer <= 0.0:
+			_is_stunned   = false
+			_input_locked = false
+
+	if _is_confused:
+		_confusion_timer -= delta
+		if _confusion_timer <= 0.0:
+			_is_confused = false
+
+	if _is_invisible:
+		_invisible_timer -= delta
+		if _invisible_timer <= 0.0:
+			_is_invisible = false
+			if NetworkManager.is_online():
+				_rpc_set_invisible.rpc(false)
+			else:
+				modulate.a = 1.0
 
 	if _dbj_frozen:
 		_dbj_freeze_timer -= delta
@@ -580,12 +623,18 @@ func _handle_input(_delta: float) -> void:
 	if is_ghost:
 		_handle_ghost_input()
 		return
+	if _is_stunned:
+		return
 	if Input.is_action_just_pressed("jump") and not _is_shielding and _input_cooldown <= 0.0:
 		if is_on_floor():
 			_add_passthrough(_get_overhead_players(), 0.4)
 			_do_jump()
-		elif not has_dbj and _boost_dbj_lockout <= 0.0:
-			_transition_to(PlayerState.DOUBLE_JUMP)
+		elif _boost_dbj_lockout <= 0.0:
+			if not has_dbj:
+				_transition_to(PlayerState.DOUBLE_JUMP)
+			elif _extra_jumps_used < passive_powerups.count(PowerupIds.EXTRA_JUMP):
+				_extra_jumps_used += 1
+				_transition_to(PlayerState.DOUBLE_JUMP)
 
 	if Input.is_action_just_pressed("f") and not _is_shielding:
 		if is_on_floor() and _dash_cooldown <= 0.0:
@@ -617,10 +666,39 @@ func _handle_input(_delta: float) -> void:
 				if not in_safe_zone:
 					_throw_weapon(HOMER_SCENE, facing_direction)
 					_active_used_this_round = true
+			PowerupIds.INVISIBLE:
+				_is_invisible       = true
+				_invisible_timer    = INVISIBLE_DURATION
+				_active_used_this_round = true
+				if NetworkManager.is_online():
+					_rpc_set_invisible.rpc(true)
+				else:
+					modulate.a = 0.0
+			PowerupIds.TELEPORT:
+				_active_used_this_round = true
+				var nearest := _find_nearest_player()
+				if nearest != null:
+					_rpc_teleport_to.rpc(nearest.global_position)
+			PowerupIds.HEART_RESET:
+				_active_used_this_round = true
+				_rpc_heart_reset.rpc()
+			PowerupIds.CONFUSION_RAY:
+				if not in_safe_zone:
+					_throw_weapon(CONFUSION_RAY_SCENE, facing_direction)
+					_active_used_this_round = true
 
 
 func _apply_movement(delta: float) -> void:
 	var effective_speed := stats.speed_surge_speed if _speed_surge_active else stats.speed
+	if PowerupIds.GET_BIGGER in passive_powerups:
+		effective_speed *= 1.15
+	if PowerupIds.GET_SMALLER in passive_powerups:
+		effective_speed *= 0.80
+	var hh_stacks := passive_powerups.count(PowerupIds.HEAVY_HITTER)
+	if hh_stacks > 0:
+		effective_speed *= pow(0.80, hh_stacks)
+	if _is_slowed:
+		effective_speed *= 0.60
 	if _input_direction:
 		_add_passthrough(_get_overhead_players(), 0.12)  # refreshed every frame while walking
 		var turning := _input_direction * velocity.x < 0.0
@@ -639,8 +717,9 @@ func _check_landing() -> void:
 	if _state in [PlayerState.KNOCKED_BACK, PlayerState.UI_LOCKED, PlayerState.AIR_BOOST, PlayerState.DASH]:
 		return
 	if is_on_floor():
-		has_air_boosted = false
-		has_dbj         = false
+		has_air_boosted   = false
+		has_dbj           = false
+		_extra_jumps_used = 0
 		if _state != PlayerState.GROUNDED:
 			_transition_to(PlayerState.GROUNDED)
 	elif _state == PlayerState.GROUNDED:
@@ -731,7 +810,8 @@ func _effective_damage() -> int:
 
 
 func _effective_knockback_scale() -> float:
-	return pow(1.6, passive_powerups.count(PowerupIds.KNOCKBACK_BOOST))
+	var base := pow(1.6, passive_powerups.count(PowerupIds.KNOCKBACK_BOOST))
+	return base * pow(1.20, passive_powerups.count(PowerupIds.HEAVY_HITTER))
 
 # ============================================================
 # COMBAT — weapons
@@ -757,19 +837,20 @@ func _throw_weapon(scene: PackedScene, dir: int, extra_offset: Vector2 = Vector2
 		push_error("%s tried to throw a null weapon scene" % name)
 		return
 	var spawn_pos := global_position + stats.weapon_spawn_offset * Vector2(dir, 1) + extra_offset
-	_rpc_throw_weapon.rpc(scene.resource_path, dir, spawn_pos, multiplayer.get_unique_id(), _effective_damage(), _effective_knockback_scale())
+	var soh := PowerupIds.SLOW_ON_HIT in passive_powerups
+	_rpc_throw_weapon.rpc(scene.resource_path, dir, spawn_pos, multiplayer.get_unique_id(), _effective_damage(), _effective_knockback_scale(), soh)
 
 
 @rpc("authority", "call_local", "reliable")
-func _rpc_throw_weapon(scene_path: String, dir: int, pos: Vector2, thrower_id: int, dmg: int = 1, kbs: float = 1.0) -> void:
+func _rpc_throw_weapon(scene_path: String, dir: int, pos: Vector2, thrower_id: int, dmg: int = 1, kbs: float = 1.0, slow_on_hit: bool = false) -> void:
 	var scene := load(scene_path) as PackedScene
 	if scene == null:
 		push_error("Failed to load weapon scene: %s" % scene_path)
 		return
-	_do_spawn_weapon(scene, dir, pos, thrower_id, dmg, kbs)
+	_do_spawn_weapon(scene, dir, pos, thrower_id, dmg, kbs, slow_on_hit)
 
 
-func _do_spawn_weapon(scene: PackedScene, dir: int, pos: Vector2, thrower_id: int, dmg: int = 1, kbs: float = 1.0) -> void:
+func _do_spawn_weapon(scene: PackedScene, dir: int, pos: Vector2, thrower_id: int, dmg: int = 1, kbs: float = 1.0, slow_on_hit: bool = false) -> void:
 	if scene == null:
 		push_error("%s tried to spawn a null weapon scene" % name)
 		return
@@ -779,6 +860,7 @@ func _do_spawn_weapon(scene: PackedScene, dir: int, pos: Vector2, thrower_id: in
 	p.thrower_peer_id = thrower_id
 	p.damage          = dmg
 	p.knockback       = p.knockback * kbs
+	p.slow_on_hit     = slow_on_hit
 	if not NetworkManager.is_online():
 		p.owner_node = self
 	get_parent().add_child(p)
@@ -797,21 +879,33 @@ func _on_projectile_returned() -> void:
 
 func _do_melee() -> void:
 	_melee_cooldown = stats.melee_cooldown
-	_rpc_throw_melee.rpc(facing_direction, multiplayer.get_unique_id(), _effective_damage(), _effective_knockback_scale())
+	var bm  := passive_powerups.count(PowerupIds.BIG_MELEE)
+	var soh := PowerupIds.SLOW_ON_HIT in passive_powerups
+	var ss  := passive_powerups.count(PowerupIds.SHIELD_SPIKE)
+	var ps  := PowerupIds.PARRY_STUN in passive_powerups
+	_rpc_throw_melee.rpc(facing_direction, multiplayer.get_unique_id(), _effective_damage(), _effective_knockback_scale(), bm, soh, ss, ps)
 
 
 @rpc("authority", "call_local", "reliable")
-func _rpc_throw_melee(dir: int, thrower_id: int, dmg: int = 1, kbs: float = 1.0) -> void:
-	_do_spawn_melee(dir, thrower_id, dmg, kbs)
+func _rpc_throw_melee(dir: int, thrower_id: int, dmg: int = 1, kbs: float = 1.0, big_melee_stacks: int = 0, slow_on_hit: bool = false, shield_spike_dmg: int = 0, parry_stun: bool = false) -> void:
+	_do_spawn_melee(dir, thrower_id, dmg, kbs, big_melee_stacks, slow_on_hit, shield_spike_dmg, parry_stun)
 
 
-func _do_spawn_melee(dir: int, thrower_id: int, dmg: int = 1, kbs: float = 1.0) -> void:
+func _do_spawn_melee(dir: int, thrower_id: int, dmg: int = 1, kbs: float = 1.0, big_melee_stacks: int = 0, slow_on_hit: bool = false, shield_spike_dmg: int = 0, parry_stun: bool = false) -> void:
 	var m := MELEE_SCENE.instantiate()
 	m.direction       = dir
-	m.scale.x         = dir
 	m.thrower_peer_id = thrower_id
 	m.damage          = dmg
 	m.knockback_scale = kbs
+	m.slow_on_hit     = slow_on_hit
+	m.shield_spike_dmg = shield_spike_dmg
+	m.parry_stun      = parry_stun
+	if big_melee_stacks > 0:
+		var s := pow(1.40, big_melee_stacks)
+		m.scale = Vector2(dir * s, s)
+	else:
+		m.scale.x = dir
+	m.hit_landed.connect(_on_melee_hit_landed)
 	add_child(m)
 	m.position = stats.weapon_spawn_offset * Vector2(dir, 1)
 
@@ -843,7 +937,9 @@ func take_damage(amount: int, knockback: Vector2 = Vector2.ZERO, attacker_peer_i
 	if not is_multiplayer_authority():
 		return
 	if is_ghost:
-		return
+		var attacker_node := _find_player_by_peer_id(attacker_peer_id)
+		if attacker_node == null or PowerupIds.GHOST_HUNTER not in attacker_node.passive_powerups:
+			return
 	if is_invuln or _is_shielding or _state == PlayerState.UI_LOCKED:
 		return
 	# Friendly-fire prevention
@@ -997,12 +1093,20 @@ func apply_powerup(id: String) -> void:
 		active_powerup          = id
 		_active_used_this_round = false
 	else:
+		if id == PowerupIds.GET_BIGGER and PowerupIds.GET_SMALLER in passive_powerups:
+			return
+		if id == PowerupIds.GET_SMALLER and PowerupIds.GET_BIGGER in passive_powerups:
+			return
 		if passive_powerups.count(id) >= PowerupIds.get_max_stacks(id):
 			return
 		passive_powerups.append(id)
 		if id == PowerupIds.EXTRA_HEARTS:
 			health = mini(health + 2, get_effective_max_health())
 			health_changed.emit(health, get_effective_max_health())
+		elif id == PowerupIds.GET_BIGGER:
+			scale = Vector2(1.25, 1.25)
+		elif id == PowerupIds.GET_SMALLER:
+			scale = Vector2(0.75, 0.75)
 	powerups_changed.emit(passive_powerups, active_powerup)
 
 
@@ -1012,6 +1116,22 @@ func clear_powerups() -> void:
 	_active_used_this_round = false
 	_speed_surge_active     = false
 	_speed_surge_timer      = 0.0
+	_extra_jumps_used       = 0
+	_lifesteal_hits         = 0
+	_is_slowed              = false
+	_slow_timer             = 0.0
+	_is_stunned             = false
+	_stun_timer             = 0.0
+	_input_locked           = false
+	_is_confused            = false
+	_confusion_timer        = 0.0
+	_is_invisible           = false
+	_invisible_timer        = 0.0
+	scale                   = Vector2(1.0, 1.0)
+	if NetworkManager.is_online():
+		_rpc_set_invisible.rpc(false)
+	else:
+		modulate.a = 1.0
 	powerups_changed.emit(passive_powerups, active_powerup)
 
 
@@ -1019,6 +1139,110 @@ func reset_round_powerup_state() -> void:
 	_active_used_this_round = false
 	_speed_surge_active     = false
 	_speed_surge_timer      = 0.0
+	_extra_jumps_used       = 0
+	_lifesteal_hits         = 0
+	_is_slowed              = false
+	_slow_timer             = 0.0
+	_is_stunned             = false
+	_stun_timer             = 0.0
+	_input_locked           = false
+	_is_confused            = false
+	_confusion_timer        = 0.0
+	_is_invisible           = false
+	_invisible_timer        = 0.0
+	if NetworkManager.is_online():
+		_rpc_set_invisible.rpc(false)
+	else:
+		modulate.a = 1.0
+
+# ============================================================
+# POWERUP HELPERS & STATUS EFFECTS
+# ============================================================
+
+func _on_melee_hit_landed() -> void:
+	if not is_multiplayer_authority():
+		return
+	if PowerupIds.LIFESTEAL not in passive_powerups:
+		return
+	var threshold := 4 - passive_powerups.count(PowerupIds.LIFESTEAL)  # 4 at 1 stack, 3 at 2 stacks
+	_lifesteal_hits += 1
+	if _lifesteal_hits >= threshold:
+		_lifesteal_hits = 0
+		health = mini(health + 1, get_effective_max_health())
+		health_changed.emit(health, get_effective_max_health())
+
+
+func apply_slow(duration: float) -> void:
+	if not is_multiplayer_authority():
+		return
+	_is_slowed  = true
+	_slow_timer = max(_slow_timer, duration)
+
+
+func apply_stun(duration: float) -> void:
+	if not is_multiplayer_authority():
+		return
+	_is_stunned   = true
+	_stun_timer   = duration
+	_input_locked = true
+
+
+func apply_confusion(duration: float) -> void:
+	if not is_multiplayer_authority():
+		return
+	_is_confused     = true
+	_confusion_timer = max(_confusion_timer, duration)
+
+
+func _find_nearest_player() -> Node2D:
+	var nearest: Node2D = null
+	var nearest_dist   := INF
+	for p in get_tree().get_nodes_in_group("player"):
+		if p == self or p.is_ghost:
+			continue
+		var d := global_position.distance_to(p.global_position)
+		if d < nearest_dist:
+			nearest_dist = d
+			nearest      = p
+	return nearest
+
+
+func _find_player_by_peer_id(peer_id: int) -> Node2D:
+	for p in get_tree().get_nodes_in_group("player"):
+		if p.get_multiplayer_authority() == peer_id:
+			return p
+	return null
+
+
+func _find_local_player() -> Node:
+	for p in get_tree().get_nodes_in_group("player"):
+		if p.is_multiplayer_authority():
+			return p
+	return null
+
+
+@rpc("authority", "call_local", "reliable")
+func _rpc_set_invisible(invisible: bool) -> void:
+	_is_invisible = invisible
+	if is_multiplayer_authority():
+		return  # local player always sees themselves at full opacity
+	var local_player := _find_local_player()
+	var has_hunter: bool = local_player != null and PowerupIds.GHOST_HUNTER in local_player.passive_powerups
+	modulate.a = (0.4 if has_hunter else 0.0) if invisible else 1.0
+
+
+@rpc("authority", "call_local", "reliable")
+func _rpc_teleport_to(target_pos: Vector2) -> void:
+	global_position = target_pos
+
+
+@rpc("authority", "call_local", "reliable")
+func _rpc_heart_reset() -> void:
+	# Each peer sets health on the player they control
+	for p in get_tree().get_nodes_in_group("player"):
+		if p.is_multiplayer_authority() and not p.is_ghost:
+			p.health = 1
+			p.health_changed.emit(1, p.get_effective_max_health())
 
 # ============================================================
 # OUTFIT / VISUALS

@@ -1,13 +1,29 @@
 extends Control
 
 const POWERUPS_LIST := [
-	{ "id": PowerupIds.EXTRA_HEARTS,    "name": "Extra Hearts", "desc": "+2 max hearts\n(per round)",                  "is_active": false, "min_place": 0, "max_place": 9999 },
-	{ "id": PowerupIds.SPEED_BOOST,     "name": "Speed Surge",  "desc": "Press {key}: 2× speed\nfor 2.5s (once/round)",   "is_active": true,  "min_place": 0, "max_place": 9999 },
-	{ "id": PowerupIds.JUMP_BOOST,      "name": "Spring Legs",  "desc": "Jump 35% higher",                             "is_active": false, "min_place": 0, "max_place": 9999 },
-	{ "id": PowerupIds.LOW_GRAVITY,     "name": "Featherweight","desc": "Half gravity,\nfloat further",                "is_active": false, "min_place": 0, "max_place": 9999 },
-	{ "id": PowerupIds.KNOCKBACK_BOOST, "name": "Knock Out",    "desc": "1.6× knockback\non all attacks (stacks)",    "is_active": false, "min_place": 0, "max_place": 9999 },
-	{ "id": PowerupIds.DAMAGE_BOOST,    "name": "Heavy Hitter", "desc": "+1 heart damage\nper attack (stacks)",        "is_active": false, "min_place": 0, "max_place": 9999 },
-	{ "id": PowerupIds.HOMER_ONCE,      "name": "Seeker",       "desc": "Press {key}: fire Homer\nonce per round",         "is_active": true,  "min_place": 0, "max_place": 9999 },
+	{ "id": PowerupIds.EXTRA_HEARTS,       "name": "Extra Hearts",     "desc": "+2 max hearts\n(per round)",                   "is_active": false, "min_place": 0, "max_place": 9999 },
+	{ "id": PowerupIds.SPEED_BOOST,        "name": "Speed Surge",      "desc": "Press {key}: 2× speed\nfor 2.5s (once/round)", "is_active": true,  "min_place": 0, "max_place": 9999 },
+	{ "id": PowerupIds.JUMP_BOOST,         "name": "Spring Legs",      "desc": "Jump 35% higher",                              "is_active": false, "min_place": 0, "max_place": 9999 },
+	{ "id": PowerupIds.LOW_GRAVITY,        "name": "Featherweight",    "desc": "Half gravity,\nfloat further",                 "is_active": false, "min_place": 0, "max_place": 9999 },
+	{ "id": PowerupIds.KNOCKBACK_BOOST,    "name": "Knock Out",        "desc": "1.6× knockback\non all attacks (stacks)",     "is_active": false, "min_place": 0, "max_place": 9999 },
+	{ "id": PowerupIds.DAMAGE_BOOST,       "name": "Heavy Hitter",     "desc": "+1 heart damage\nper attack (stacks)",         "is_active": false, "min_place": 0, "max_place": 9999 },
+	{ "id": PowerupIds.HOMER_ONCE,         "name": "Seeker",           "desc": "Press {key}: fire Homer\nonce per round",      "is_active": true,  "min_place": 0, "max_place": 9999 },
+	{ "id": PowerupIds.EXTRA_JUMP,         "name": "Extra Jump",       "desc": "+1 air jump (max 2 extra)\nstacks",            "is_active": false, "min_place": 0, "max_place": 9999 },
+	{ "id": PowerupIds.GET_BIGGER,         "name": "Grow",             "desc": "+25% size, +15% speed\nbigger hitbox",         "is_active": false, "min_place": 0, "max_place": 9999 },
+	{ "id": PowerupIds.GET_SMALLER,        "name": "Shrink",           "desc": "-25% size, -20% speed\nharder to hit",         "is_active": false, "min_place": 0, "max_place": 9999 },
+	{ "id": PowerupIds.LIFESTEAL,          "name": "Lifesteal",        "desc": "Every 4 melee hits\nrestore 1 HP (stacks)",    "is_active": false, "min_place": 0, "max_place": 9999 },
+	{ "id": PowerupIds.BIG_MELEE,          "name": "Big Swing",        "desc": "Larger melee hitzone\n(stacks ×2)",            "is_active": false, "min_place": 0, "max_place": 9999 },
+	{ "id": PowerupIds.SLOW_ON_HIT,        "name": "Chilling Strikes", "desc": "Attacks slow target\n−40% speed for 1.5s",    "is_active": false, "min_place": 0, "max_place": 9999 },
+	{ "id": PowerupIds.DASH_BOOST_GROUND,  "name": "Power Slide",      "desc": "+30% ground dash speed\n(stacks)",             "is_active": false, "min_place": 0, "max_place": 9999 },
+	{ "id": PowerupIds.DASH_BOOST_AIR,     "name": "Rocket Boost",     "desc": "+30% air boost speed\n(stacks)",               "is_active": false, "min_place": 0, "max_place": 9999 },
+	{ "id": PowerupIds.SHIELD_SPIKE,       "name": "Thorns",           "desc": "Shield reflects 1 dmg\nper hit (stacks)",      "is_active": false, "min_place": 0, "max_place": 9999 },
+	{ "id": PowerupIds.PARRY_STUN,         "name": "Parry",            "desc": "Block melee → stuns\nattacker for 1s",         "is_active": false, "min_place": 0, "max_place": 9999 },
+	{ "id": PowerupIds.GHOST_HUNTER,       "name": "Ghost Hunter",     "desc": "See & hit ghost players",                      "is_active": false, "min_place": 0, "max_place": 9999 },
+	{ "id": PowerupIds.HEAVY_HITTER,       "name": "Heavyweight",      "desc": "+20% knockback\n−20% move speed (stacks)",    "is_active": false, "min_place": 0, "max_place": 9999 },
+	{ "id": PowerupIds.INVISIBLE,          "name": "Cloak",            "desc": "Press {key}: invisible\nto others for 3s",     "is_active": true,  "min_place": 0, "max_place": 9999 },
+	{ "id": PowerupIds.TELEPORT,           "name": "Blink",            "desc": "Press {key}: teleport\nto nearest player",     "is_active": true,  "min_place": 0, "max_place": 9999 },
+	{ "id": PowerupIds.HEART_RESET,        "name": "Equalizer",        "desc": "Press {key}: set ALL\nplayers to 1 HP",        "is_active": true,  "min_place": 0, "max_place": 9999 },
+	{ "id": PowerupIds.CONFUSION_RAY,      "name": "Confusion Ray",    "desc": "Press {key}: fire beam that\nreverses movement", "is_active": true, "min_place": 0, "max_place": 9999 },
 ]
 
 signal powerup_picked
