@@ -594,6 +594,7 @@ bg_color = Color(0.04434038, 0.04434038, 0.04434038, 0.33333334)
 [node name="Player" type="CharacterBody2D" unique_id=1990097403]
 z_index = 5
 script = ExtResource("1_wlgh5")
+USE_STICK_RIG = false
 stats = ExtResource("2_gj1sn")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1972804155]

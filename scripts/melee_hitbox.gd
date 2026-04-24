@@ -1,7 +1,7 @@
 extends Area2D
 
 const LIFETIME := 0.12
-const KNOCKBACK_BASE := Vector2(900.0, -200.0)
+const KNOCKBACK_BASE := Vector2(670.0, -200.0)
 
 var direction := 1
 var thrower_peer_id := -1
@@ -11,6 +11,7 @@ var knockback_scale := 1.0
 var slow_on_hit: bool = false
 var shield_spike_dmg: int = 0
 var parry_stun: bool = false
+var can_hit_ghosts: bool = false
 
 signal hit_landed
 
@@ -31,6 +32,10 @@ func _on_body_entered(body: Node2D) -> void:
 			return
 		_hit.append(body)
 
+		# Ghost Hunter: skip ghosts unless attacker has the powerup
+		if body.get("is_ghost") == true and not can_hit_ghosts:
+			return
+
 		# SHIELD_SPIKE / PARRY_STUN: check before taking damage
 		if body.get("_is_shielding") == true:
 			if shield_spike_dmg > 0:
@@ -39,7 +44,7 @@ func _on_body_entered(body: Node2D) -> void:
 				get_parent().apply_stun(1.0)
 			return  # shielded player takes no damage
 
-		body.take_damage(damage, Vector2(direction * KNOCKBACK_BASE.x, KNOCKBACK_BASE.y) * knockback_scale, thrower_peer_id)
+		body.take_damage(damage, Vector2(direction * KNOCKBACK_BASE.x, KNOCKBACK_BASE.y) * knockback_scale, thrower_peer_id, can_hit_ghosts)
 		hit_landed.emit()
 
 		if slow_on_hit:

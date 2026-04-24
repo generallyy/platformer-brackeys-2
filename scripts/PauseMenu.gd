@@ -237,6 +237,27 @@ func _close_keybinds() -> void:
 # ============================================================
 
 func _input(event: InputEvent) -> void:
+	# Pause toggle always runs
+	if event.is_action_pressed("pause"):
+		if visible:
+			resume_game()
+		else:
+			pause_game()
+		get_viewport().set_input_as_handled()
+		return
+
+	# Eat game inputs while paused, but let mouse and UI navigation through
+	if visible and _rebinding_action == "":
+		if event is InputEventMouse:
+			return
+		if event.is_action("ui_left") or event.is_action("ui_right") \
+				or event.is_action("ui_up") or event.is_action("ui_down") \
+				or event.is_action("ui_accept") or event.is_action("ui_cancel"):
+			return
+		get_viewport().set_input_as_handled()
+		return
+
+	# Keybind rebinding
 	if _rebinding_action == "":
 		return
 	if event is InputEventMouseMotion:
@@ -368,38 +389,34 @@ func _deserialize_event(data: Dictionary) -> InputEvent:
 # PAUSE / RESUME
 # ============================================================
 
-func _unhandled_input(event):
-	if event.is_action_pressed("pause"):
-		if get_tree().paused:
-			resume_game()
-		else:
-			pause_game()
-	if event.is_action_pressed("submit"):
-		var focused = get_viewport().gui_get_focus_owner()
-		if focused and focused is Button:
-			focused.emit_signal("pressed")
-			UiAudio.play_click()
+func _get_local_player() -> Node:
+	for p in get_tree().get_nodes_in_group("player"):
+		if p.is_multiplayer_authority():
+			return p
+	return null
 
 func pause_game():
-	get_tree().paused = true
 	visible = true
 	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 	$PauseMenu/PanelContainer/VBoxContainer/Resume.grab_focus()
+	var p := _get_local_player()
+	if p:
+		p._input_locked = true
 
 func resume_game():
 	visible = false
-	get_tree().paused = false
+	var p := _get_local_player()
+	if p:
+		p._input_locked = false
 
 func _on_resume_pressed():
 	resume_game()
 
 func _on_restart_pressed():
-	get_tree().paused = false
 	get_node("/root/Main").respawn_player_by_id(multiplayer.get_unique_id())
 	visible = false
 
 func _on_title_pressed():
-	get_tree().paused = false
 	get_tree().change_scene_to_file("res://scenes/UI/TitleScreen.tscn")
 
 func _on_keybinds_pressed():

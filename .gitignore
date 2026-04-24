@@ -4,4 +4,4 @@
 *.pck
 .claude
 export_presets.cfg
-/addons
+addons/*

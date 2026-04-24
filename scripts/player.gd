@@ -14,6 +14,9 @@ const CONFUSION_RAY_SCENE = preload("res://scenes/weapons/ConfusionRay.tscn")
 
 const GHOST_BOMB_COOLDOWN := 3.0
 
+## Set to true to use the StickFigureRig, false to use AnimatedSprite2D.
+@export var USE_STICK_RIG := true
+
 const _JUMP_SFX  = preload("res://assets/sounds/my_jump.wav")
 const _DBJ_SFX   = preload("res://assets/sounds/dbj.wav")
 const _BOOST_SFX = preload("res://assets/sounds/boost.wav")
@@ -188,7 +191,9 @@ func _ready() -> void:
 	_outfit.setup(animated_sprite)
 	outfit_id = _outfit.apply_visuals(outfit_id)
 	_apply_rig_outfit_color(outfit_id)
-	animated_sprite.visible = false
+	animated_sprite.visible = not USE_STICK_RIG
+	if stick_rig != null:
+		stick_rig.visible = USE_STICK_RIG
 	_play_visual_animation(&"idle")
 	equip_weapon(DAGGER_SCENE)
 	_shield_node = SHIELD_SCENE.instantiate()
@@ -197,7 +202,7 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
-	if not is_multiplayer_authority():
+	if multiplayer.has_multiplayer_peer() and not is_multiplayer_authority():
 		return
 
 	_tick_timers(delta)
@@ -225,6 +230,12 @@ func _physics_process(delta: float) -> void:
 		PlayerState.AIR_BOOST:
 			velocity.x = facing_direction * stats.boost_speed * pow(1.30, passive_powerups.count(PowerupIds.DASH_BOOST_AIR))
 			velocity.y = 0.0
+			if Input.is_action_just_pressed("jump") and not _is_shielding and _boost_dbj_lockout <= 0.0:
+				if not has_dbj:
+					_transition_to(PlayerState.DOUBLE_JUMP)
+				elif _extra_jumps_used < passive_powerups.count(PowerupIds.EXTRA_JUMP):
+					_extra_jumps_used += 1
+					_transition_to(PlayerState.DOUBLE_JUMP)
 		PlayerState.DASH:
 			velocity.x = facing_direction * stats.dash_speed * pow(1.30, passive_powerups.count(PowerupIds.DASH_BOOST_GROUND))
 			if is_multiplayer_authority():
@@ -736,7 +747,8 @@ func update_direction(direction: float) -> void:
 	if direction != 0.0:
 		facing_direction = 1 if direction > 0.0 else -1
 	animated_sprite.flip_h = (facing_direction == -1)
-	stick_rig.set_facing(facing_direction)
+	if USE_STICK_RIG and stick_rig != null:
+		stick_rig.set_facing(facing_direction)
 
 
 func update_animation() -> void:
@@ -755,14 +767,17 @@ func update_animation() -> void:
 
 
 func _play_visual_animation(animation_name: StringName) -> void:
-	if stick_rig != null:
+	if USE_STICK_RIG and stick_rig != null:
 		stick_rig.play(animation_name)
 
 
-func _set_visual_visible(is_visible: bool) -> void:
-	if stick_rig != null:
-		stick_rig.visible = is_visible
-	animated_sprite.visible = false
+func _set_visual_visible(visibility: bool) -> void:
+	if USE_STICK_RIG:
+		if stick_rig != null:
+			stick_rig.visible = visibility
+		animated_sprite.visible = false
+	else:
+		animated_sprite.visible = visibility
 
 # ============================================================
 # DBJ ANIMATION CALLBACKS  (called by AnimationPlayer tracks)
@@ -936,13 +951,11 @@ func _do_spawn_zap(dir: int, thrower_id: int, dmg: int = 1, kbs: float = 1.0) ->
 # DAMAGE & DEATH
 # ============================================================
 
-func take_damage(amount: int, knockback: Vector2 = Vector2.ZERO, attacker_peer_id: int = -1) -> void:
+func take_damage(amount: int, knockback: Vector2 = Vector2.ZERO, attacker_peer_id: int = -1, bypass_ghost: bool = false) -> void:
 	if not is_multiplayer_authority():
 		return
-	if is_ghost:
-		var attacker_node := _find_player_by_peer_id(attacker_peer_id)
-		if attacker_node == null or PowerupIds.GHOST_HUNTER not in attacker_node.passive_powerups:
-			return
+	if is_ghost and not bypass_ghost:
+		return
 	if is_invuln or _is_shielding or _state == PlayerState.UI_LOCKED:
 		return
 	# Friendly-fire prevention
@@ -1301,9 +1314,11 @@ func _send_state_sync() -> void:
 	var shield_visible: bool = _shield_node.visible if _shield_node else false
 	var visual_visible := true
 	var visual_animation := str(animated_sprite.animation)
-	if stick_rig != null:
+	if USE_STICK_RIG and stick_rig != null:
 		visual_visible = stick_rig.visible
 		visual_animation = str(stick_rig.current_animation)
+	elif not USE_STICK_RIG:
+		visual_visible = animated_sprite.visible
 	if multiplayer.is_server():
 		for pid in _sync_peers:
 			_sync_state.rpc_id(pid, global_position, animated_sprite.flip_h,
@@ -1322,7 +1337,8 @@ func _sync_state(pos: Vector2, flip: bool, anim: String, body_visible: bool, vis
 	animated_sprite.flip_h  = flip
 	if animated_sprite.animation != anim:
 		animated_sprite.play(anim)
-	stick_rig.set_facing(-1 if flip else 1)
+	if USE_STICK_RIG and stick_rig != null:
+		stick_rig.set_facing(-1 if flip else 1)
 	_play_visual_animation(StringName(anim))
 	_set_visual_visible(visual_visible)
 	_shield_node.set_active(shield_visible)
