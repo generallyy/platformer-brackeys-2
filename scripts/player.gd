@@ -55,6 +55,7 @@ var _state: PlayerState = PlayerState.GROUNDED
 
 signal health_changed(new_health: int, max_health: int)
 signal powerups_changed(passive: Array, active: String)
+signal nudge_changed(text: String)
 
 func set_display_name(display_name: String) -> void:
 	_name_label.text = display_name
@@ -103,6 +104,14 @@ var team_id: int = 0  # 0 = no team
 var is_ghost             := false
 var _ghost_can_bomb      := true
 var _ghost_bomb_cooldown := 0.0
+
+# --- Spectator ---
+var is_spectator:         bool    = false
+var _spectator_mode:      int     = 0       # 0 = ghost, 1 = camera_lock
+var _spectate_idx:        int     = 0
+var _finished_at_goal:    bool    = false
+var _spectator_return_pos: Vector2
+var _goal_marker:         Node2D  = null
 
 # --- Combat ---
 var in_safe_zone          := false
@@ -181,6 +190,9 @@ func _physics_process(delta: float) -> void:
 	_update_damage_flash(delta)
 	_update_shield(delta)
 	_apply_gravity(delta)
+
+	if is_spectator and _spectator_mode == 1:
+		velocity = Vector2.ZERO
 
 	_input_direction = 0.0 if (_state == PlayerState.KNOCKED_BACK or _is_shielding or _input_locked) \
 			else Input.get_axis("move_left", "move_right")
@@ -391,7 +403,97 @@ func _update_shield(delta: float) -> void:
 	_shield_node.update_charge(shield_charge, stats.shield_max)
 
 
+func _local_peer_id_or_1() -> int:
+	return multiplayer.get_unique_id() if NetworkManager.is_active() else 1
+
+func _action_key_name(action: String) -> String:
+	for e in InputMap.action_get_events(action):
+		if e is InputEventKey:
+			return e.as_text_physical_keycode()
+	return "?"
+
+
+func enter_spectator_mode(pos: Vector2) -> void:
+	is_spectator          = true
+	_spectator_mode       = 0
+	_spectator_return_pos = pos
+	_dbj_frozen           = false
+	_dbj_freeze_timer     = 0.0
+	# Frozen character stays visible at the goal for everyone
+	_goal_marker = animated_sprite.duplicate() as AnimatedSprite2D
+	get_parent().add_child(_goal_marker)
+	_goal_marker.global_position = pos + animated_sprite.position
+	activate_ghost_mode(false, pos)
+	nudge_changed.emit("Press [%s] to enter spectate mode." % _action_key_name("interact"))
+	if not NetworkManager.is_active() or is_multiplayer_authority():
+		get_node("Camera2D").make_current()
+
+
+func exit_spectator_mode() -> void:
+	if _goal_marker:
+		_goal_marker.queue_free()
+		_goal_marker = null
+	var still_at_goal := _finished_at_goal  # deactivate_ghost_mode clears this
+	deactivate_ghost_mode()
+	if still_at_goal:
+		_finished_at_goal = true
+		global_position = _spectator_return_pos
+		_transition_to(PlayerState.UI_LOCKED)
+		nudge_changed.emit("You finished! Press [%s] to enter spectate mode." % _action_key_name("interact"))
+	else:
+		_transition_to(PlayerState.GROUNDED if is_on_floor() else PlayerState.AIRBORNE)
+
+
+func _enter_camera_lock_mode() -> void:
+	_spectator_mode = 1
+	modulate.a      = 0.0  # hide ghost body locally while watching another player
+	_spectate_idx   = 0
+	nudge_changed.emit("Press [%s] to enter ghost mode." % _action_key_name("interact"))
+	_advance_spectate_target(0)
+
+
+func _exit_camera_lock_mode() -> void:
+	_spectator_mode = 0
+	modulate.a      = 0.4  # restore ghost visibility
+	nudge_changed.emit("Press [%s] to enter spectate mode." % _action_key_name("interact"))
+	get_node("Camera2D").make_current()
+
+
+func _advance_spectate_target(delta: int) -> void:
+	var main := get_tree().get_root().get_node("Main")
+	var targets: Array = []
+	for p in main.spawned_players.values():
+		if p != self and not p.is_spectator and not p.is_ghost:
+			targets.append(p)
+	if targets.is_empty():
+		_exit_camera_lock_mode()
+		return
+	_spectate_idx = (_spectate_idx + delta) % targets.size()
+	targets[_spectate_idx].get_node("Camera2D").make_current()
+
+
 func _handle_ghost_input() -> void:
+	if is_spectator:
+		if _spectator_mode == 1:  # camera lock
+			var main := get_tree().get_root().get_node("Main")
+			var has_valid := false
+			for p in main.spawned_players.values():
+				if p != self and not p.is_spectator and not p.is_ghost:
+					has_valid = true
+					break
+			if not has_valid:
+				_exit_camera_lock_mode()
+			elif Input.is_action_just_pressed("interact"):
+				_exit_camera_lock_mode()
+			elif Input.is_action_just_pressed("move_right"):
+				_advance_spectate_target(1)
+			elif Input.is_action_just_pressed("move_left"):
+				_advance_spectate_target(-1)
+			return  # no body movement in camera lock
+		else:  # ghost submode
+			if Input.is_action_just_pressed("interact"):
+				_enter_camera_lock_mode()
+				return
 	# Jump / double jump
 	if Input.is_action_just_pressed("jump") and _input_cooldown <= 0.0:
 		if is_on_floor():
@@ -441,6 +543,8 @@ func activate_ghost_mode(can_bomb: bool = true, spawn_pos: Vector2 = Vector2.ZER
 	modulate.a = 0.4 if can_bomb else 0.0
 	if _state == PlayerState.UI_LOCKED or _state == PlayerState.KNOCKED_BACK:
 		_transition_to(PlayerState.AIRBORNE if not is_on_floor() else PlayerState.GROUNDED)
+	if can_bomb and not is_spectator:
+		nudge_changed.emit("You are dead! Press [%s] to drop a bomb." % _action_key_name("attack"))
 	for p in get_tree().get_nodes_in_group("player"):
 		if p != self:
 			add_collision_exception_with(p)
@@ -450,12 +554,35 @@ func activate_ghost_mode(can_bomb: bool = true, spawn_pos: Vector2 = Vector2.ZER
 func deactivate_ghost_mode() -> void:
 	if not is_ghost:
 		return
+	if is_spectator:
+		if not NetworkManager.is_active() or is_multiplayer_authority():
+			get_node("Camera2D").make_current()
+		is_spectator      = false
+		_spectator_mode   = 0
+		_finished_at_goal = false
+	if _goal_marker:
+		_goal_marker.queue_free()
+		_goal_marker = null
+	nudge_changed.emit("")
 	is_ghost   = false
 	modulate.a = 1.0
 	for p in get_tree().get_nodes_in_group("player"):
 		if p != self:
 			remove_collision_exception_with(p)
 			p.remove_collision_exception_with(self)
+
+
+func _input(event: InputEvent) -> void:
+	if NetworkManager.is_active() and not is_multiplayer_authority():
+		return
+	if _finished_at_goal and not is_spectator and _state == PlayerState.UI_LOCKED:
+		if event.is_action_pressed("interact"):
+			get_tree().get_root().get_node("Main").request_enter_spectator(_local_peer_id_or_1())
+			get_viewport().set_input_as_handled()
+			return
+	if is_spectator and event.is_action_pressed("ui_cancel"):
+		get_tree().get_root().get_node("Main").request_exit_spectator(_local_peer_id_or_1())
+		get_viewport().set_input_as_handled()
 
 
 func _handle_input(_delta: float) -> void:
@@ -875,10 +1002,13 @@ func set_finished(finished: bool) -> void:
 
 @rpc("any_peer", "call_local", "reliable")
 func _rpc_set_finished(finished: bool) -> void:
+	_finished_at_goal = finished
 	if finished:
 		_transition_to(PlayerState.UI_LOCKED)
+		nudge_changed.emit("You have finished! Press [%s] to enter spectate mode." % _action_key_name("interact"))
 	else:
 		_transition_to(PlayerState.GROUNDED if is_on_floor() else PlayerState.AIRBORNE)
+		nudge_changed.emit("")
 
 # ============================================================
 # POWERUPS
