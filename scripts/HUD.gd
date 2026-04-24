@@ -39,6 +39,11 @@ func set_game_mode(gm: Node) -> void:
 
 
 @onready var _powerups_label: Label = $PowerupsLabel
+@onready var _nudge_label:    Label = $Nudge
+
+func set_nudge(text: String) -> void:
+	_nudge_label.text    = text
+	_nudge_label.visible = not text.is_empty()
 
 func update_hearts(current: int, max_health: int = 3) -> void:
 	var text := ""

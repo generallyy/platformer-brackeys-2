@@ -46,6 +46,13 @@ corner_radius_top_right = 15
 corner_radius_bottom_right = 15
 corner_radius_bottom_left = 15
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_choun"]
+bg_color = Color(0.20784314, 0.20784314, 0.20784314, 0.7647059)
+expand_margin_left = 20.0
+expand_margin_top = 20.0
+expand_margin_right = 20.0
+expand_margin_bottom = 20.0
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_w7i0f"]
 bg_color = Color(0.154876, 0.154876, 0.154876, 1)
 border_width_left = 5
@@ -225,6 +232,23 @@ offset_right = 1428.0
 offset_bottom = 847.0
 theme_override_styles/normal = SubResource("StyleBoxFlat_eb6dy")
 text = "hi guys"
+
+[node name="Nudge" type="Label" parent="HUD" unique_id=555481895]
+visible = false
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -387.5
+offset_top = 234.0
+offset_right = 387.5
+offset_bottom = 306.91666
+grow_horizontal = 2
+theme = ExtResource("5_tipki")
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 8
+theme_override_styles/normal = SubResource("StyleBoxFlat_choun")
+text = "hi guys this is just some dummy text"
+horizontal_alignment = 1
 
 [node name="PauseMenu" type="CanvasLayer" parent="." unique_id=1678797512]
 process_mode = 3

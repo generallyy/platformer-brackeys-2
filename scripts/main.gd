@@ -137,6 +137,13 @@ func get_player_display_name(peer_id: int) -> String:
 func _local_peer_id() -> int:
 	return multiplayer.get_unique_id() if NetworkManager.is_active() else 1
 
+func _active_player_numbers() -> Dictionary:
+	var result := {}
+	for peer_id in _player_numbers:
+		if peer_id in spawned_players:
+			result[peer_id] = _player_numbers[peer_id]
+	return result
+
 func _register_name(peer_id: int, raw_name: String) -> void:
 	var n := raw_name.strip_edges()
 	if n.is_empty():
@@ -153,7 +160,7 @@ func _sync_player_name(peer_id: int, display_name: String) -> void:
 	if peer_id in spawned_players:
 		spawned_players[peer_id].set_display_name(display_name)
 	hud.update_scores(game_mode.scores, _player_numbers, game_mode.stocks, player_names)
-	hud.update_kda(game_mode.kda_kills, game_mode.kda_deaths, _player_numbers, player_names, game_mode.kda_damage, _local_peer_id(), team_colors)
+	hud.update_kda(game_mode.kda_kills, game_mode.kda_deaths, _active_player_numbers(), player_names, game_mode.kda_damage, _local_peer_id(), team_colors)
 
 func _spawn_player(peer_id: int):
 	if peer_id in spawned_players:
@@ -175,6 +182,7 @@ func _spawn_player(peer_id: int):
 		cam.make_current()
 		p.health_changed.connect(hud.update_hearts)
 		p.powerups_changed.connect(hud.update_powerups)
+		p.nudge_changed.connect(hud.set_nudge)
 
 func request_load_level(path: String) -> void:
 	if NetworkManager.is_active() and not multiplayer.is_server():
@@ -201,7 +209,6 @@ func _load_level_local(path: String) -> bool:
 		p.is_frozen = false
 		p.health = p.get_effective_max_health()
 		p.health_changed.emit(p.health, p.get_effective_max_health())
-		print(p.health)
 	loading_screen.visible = true
 	close_wardrobe()
 	powerups_menu.close_menu()
@@ -220,6 +227,7 @@ func _load_level_local(path: String) -> bool:
 		push_error("No PlayerSpawn found in level: %s" % path)
 	var spawn_pos: Vector2 = spawn.global_position if spawn else Vector2.ZERO
 	for p in spawned_players.values():
+		p.deactivate_ghost_mode()
 		for other in spawned_players.values():
 			if other != p:
 				p.remove_collision_exception_with(other)
@@ -404,7 +412,7 @@ func _on_round_started(round_number: int) -> void:
 		msg = "Round %d — GO!" % round_number
 	hud.show_announcement(msg)
 	hud.update_scores(game_mode.scores, _player_numbers, game_mode.stocks, player_names)
-	hud.update_kda(game_mode.kda_kills, game_mode.kda_deaths, _player_numbers, player_names, game_mode.kda_damage, _local_peer_id(), team_colors)
+	hud.update_kda(game_mode.kda_kills, game_mode.kda_deaths, _active_player_numbers(), player_names, game_mode.kda_damage, _local_peer_id(), team_colors)
 	_freeze_for_all_players(hud.ANNOUNCEMENT_DURATION)
 
 func _on_round_ended(finishers: Array, scores: Dictionary) -> void:
@@ -512,7 +520,7 @@ func _sync_team_change(peer_id: int, tid: int) -> void:
 		team_colors[peer_id] = get_team_color(tid)
 	if peer_id in spawned_players:
 		spawned_players[peer_id].set_team(tid, get_team_color(tid))
-	hud.update_kda(game_mode.kda_kills, game_mode.kda_deaths, _player_numbers, player_names, game_mode.kda_damage, _local_peer_id(), team_colors)
+	hud.update_kda(game_mode.kda_kills, game_mode.kda_deaths, _active_player_numbers(), player_names, game_mode.kda_damage, _local_peer_id(), team_colors)
 
 func notify_kill(killer_peer_id: int, victim_peer_id: int) -> void:
 	if NetworkManager.is_active() and not multiplayer.is_server():
@@ -590,6 +598,77 @@ func _activate_ghost(peer_id: int) -> void:
 func _sync_activate_ghost(peer_id: int, can_bomb: bool, pos: Vector2) -> void:
 	if peer_id in spawned_players:
 		spawned_players[peer_id].activate_ghost_mode(can_bomb, pos)
+		_update_spectator_visibility()
+
+# ============================================================
+# SPECTATOR
+# ============================================================
+
+func _update_spectator_visibility() -> void:
+	var local_id  := _local_peer_id()
+	var local_p   = spawned_players.get(local_id)
+	var can_see: bool = local_p == null or local_p.is_ghost or local_p.is_spectator
+	for peer_id in spawned_players:
+		var p = spawned_players[peer_id]
+		if p.is_spectator:
+			p.modulate.a = 0.4 if can_see else 0.0
+
+func request_enter_spectator(peer_id: int) -> void:
+	if NetworkManager.is_active() and not multiplayer.is_server():
+		_req_enter_spectator.rpc_id(1, peer_id)
+		return
+	_do_enter_spectator(peer_id)
+
+@rpc("any_peer", "reliable")
+func _req_enter_spectator(peer_id: int) -> void:
+	if not multiplayer.is_server():
+		return
+	if multiplayer.get_remote_sender_id() != peer_id:
+		return
+	_do_enter_spectator(peer_id)
+
+func _do_enter_spectator(peer_id: int) -> void:
+	if peer_id not in spawned_players:
+		return
+	var pos: Vector2 = spawned_players[peer_id].global_position
+	if NetworkManager.is_active():
+		_sync_enter_spectator.rpc(peer_id, pos)
+	else:
+		_sync_enter_spectator(peer_id, pos)
+
+@rpc("authority", "call_local", "reliable")
+func _sync_enter_spectator(peer_id: int, pos: Vector2) -> void:
+	if peer_id in spawned_players:
+		spawned_players[peer_id].enter_spectator_mode(pos)
+		_update_spectator_visibility()
+
+func request_exit_spectator(peer_id: int) -> void:
+	if NetworkManager.is_active() and not multiplayer.is_server():
+		_req_exit_spectator.rpc_id(1, peer_id)
+		return
+	_do_exit_spectator(peer_id)
+
+@rpc("any_peer", "reliable")
+func _req_exit_spectator(peer_id: int) -> void:
+	if not multiplayer.is_server():
+		return
+	if multiplayer.get_remote_sender_id() != peer_id:
+		return
+	_do_exit_spectator(peer_id)
+
+func _do_exit_spectator(peer_id: int) -> void:
+	if peer_id not in spawned_players:
+		return
+	if NetworkManager.is_active():
+		_sync_exit_spectator.rpc(peer_id)
+	else:
+		_sync_exit_spectator(peer_id)
+
+@rpc("authority", "call_local", "reliable")
+func _sync_exit_spectator(peer_id: int) -> void:
+	if peer_id in spawned_players:
+		spawned_players[peer_id].exit_spectator_mode()
+		_update_spectator_visibility()
 
 func _do_respawn(peer_id: int):
 	if not peer_id in spawned_players:
@@ -608,7 +687,7 @@ func _do_respawn(peer_id: int):
 @rpc("authority", "call_local", "reliable")
 func _sync_respawn(peer_id: int, pos: Vector2):
 	if peer_id in spawned_players:
-		var p = spawned_players[peer_id]
+		var p: Node2D = spawned_players[peer_id]
 		p.global_position = pos
 		p.velocity = Vector2.ZERO
 		p.set_physics_process(true)
