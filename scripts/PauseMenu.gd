@@ -11,6 +11,8 @@ const ACTIONS := {
 	"shield": "Shield",
 	"interact": "Interact / Equip",
 	"use_active": "Use Active Powerup",
+	"blackjack": "Blackjack",
+	"eight_ball": "8-Ball",
 }
 
 const SLOTS := 3
@@ -239,6 +241,14 @@ func _close_keybinds() -> void:
 func _input(event: InputEvent) -> void:
 	# Pause toggle always runs
 	if event.is_action_pressed("pause"):
+		var blackjack_menu := get_parent().get_node_or_null("BlackjackMenu")
+		if blackjack_menu != null and blackjack_menu.visible:
+			get_viewport().set_input_as_handled()
+			return
+		var eight_ball_menu := get_parent().get_node_or_null("EightBallMenu")
+		if eight_ball_menu != null and eight_ball_menu.visible:
+			get_viewport().set_input_as_handled()
+			return
 		if visible:
 			resume_game()
 		else:

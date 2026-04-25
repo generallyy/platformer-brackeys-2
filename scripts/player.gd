@@ -87,7 +87,11 @@ var is_frozen: bool:
 
 var _input_direction    := 0.0
 var _input_locked       := false
+var _external_input_locks: Dictionary = {}
 var _pre_slide_velocity := Vector2.ZERO
+var _environmental_velocity_delta := Vector2.ZERO
+var _environmental_speed_caps: Array[Dictionary] = []
+var _environmental_push_sources: Dictionary = {}
 var gravity: float       = ProjectSettings.get_setting("physics/2d/default_gravity")
 
 # --- Air abilities ---
@@ -213,7 +217,7 @@ func _physics_process(delta: float) -> void:
 	if is_spectator and _spectator_mode == 1:
 		velocity = Vector2.ZERO
 
-	_input_direction = 0.0 if (_state == PlayerState.KNOCKED_BACK or _is_shielding or _input_locked) \
+	_input_direction = 0.0 if (_state == PlayerState.KNOCKED_BACK or _is_shielding or has_input_lock()) \
 			else Input.get_axis("move_left", "move_right")
 	if _is_confused:
 		_input_direction = -_input_direction
@@ -258,6 +262,7 @@ func _physics_process(delta: float) -> void:
 			if _state not in [PlayerState.AIR_BOOST, PlayerState.DASH]:
 				_apply_movement(delta)
 
+	_apply_environmental_pushes(delta)
 	_pre_slide_velocity = velocity
 	move_and_slide()
 	_check_landing()
@@ -444,7 +449,7 @@ func _apply_gravity(delta: float) -> void:
 
 func _update_shield(delta: float) -> void:
 	var can_shield := _state != PlayerState.KNOCKED_BACK and _state != PlayerState.UI_LOCKED
-	var want_shield := can_shield and Input.is_action_pressed("shield") \
+	var want_shield := can_shield and not has_input_lock() and Input.is_action_pressed("shield") \
 			and (_is_shielding or shield_charge > 0.25)
 	_is_shielding = want_shield
 	if _is_shielding:
@@ -631,6 +636,8 @@ func _input(event: InputEvent) -> void:
 
 
 func _handle_input(_delta: float) -> void:
+	if has_input_lock():
+		return
 	if is_ghost:
 		_handle_ghost_input()
 		return
@@ -1050,6 +1057,70 @@ func _play_boost_particles() -> void:
 func _rpc_receive_dash_push(push_velocity_x: float) -> void:
 	velocity.x = push_velocity_x
 
+
+func apply_environmental_push(push_delta: Vector2, max_speed: float = -1.0) -> void:
+	if not is_multiplayer_authority():
+		return
+	if push_delta.is_zero_approx():
+		return
+
+	_environmental_velocity_delta += push_delta
+	if max_speed > 0.0:
+		var push_direction := push_delta.normalized()
+		if not push_direction.is_zero_approx():
+			_environmental_speed_caps.append({
+				"dir": push_direction,
+				"max": max_speed,
+			})
+
+
+func set_environmental_push_source(source_id: int, acceleration: Vector2, max_speed: float = -1.0) -> void:
+	if not is_multiplayer_authority():
+		return
+	if acceleration.is_zero_approx():
+		_environmental_push_sources.erase(source_id)
+		return
+
+	_environmental_push_sources[source_id] = {
+		"acceleration": acceleration,
+		"max": max_speed,
+	}
+
+
+func clear_environmental_push_source(source_id: int) -> void:
+	_environmental_push_sources.erase(source_id)
+
+
+func _apply_environmental_pushes(delta: float) -> void:
+	if not _environmental_velocity_delta.is_zero_approx():
+		velocity += _environmental_velocity_delta
+
+	for cap in _environmental_speed_caps:
+		var push_direction: Vector2 = cap.get("dir", Vector2.ZERO)
+		var cap_speed: float = cap.get("max", -1.0)
+		if push_direction.is_zero_approx() or cap_speed <= 0.0:
+			continue
+		var along_push: float = velocity.dot(push_direction)
+		if along_push > cap_speed:
+			velocity -= push_direction * (along_push - cap_speed)
+
+	for source in _environmental_push_sources.values():
+		var acceleration: Vector2 = source.get("acceleration", Vector2.ZERO)
+		var push_direction := acceleration.normalized()
+		if push_direction.is_zero_approx():
+			continue
+
+		velocity += acceleration * delta
+
+		var source_cap: float = source.get("max", -1.0)
+		if source_cap > 0.0:
+			var current_speed: float = velocity.dot(push_direction)
+			if current_speed > source_cap:
+				velocity -= push_direction * (current_speed - source_cap)
+
+	_environmental_velocity_delta = Vector2.ZERO
+	_environmental_speed_caps.clear()
+
 @rpc("authority", "unreliable")
 func _rpc_effect_boost(anchor_x: float, anchor_y: float, dir: Vector3) -> void:
 	_effects_anchor.position                    = Vector2(anchor_x, anchor_y)
@@ -1075,6 +1146,17 @@ func _resolve_body_collisions() -> void:
 # ============================================================
 # UI LOCK / FINISHED
 # ============================================================
+
+func has_input_lock() -> bool:
+	return _input_locked or not _external_input_locks.is_empty()
+
+
+func set_external_input_lock(source_id: StringName, locked: bool) -> void:
+	if locked:
+		_external_input_locks[source_id] = true
+	else:
+		_external_input_locks.erase(source_id)
+
 
 func set_ui_locked(locked: bool) -> void:
 	if locked:
@@ -1141,6 +1223,7 @@ func clear_powerups() -> void:
 	_is_stunned             = false
 	_stun_timer             = 0.0
 	_input_locked           = false
+	_external_input_locks.clear()
 	_is_confused            = false
 	_confusion_timer        = 0.0
 	_is_invisible           = false
@@ -1164,6 +1247,7 @@ func reset_round_powerup_state() -> void:
 	_is_stunned             = false
 	_stun_timer             = 0.0
 	_input_locked           = false
+	_external_input_locks.clear()
 	_is_confused            = false
 	_confusion_timer        = 0.0
 	_is_invisible           = false

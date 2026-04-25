@@ -18,6 +18,7 @@ var kills_required_for_goal: bool = false
 var current_level_path := "res://scenes/levels/Level0.tscn"
 var _respawn_points: Dictionary = {}
 var _wardrobe_player: Node = null
+var _eight_ball_session: Dictionary = EightBallLogic.create_idle_session()
 
 const _MOUSE_HIDE_DELAY := 2.0
 var _mouse_idle := 0.0
@@ -28,6 +29,8 @@ var _window_focused := true
 @onready var loading_screen = $LoadingScreen
 @onready var hud = $HUD
 @onready var wardrobe_menu = $WardrobeMenu
+@onready var blackjack_menu = $BlackjackMenu
+@onready var eight_ball_menu = $EightBallMenu
 @onready var game_mode = $GameMode
 @onready var powerups_menu = $HUD/PowerupsMenu
 
@@ -40,7 +43,17 @@ func _ready() -> void:
 	)
 	#pause_menu.visible = false
 	wardrobe_menu.visible = false
+	blackjack_menu.close_menu()
+	eight_ball_menu.close_menu()
 	hud.visible = true
+	blackjack_menu.close_requested.connect(close_blackjack)
+	eight_ball_menu.close_requested.connect(close_eight_ball)
+	eight_ball_menu.challenge_requested.connect(request_eight_ball_challenge)
+	eight_ball_menu.accept_requested.connect(request_accept_eight_ball)
+	eight_ball_menu.decline_requested.connect(request_decline_eight_ball)
+	eight_ball_menu.leave_requested.connect(request_leave_eight_ball)
+	eight_ball_menu.shot_requested.connect(request_eight_ball_shot)
+	_push_eight_ball_state_local()
 	
 	hud.set_game_mode(game_mode)
 	game_mode.round_started.connect(_on_round_started)
@@ -63,7 +76,7 @@ func _ready() -> void:
 		_request_state.rpc_id(1, NetworkManager.local_name)
 
 func _process(delta: float) -> void:
-	if not _window_focused or pause_menu.visible:
+	if not _window_focused or pause_menu.visible or blackjack_menu.visible or eight_ball_menu.visible:
 		return
 	_mouse_idle += delta
 	if _mouse_idle >= _MOUSE_HIDE_DELAY:
@@ -73,6 +86,26 @@ func _input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion:
 		_mouse_idle = 0.0
 		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+	if event is InputEventKey and event.echo:
+		return
+	if event.is_action_pressed("blackjack"):
+		if blackjack_menu.visible:
+			close_blackjack()
+		elif not pause_menu.visible and not loading_screen.visible and not wardrobe_menu.visible and not powerups_menu.visible and not eight_ball_menu.visible:
+			open_blackjack()
+		get_viewport().set_input_as_handled()
+		return
+	if event.is_action_pressed("eight_ball"):
+		if eight_ball_menu.visible:
+			close_eight_ball()
+		elif not pause_menu.visible and not loading_screen.visible and not powerups_menu.visible and not blackjack_menu.visible:
+			open_eight_ball()
+		get_viewport().set_input_as_handled()
+		return
+
+
+func _unhandled_input(_event: InputEvent) -> void:
+	pass
 
 func _on_peer_connected(_id: int):
 	pass  # client initiates via _request_state
@@ -81,6 +114,8 @@ func _on_peer_disconnected(id: int):
 	for p in spawned_players.values():
 		p.remove_sync_peer(id)
 	if multiplayer.is_server():
+		if EightBallLogic.is_participant(_eight_ball_session, id):
+			_set_eight_ball_session(EightBallLogic.create_idle_session("%s left the table." % get_player_display_name(id)))
 		_rpc_despawn.rpc(id)
 
 # Client asks server for current state on join
@@ -112,6 +147,7 @@ func _request_state(player_name: String = ""):
 	for existing_id in player_teams:
 		if player_teams[existing_id] != 0:
 			_sync_team_change.rpc_id(caller, existing_id, player_teams[existing_id])
+	_sync_eight_ball_session.rpc_id(caller, _eight_ball_session)
 
 @rpc("authority", "call_local", "reliable")
 func _rpc_spawn(peer_id: int):
@@ -122,6 +158,7 @@ func _rpc_despawn(peer_id: int):
 	if peer_id in spawned_players:
 		spawned_players[peer_id].queue_free()
 		spawned_players.erase(peer_id)
+	_push_eight_ball_state_local()
 
 func get_player_number(peer_id: int) -> int:
 	return _player_numbers.get(peer_id, peer_id)
@@ -134,6 +171,39 @@ func get_player_display_name(peer_id: int) -> String:
 
 func _local_peer_id() -> int:
 	return multiplayer.get_unique_id()
+
+func _active_peer_ids() -> Array:
+	var result: Array = []
+	for peer_id in spawned_players.keys():
+		result.append(peer_id)
+	result.sort()
+	return result
+
+func _push_eight_ball_state_local(auto_open: bool = false) -> void:
+	if eight_ball_menu == null:
+		return
+	eight_ball_menu.apply_state(_eight_ball_session, player_names, _active_peer_ids(), _local_peer_id())
+	var local_peer := _local_peer_id()
+	var phase := String(_eight_ball_session.get("phase", "idle"))
+	var should_open := (phase == "invite" and int(_eight_ball_session.get("opponent_id", 0)) == local_peer) \
+			or (phase == "active" and EightBallLogic.is_participant(_eight_ball_session, local_peer))
+	if auto_open and should_open and not eight_ball_menu.visible and not loading_screen.visible and not powerups_menu.visible and not pause_menu.visible:
+		close_blackjack()
+		close_wardrobe()
+		open_eight_ball()
+
+func _set_eight_ball_session(session: Dictionary) -> void:
+	_sync_eight_ball_session.rpc(session)
+
+@rpc("authority", "call_local", "reliable")
+func _sync_eight_ball_session(session: Dictionary) -> void:
+	var previous_phase := String(_eight_ball_session.get("phase", "idle"))
+	_eight_ball_session = session.duplicate(true)
+	var local_peer := _local_peer_id()
+	var new_phase := String(_eight_ball_session.get("phase", "idle"))
+	var auto_open := (new_phase == "invite" and int(_eight_ball_session.get("opponent_id", 0)) == local_peer and previous_phase != "invite") \
+			or (new_phase == "active" and EightBallLogic.is_participant(_eight_ball_session, local_peer) and previous_phase != "active")
+	_push_eight_ball_state_local(auto_open)
 
 func _active_player_numbers() -> Dictionary:
 	var result := {}
@@ -158,6 +228,7 @@ func _sync_player_name(peer_id: int, display_name: String) -> void:
 		spawned_players[peer_id].set_display_name(display_name)
 	hud.update_scores(game_mode.scores, _player_numbers, game_mode.stocks, player_names)
 	hud.update_kda(game_mode.kda_kills, game_mode.kda_deaths, _active_player_numbers(), player_names, game_mode.kda_damage, _local_peer_id(), team_colors, game_mode.kda_damage_taken)
+	_push_eight_ball_state_local()
 
 func _spawn_player(peer_id: int):
 	if peer_id in spawned_players:
@@ -180,6 +251,7 @@ func _spawn_player(peer_id: int):
 		p.health_changed.connect(hud.update_hearts)
 		p.powerups_changed.connect(hud.update_powerups)
 		p.nudge_changed.connect(hud.set_nudge)
+	_push_eight_ball_state_local()
 
 func request_load_level(path: String) -> void:
 	if NetworkManager.is_online() and not multiplayer.is_server():
@@ -202,6 +274,10 @@ func load_level(path: String) -> void:
 func _load_level_local(path: String) -> bool:
 	game_mode.stop_game()
 	_clear_all_player_powerups()
+	close_blackjack()
+	close_eight_ball()
+	if multiplayer.is_server():
+		_set_eight_ball_session(EightBallLogic.create_idle_session("Rack cleared for the new level."))
 	for p in spawned_players.values():
 		p.is_frozen = false
 		p.health = p.get_effective_max_health()
@@ -308,6 +384,8 @@ func open_wardrobe(player: Node) -> void:
 		return
 	if _wardrobe_player == player and wardrobe_menu.visible:
 		return
+	close_blackjack()
+	close_eight_ball()
 	close_wardrobe()
 	_wardrobe_player = player
 	if is_instance_valid(_wardrobe_player):
@@ -319,6 +397,152 @@ func close_wardrobe() -> void:
 		_wardrobe_player.set_ui_locked(false)
 	_wardrobe_player = null
 	wardrobe_menu.close_menu()
+
+
+func open_blackjack() -> void:
+	var player: Node2D = spawned_players.get(multiplayer.get_unique_id())
+	close_eight_ball()
+	if player != null:
+		player.set_external_input_lock(&"blackjack", true)
+	_mouse_idle = 0.0
+	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+	blackjack_menu.open_menu()
+
+
+func close_blackjack() -> void:
+	if not blackjack_menu.visible:
+		return
+	blackjack_menu.close_menu()
+	var player: Node2D = spawned_players.get(multiplayer.get_unique_id())
+	if player != null:
+		player.set_external_input_lock(&"blackjack", false)
+
+
+func open_eight_ball() -> void:
+	var player: Node2D = spawned_players.get(multiplayer.get_unique_id())
+	close_blackjack()
+	close_wardrobe()
+	if player != null:
+		player.set_external_input_lock(&"eight_ball", true)
+	_mouse_idle = 0.0
+	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+	eight_ball_menu.open_menu()
+	_push_eight_ball_state_local(false)
+
+
+func close_eight_ball() -> void:
+	if not eight_ball_menu.visible:
+		return
+	eight_ball_menu.close_menu()
+	var player: Node2D = spawned_players.get(multiplayer.get_unique_id())
+	if player != null:
+		player.set_external_input_lock(&"eight_ball", false)
+
+func request_eight_ball_challenge(opponent_id: int) -> void:
+	var peer_id := _local_peer_id()
+	if peer_id == 0 or opponent_id == 0 or peer_id == opponent_id:
+		return
+	if NetworkManager.is_online() and not multiplayer.is_server():
+		_req_eight_ball_challenge.rpc_id(1, peer_id, opponent_id)
+		return
+	_do_eight_ball_challenge(peer_id, opponent_id)
+
+@rpc("any_peer", "reliable")
+func _req_eight_ball_challenge(peer_id: int, opponent_id: int) -> void:
+	if multiplayer.get_remote_sender_id() != peer_id:
+		return
+	_do_eight_ball_challenge(peer_id, opponent_id)
+
+func _do_eight_ball_challenge(peer_id: int, opponent_id: int) -> void:
+	if String(_eight_ball_session.get("phase", "idle")) != "idle":
+		return
+	if peer_id not in spawned_players or opponent_id not in spawned_players:
+		return
+	_set_eight_ball_session(EightBallLogic.create_invite_session(peer_id, opponent_id))
+
+func request_accept_eight_ball() -> void:
+	var peer_id := _local_peer_id()
+	if NetworkManager.is_online() and not multiplayer.is_server():
+		_req_accept_eight_ball.rpc_id(1, peer_id)
+		return
+	_do_accept_eight_ball(peer_id)
+
+@rpc("any_peer", "reliable")
+func _req_accept_eight_ball(peer_id: int) -> void:
+	if multiplayer.get_remote_sender_id() != peer_id:
+		return
+	_do_accept_eight_ball(peer_id)
+
+func _do_accept_eight_ball(peer_id: int) -> void:
+	if String(_eight_ball_session.get("phase", "idle")) != "invite":
+		return
+	if int(_eight_ball_session.get("opponent_id", 0)) != peer_id:
+		return
+	_set_eight_ball_session(EightBallLogic.create_match_session(int(_eight_ball_session.get("challenger_id", 0)), peer_id))
+
+func request_decline_eight_ball() -> void:
+	var peer_id := _local_peer_id()
+	if NetworkManager.is_online() and not multiplayer.is_server():
+		_req_decline_eight_ball.rpc_id(1, peer_id)
+		return
+	_do_decline_eight_ball(peer_id)
+
+@rpc("any_peer", "reliable")
+func _req_decline_eight_ball(peer_id: int) -> void:
+	if multiplayer.get_remote_sender_id() != peer_id:
+		return
+	_do_decline_eight_ball(peer_id)
+
+func _do_decline_eight_ball(peer_id: int) -> void:
+	if String(_eight_ball_session.get("phase", "idle")) != "invite":
+		return
+	if int(_eight_ball_session.get("opponent_id", 0)) != peer_id:
+		return
+	_set_eight_ball_session(EightBallLogic.create_idle_session("%s declined the challenge." % get_player_display_name(peer_id)))
+
+func request_leave_eight_ball() -> void:
+	var peer_id := _local_peer_id()
+	if NetworkManager.is_online() and not multiplayer.is_server():
+		_req_leave_eight_ball.rpc_id(1, peer_id)
+		return
+	_do_leave_eight_ball(peer_id)
+
+@rpc("any_peer", "reliable")
+func _req_leave_eight_ball(peer_id: int) -> void:
+	if multiplayer.get_remote_sender_id() != peer_id:
+		return
+	_do_leave_eight_ball(peer_id)
+
+func _do_leave_eight_ball(peer_id: int) -> void:
+	if not EightBallLogic.is_participant(_eight_ball_session, peer_id):
+		return
+	var phase := String(_eight_ball_session.get("phase", "idle"))
+	var message := "%s left the table." % get_player_display_name(peer_id)
+	if phase == "invite":
+		if int(_eight_ball_session.get("challenger_id", 0)) == peer_id:
+			message = "%s cancelled the challenge." % get_player_display_name(peer_id)
+		else:
+			message = "%s backed out of the challenge." % get_player_display_name(peer_id)
+	_set_eight_ball_session(EightBallLogic.create_idle_session(message))
+
+func request_eight_ball_shot(angle: float, power: float) -> void:
+	var peer_id := _local_peer_id()
+	if NetworkManager.is_online() and not multiplayer.is_server():
+		_req_eight_ball_shot.rpc_id(1, peer_id, angle, power)
+		return
+	_do_eight_ball_shot(peer_id, angle, power)
+
+@rpc("any_peer", "reliable")
+func _req_eight_ball_shot(peer_id: int, angle: float, power: float) -> void:
+	if multiplayer.get_remote_sender_id() != peer_id:
+		return
+	_do_eight_ball_shot(peer_id, angle, power)
+
+func _do_eight_ball_shot(peer_id: int, angle: float, power: float) -> void:
+	if not EightBallLogic.is_shot_allowed(_eight_ball_session, peer_id):
+		return
+	var animation_id := int(_eight_ball_session.get("animation_id", 0)) + 1
+	_set_eight_ball_session(EightBallLogic.apply_shot(_eight_ball_session, peer_id, angle, power, animation_id))
 
 func request_player_outfit_change(peer_id: int, outfit_id: int) -> void:
 	if NetworkManager.is_online() and not multiplayer.is_server():
@@ -386,6 +610,8 @@ func _freeze_for_all_players(duration: float) -> void:
 		p.freeze_for_duration(duration)
 
 func _on_round_started(round_number: int) -> void:
+	close_blackjack()
+	close_eight_ball()
 	powerups_menu.close_menu()
 	_grant_round_powerup_state()
 	var msg: String
@@ -401,6 +627,8 @@ func _on_round_started(round_number: int) -> void:
 	_freeze_for_all_players(hud.ANNOUNCEMENT_DURATION)
 
 func _on_round_ended(finishers: Array, scores: Dictionary) -> void:
+	close_blackjack()
+	close_eight_ball()
 	hud.update_scores(scores, _player_numbers, game_mode.stocks, player_names)
 	var msg: String
 	if finishers.is_empty():
@@ -413,6 +641,8 @@ func _on_round_ended(finishers: Array, scores: Dictionary) -> void:
 		p.set_finished(false)
 
 func _on_game_over(winner_peer_id: int, scores: Dictionary) -> void:
+	close_blackjack()
+	close_eight_ball()
 	hud.update_scores(scores, _player_numbers, {}, player_names)
 	hud.show_announcement("%s wins!" % get_player_display_name(winner_peer_id), 3.0)
 	respawn_all_at_spawn()
@@ -427,6 +657,8 @@ func _on_kda_changed(kda_kills: Dictionary, kda_deaths: Dictionary, kda_damage: 
 	hud.update_kda(kda_kills, kda_deaths, _active_player_numbers(), player_names, kda_damage, _local_peer_id(), team_colors, kda_damage_taken)
 
 func _on_powerups_distribute(_scores: Dictionary, finishers: Array) -> void:
+	close_blackjack()
+	close_eight_ball()
 	var local_peer := multiplayer.get_unique_id()
 	var player = spawned_players.get(local_peer)
 	if player == null:

@@ -1,0 +1,20 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/hazards/hazard_projectile.gd" id="1_script"]
+
+[sub_resource type="RectangleShape2D" id="1_rect"]
+size = Vector2(24, 6)
+
+[node name="HazardArrow" type="Area2D"]
+script = ExtResource("1_script")
+local_velocity = Vector2(380, 0)
+lifetime = 2.6
+hit_knockback = 250.0
+knockback_bias = Vector2(0, -35)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("1_rect")
+
+[node name="Arrow" type="Polygon2D" parent="."]
+color = Color(0.84705883, 0.72156864, 0.3529412, 1)
+polygon = PackedVector2Array(-12, -2, 5, -2, 5, -5, 12, 0, 5, 5, 5, 2, -12, 2)

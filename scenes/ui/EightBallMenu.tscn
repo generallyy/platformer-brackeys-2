@@ -1,0 +1,163 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/EightBallMenu.gd" id="1_script"]
+[ext_resource type="Theme" uid="uid://2p378flu0i2e" path="res://assets/fonts/labrada.tres" id="2_theme"]
+[ext_resource type="Script" path="res://scripts/EightBallTable.gd" id="3_table"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_shell"]
+bg_color = Color(0.07058824, 0.13333334, 0.12941177, 0.96)
+border_width_left = 8
+border_width_top = 8
+border_width_right = 8
+border_width_bottom = 8
+border_color = Color(0.7411765, 0.5803922, 0.30980393, 1)
+corner_radius_top_left = 34
+corner_radius_top_right = 34
+corner_radius_bottom_right = 34
+corner_radius_bottom_left = 34
+shadow_color = Color(0, 0, 0, 0.35)
+shadow_size = 18
+content_margin_left = 26.0
+content_margin_top = 24.0
+content_margin_right = 26.0
+content_margin_bottom = 24.0
+
+[node name="EightBallMenu" type="CanvasLayer"]
+visible = false
+process_mode = 3
+layer = 4
+script = ExtResource("1_script")
+
+[node name="Dim" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.015686275, 0.02745098, 0.039215688, 0.82)
+
+[node name="Root" type="CenterContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("2_theme")
+
+[node name="Panel" type="PanelContainer" parent="Root"]
+custom_minimum_size = Vector2(1540, 920)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_shell")
+
+[node name="Content" type="VBoxContainer" parent="Root/Panel"]
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="Header" type="VBoxContainer" parent="Root/Panel/Content"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Root/Panel/Content/Header"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 52
+text = "8-BALL"
+horizontal_alignment = 1
+
+[node name="Subtitle" type="Label" parent="Root/Panel/Content/Header"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Press [B] to open or close the table."
+horizontal_alignment = 1
+
+[node name="Body" type="HBoxContainer" parent="Root/Panel/Content"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 18
+
+[node name="TableWrap" type="PanelContainer" parent="Root/Panel/Content/Body"]
+custom_minimum_size = Vector2(1050, 620)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="EightBallTable" type="Control" parent="Root/Panel/Content/Body/TableWrap"]
+custom_minimum_size = Vector2(1020, 600)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource("3_table")
+
+[node name="Sidebar" type="VBoxContainer" parent="Root/Panel/Content/Body"]
+custom_minimum_size = Vector2(360, 620)
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Players" type="Label" parent="Root/Panel/Content/Body/Sidebar"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "Players: choose an opponent to start a rack."
+autowrap_mode = 3
+
+[node name="Turn" type="Label" parent="Root/Panel/Content/Body/Sidebar"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Turn: no active rack."
+autowrap_mode = 3
+
+[node name="Assignments" type="Label" parent="Root/Panel/Content/Body/Sidebar"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Assignments: open table."
+autowrap_mode = 3
+
+[node name="Status" type="Label" parent="Root/Panel/Content/Body/Sidebar"]
+custom_minimum_size = Vector2(0, 140)
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Challenge another player to an 8-ball match."
+autowrap_mode = 3
+vertical_alignment = 1
+
+[node name="OpponentSelect" type="OptionButton" parent="Root/Panel/Content/Body/Sidebar"]
+layout_mode = 2
+
+[node name="PrimaryActions" type="VBoxContainer" parent="Root/Panel/Content/Body/Sidebar"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Challenge" type="Button" parent="Root/Panel/Content/Body/Sidebar/PrimaryActions"]
+custom_minimum_size = Vector2(0, 54)
+layout_mode = 2
+text = "Challenge"
+
+[node name="Accept" type="Button" parent="Root/Panel/Content/Body/Sidebar/PrimaryActions"]
+custom_minimum_size = Vector2(0, 54)
+layout_mode = 2
+text = "Accept Challenge"
+
+[node name="Decline" type="Button" parent="Root/Panel/Content/Body/Sidebar/PrimaryActions"]
+custom_minimum_size = Vector2(0, 54)
+layout_mode = 2
+text = "Decline"
+
+[node name="SecondaryActions" type="VBoxContainer" parent="Root/Panel/Content/Body/Sidebar"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Leave" type="Button" parent="Root/Panel/Content/Body/Sidebar/SecondaryActions"]
+custom_minimum_size = Vector2(0, 54)
+layout_mode = 2
+text = "Leave Match"
+
+[node name="Close" type="Button" parent="Root/Panel/Content/Body/Sidebar/SecondaryActions"]
+custom_minimum_size = Vector2(0, 54)
+layout_mode = 2
+text = "Close"
+
+[node name="Hint" type="Label" parent="Root/Panel/Content/Body/Sidebar"]
+custom_minimum_size = Vector2(0, 110)
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 20
+text = "Click and drag away from the cue ball to line up the shot, then release to strike."
+autowrap_mode = 3
+vertical_alignment = 1

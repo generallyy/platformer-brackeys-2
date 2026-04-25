@@ -1,0 +1,80 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/hazards/hazard_emitter.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://scenes/world/hazards/AcidDrop.tscn" id="2_drop"]
+
+[node name="AcidShowerhead" type="Node2D"]
+
+[node name="Pipe" type="Polygon2D" parent="."]
+color = Color(0.30588236, 0.33333334, 0.34901962, 1)
+polygon = PackedVector2Array(-14, -8, 14, -8, 14, 4, -14, 4)
+
+[node name="Head" type="Polygon2D" parent="."]
+color = Color(0.53333336, 0.88235295, 0.5176471, 1)
+polygon = PackedVector2Array(-18, 4, 18, 4, 12, 12, -12, 12)
+
+[node name="LeftOuter" type="Node2D" parent="."]
+position = Vector2(-15, 0)
+script = ExtResource("1_script")
+projectile_scene = ExtResource("2_drop")
+fire_interval = 0.12
+start_delay = 0.12
+projectile_rotation_offset_degrees = 138.0
+active_duration = 1.5
+inactive_duration = 1.5
+projectile_offset = Vector2(0, 14)
+
+[node name="LeftMid" type="Node2D" parent="."]
+position = Vector2(-9, 0)
+script = ExtResource("1_script")
+projectile_scene = ExtResource("2_drop")
+fire_interval = 0.12
+start_delay = 0.16
+projectile_rotation_offset_degrees = 122.0
+active_duration = 1.5
+inactive_duration = 1.5
+projectile_offset = Vector2(0, 14)
+
+[node name="LeftInner" type="Node2D" parent="."]
+position = Vector2(-3, 0)
+script = ExtResource("1_script")
+projectile_scene = ExtResource("2_drop")
+fire_interval = 0.12
+start_delay = 0.2
+projectile_rotation_offset_degrees = 108.0
+active_duration = 1.5
+inactive_duration = 1.5
+projectile_offset = Vector2(0, 14)
+
+[node name="RightInner" type="Node2D" parent="."]
+position = Vector2(3, 0)
+script = ExtResource("1_script")
+projectile_scene = ExtResource("2_drop")
+fire_interval = 0.12
+start_delay = 0.14
+projectile_rotation_offset_degrees = 72.0
+active_duration = 1.5
+inactive_duration = 1.5
+projectile_offset = Vector2(0, 14)
+
+[node name="RightMid" type="Node2D" parent="."]
+position = Vector2(9, 0)
+script = ExtResource("1_script")
+projectile_scene = ExtResource("2_drop")
+fire_interval = 0.12
+start_delay = 0.18
+projectile_rotation_offset_degrees = 58.0
+active_duration = 1.5
+inactive_duration = 1.5
+projectile_offset = Vector2(0, 14)
+
+[node name="RightOuter" type="Node2D" parent="."]
+position = Vector2(15, 0)
+script = ExtResource("1_script")
+projectile_scene = ExtResource("2_drop")
+fire_interval = 0.12
+start_delay = 0.22
+projectile_rotation_offset_degrees = 42.0
+active_duration = 1.5
+inactive_duration = 1.5
+projectile_offset = Vector2(0, 14)

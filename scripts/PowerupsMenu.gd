@@ -38,6 +38,7 @@ var _pick_buttons: Array[Button] = []
 @onready var _time_label: Label = $Time
 
 func _ready() -> void:
+	visible = false
 	_inner.visible = false
 	_time_label.visible = false
 
@@ -56,6 +57,7 @@ func open_for_player(player: Node, placement: int, time_left: float) -> void:
 	_player.set_ui_locked(true)
 	_time_left = time_left
 	_is_open = true
+	visible = true
 	_rebuild_options(placement)
 	_time_label.text = "%.2f" % _time_left
 	_inner.visible = true
@@ -67,6 +69,7 @@ func open_for_player(player: Node, placement: int, time_left: float) -> void:
 
 func close_menu() -> void:
 	_is_open = false
+	visible = false
 	_inner.visible = false
 	_time_label.visible = false
 	if is_instance_valid(_player):

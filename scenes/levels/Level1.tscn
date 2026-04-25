@@ -24,6 +24,7 @@
 [ext_resource type="PackedScene" uid="uid://dghf2fi812ufr" path="res://scenes/world/CollisionToggle.tscn" id="22_usw5k"]
 [ext_resource type="PackedScene" uid="uid://ci71fpxtxsgj7" path="res://scenes/world/hazards/Spikes.tscn" id="23_jsker"]
 [ext_resource type="PackedScene" uid="uid://cqv3v4ijcgxo4" path="res://scenes/world/TeamPedestal.tscn" id="24_6ex7q"]
+[ext_resource type="PackedScene" path="res://scenes/world/hazards/Wind.tscn" id="27_hnhv5"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_bspq0"]
 texture = ExtResource("2_lc44e")
@@ -530,3 +531,11 @@ team_id = 2
 [node name="NoTeam" parent="TeamPedestals" unique_id=333196948 instance=ExtResource("24_6ex7q")]
 position = Vector2(-191, -42)
 team_id = 0
+
+[node name="Hazards" type="Node2D" parent="." unique_id=60117276]
+position = Vector2(-199, -126)
+
+[node name="Wind" parent="Hazards" unique_id=1991469188 instance=ExtResource("27_hnhv5")]
+position = Vector2(138, -11.000015)
+rotation = -1.5423523
+scale = Vector2(0.99999994, 0.99999994)
