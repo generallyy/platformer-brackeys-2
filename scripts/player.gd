@@ -236,6 +236,8 @@ func _physics_process(delta: float) -> void:
 				elif _extra_jumps_used < passive_powerups.count(PowerupIds.EXTRA_JUMP):
 					_extra_jumps_used += 1
 					_transition_to(PlayerState.DOUBLE_JUMP)
+				elif passive_powerups.has(PowerupIds.JUMP_BOOST):
+					_transition_to(PlayerState.DOUBLE_JUMP)
 		PlayerState.DASH:
 			velocity.x = facing_direction * stats.dash_speed * pow(1.30, passive_powerups.count(PowerupIds.DASH_BOOST_GROUND))
 			if is_multiplayer_authority():
@@ -646,6 +648,8 @@ func _handle_input(_delta: float) -> void:
 			elif _extra_jumps_used < passive_powerups.count(PowerupIds.EXTRA_JUMP):
 				_extra_jumps_used += 1
 				_transition_to(PlayerState.DOUBLE_JUMP)
+			elif passive_powerups.has(PowerupIds.JUMP_BOOST):
+				_transition_to(PlayerState.DOUBLE_JUMP)
 
 	if Input.is_action_just_pressed("f") and not _is_shielding:
 		if is_on_floor() and _dash_cooldown <= 0.0:
@@ -796,7 +800,7 @@ func freeze_for_duration(duration: float) -> void:
 
 
 func run_dbj(_delta = null) -> void:
-	velocity.y = stats.dbj_speed * pow(stats.jump_boost_scale, passive_powerups.count(PowerupIds.JUMP_BOOST))
+	velocity.y = stats.dbj_speed * pow(0.90, passive_powerups.count(PowerupIds.JUMP_BOOST))
 	audio_stream_player.stream = _DBJ_SFX
 	audio_stream_player.play()
 	_effects_anchor.position.y = 10.0
@@ -815,7 +819,7 @@ func end_dbj() -> void:
 # ============================================================
 
 func _do_jump() -> void:
-	velocity.y = stats.jump_velocity * pow(stats.jump_boost_scale, passive_powerups.count(PowerupIds.JUMP_BOOST))
+	velocity.y = stats.jump_velocity
 	audio_stream_player.stream = _JUMP_SFX
 	audio_stream_player.play()
 

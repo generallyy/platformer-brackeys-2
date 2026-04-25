@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://dedncck66f1ak"]
 
 [ext_resource type="Texture2D" uid="uid://de6fdtyglanjq" path="res://assets/sprites/world_tileset.png" id="1_s87cq"]
-[ext_resource type="Shader" uid="uid://e4u8tyxfagrf" path="res://assets/shaders/darken.tres" id="2_ykix4"]
+[ext_resource type="Shader" uid="uid://dt473gg4bn6vd" path="res://assets/shaders/Level0.tres" id="2_nx170"]
 [ext_resource type="PackedScene" uid="uid://bkev11l1s8t2u" path="res://scenes/world/hazards/killzone.tscn" id="3_2u0cu"]
 [ext_resource type="Texture2D" uid="uid://cfblvi3let1yi" path="res://assets/sprites/parallax/parallax-00.png" id="4_5028q"]
 [ext_resource type="Script" uid="uid://ctg7pgehojdrk" path="res://scripts/CloudLayer.gd" id="5_syv5r"]
@@ -183,8 +183,8 @@ texture = ExtResource("1_s87cq")
 physics_layer_0/collision_layer = 1
 sources/0 = SubResource("TileSetAtlasSource_q4vnh")
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_7hl7w"]
-shader = ExtResource("2_ykix4")
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_h27y2"]
+shader = ExtResource("2_nx170")
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_i1y48"]
 texture = ExtResource("1_s87cq")
@@ -493,7 +493,7 @@ layer_1/tile_data = PackedInt32Array(-65514, 393216, 5, -65509, 393216, 5, -1310
 
 [node name="TileMapBackOfHome" type="TileMap" parent="." unique_id=1275932466]
 texture_filter = 1
-material = SubResource("ShaderMaterial_7hl7w")
+material = SubResource("ShaderMaterial_h27y2")
 tile_set = SubResource("TileSet_jiofx")
 format = 2
 layer_0/name = "background"

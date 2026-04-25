@@ -3,7 +3,7 @@ extends Control
 const POWERUPS_LIST := [
 	{ "id": PowerupIds.EXTRA_HEARTS,       "name": "Extra Hearts",     "desc": "+2 max hearts\n(per round)",                   "is_active": false, "min_place": 0, "max_place": 9999 },
 	{ "id": PowerupIds.SPEED_BOOST,        "name": "Speed Surge",      "desc": "Press {key}: 2× speed\nfor 2.5s (once/round)", "is_active": true,  "min_place": 0, "max_place": 9999 },
-	{ "id": PowerupIds.JUMP_BOOST,         "name": "Spring Legs",      "desc": "Jump 35% higher",                              "is_active": false, "min_place": 0, "max_place": 9999 },
+	{ "id": PowerupIds.JUMP_BOOST,         "name": "Spring Legs",      "desc": "Unlimited air jumps\n−10% DBJ height per stack",  "is_active": false, "min_place": 0, "max_place": 9999 },
 	{ "id": PowerupIds.LOW_GRAVITY,        "name": "Featherweight",    "desc": "Half gravity,\nfloat further",                 "is_active": false, "min_place": 0, "max_place": 9999 },
 	{ "id": PowerupIds.KNOCKBACK_BOOST,    "name": "Knock Out",        "desc": "1.6× knockback\non all attacks (stacks)",     "is_active": false, "min_place": 0, "max_place": 9999 },
 	{ "id": PowerupIds.DAMAGE_BOOST,       "name": "Heavy Hitter",     "desc": "+1 heart damage\nper attack (stacks)",         "is_active": false, "min_place": 0, "max_place": 9999 },
