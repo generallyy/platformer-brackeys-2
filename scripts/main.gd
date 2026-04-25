@@ -7,6 +7,10 @@ const TEAM_DEFINITIONS := [
 	{ "id": 1, "name": "Red",     "color": Color(1.0, 0.3, 0.3) },
 	{ "id": 2, "name": "Blue",    "color": Color(0.35, 0.6, 1.0) },
 ]
+const _EIGHT_BALL_AI_ID := -99
+const _EIGHT_BALL_AI_NAME := "Table AI"
+const _EIGHT_BALL_AI_MIN_DELAY := 0.65
+const _EIGHT_BALL_AI_POST_ANIM_DELAY := 0.35
 
 var spawned_players: Dictionary = {}
 var _player_numbers: Dictionary = {}  # peer_id -> display number (1, 2, 3...)
@@ -18,6 +22,11 @@ var kills_required_for_goal: bool = false
 var current_level_path := "res://scenes/levels/Level0.tscn"
 var _respawn_points: Dictionary = {}
 var _wardrobe_player: Node = null
+<<<<<<< Updated upstream
+=======
+var _eight_ball_session: Dictionary = EightBallLogic.create_idle_session()
+var _eight_ball_ai_turn_serial := 0
+>>>>>>> Stashed changes
 
 const _MOUSE_HIDE_DELAY := 2.0
 var _mouse_idle := 0.0
@@ -127,6 +136,8 @@ func get_player_number(peer_id: int) -> int:
 	return _player_numbers.get(peer_id, peer_id)
 
 func get_player_display_name(peer_id: int) -> String:
+	if peer_id == _EIGHT_BALL_AI_ID:
+		return _EIGHT_BALL_AI_NAME
 	var n: String = player_names.get(peer_id, "")
 	if not n.is_empty():
 		return n
@@ -135,6 +146,74 @@ func get_player_display_name(peer_id: int) -> String:
 func _local_peer_id() -> int:
 	return multiplayer.get_unique_id()
 
+<<<<<<< Updated upstream
+=======
+func _active_peer_ids() -> Array:
+	var result: Array = []
+	for peer_id in spawned_players.keys():
+		result.append(peer_id)
+	if _local_peer_id() != 0 and not result.has(_EIGHT_BALL_AI_ID):
+		result.append(_EIGHT_BALL_AI_ID)
+	result.sort()
+	return result
+
+func _eight_ball_names() -> Dictionary:
+	var names: Dictionary = player_names.duplicate(true)
+	names[_EIGHT_BALL_AI_ID] = _EIGHT_BALL_AI_NAME
+	return names
+
+func _push_eight_ball_state_local(auto_open: bool = false) -> void:
+	if eight_ball_menu == null:
+		return
+	eight_ball_menu.apply_state(_eight_ball_session, _eight_ball_names(), _active_peer_ids(), _local_peer_id())
+	var local_peer := _local_peer_id()
+	var phase := String(_eight_ball_session.get("phase", "idle"))
+	var should_open := (phase == "invite" and int(_eight_ball_session.get("opponent_id", 0)) == local_peer) \
+			or (phase == "active" and EightBallLogic.is_participant(_eight_ball_session, local_peer))
+	if auto_open and should_open and not eight_ball_menu.visible and not loading_screen.visible and not powerups_menu.visible and not pause_menu.visible:
+		close_blackjack()
+		close_wardrobe()
+		open_eight_ball()
+
+func _set_eight_ball_session(session: Dictionary) -> void:
+	_sync_eight_ball_session.rpc(session)
+
+@rpc("authority", "call_local", "reliable")
+func _sync_eight_ball_session(session: Dictionary) -> void:
+	var previous_phase := String(_eight_ball_session.get("phase", "idle"))
+	_eight_ball_session = session.duplicate(true)
+	var local_peer := _local_peer_id()
+	var new_phase := String(_eight_ball_session.get("phase", "idle"))
+	var auto_open := (new_phase == "invite" and int(_eight_ball_session.get("opponent_id", 0)) == local_peer and previous_phase != "invite") \
+			or (new_phase == "active" and EightBallLogic.is_participant(_eight_ball_session, local_peer) and previous_phase != "active")
+	_push_eight_ball_state_local(auto_open)
+	if multiplayer.is_server():
+		_schedule_eight_ball_ai_turn()
+
+func _schedule_eight_ball_ai_turn() -> void:
+	_eight_ball_ai_turn_serial += 1
+	var token := _eight_ball_ai_turn_serial
+	if String(_eight_ball_session.get("phase", "idle")) != "active":
+		return
+	if int(_eight_ball_session.get("current_turn", 0)) != _EIGHT_BALL_AI_ID:
+		return
+	var frames: Array = _eight_ball_session.get("animation_frames", [])
+	var animation_delay := float(frames.size()) * EightBallLogic.STEP_DELTA * EightBallLogic.SAMPLE_INTERVAL
+	var wait_time := maxf(_EIGHT_BALL_AI_MIN_DELAY, animation_delay + _EIGHT_BALL_AI_POST_ANIM_DELAY)
+	_run_eight_ball_ai_turn(token, wait_time)
+
+func _run_eight_ball_ai_turn(token: int, wait_time: float) -> void:
+	await get_tree().create_timer(wait_time).timeout
+	if token != _eight_ball_ai_turn_serial:
+		return
+	if String(_eight_ball_session.get("phase", "idle")) != "active":
+		return
+	if int(_eight_ball_session.get("current_turn", 0)) != _EIGHT_BALL_AI_ID:
+		return
+	var shot := EightBallLogic.choose_ai_shot(_eight_ball_session, _EIGHT_BALL_AI_ID)
+	_do_eight_ball_shot(_EIGHT_BALL_AI_ID, float(shot.get("angle", 0.0)), float(shot.get("power", 0.58)))
+
+>>>>>>> Stashed changes
 func _active_player_numbers() -> Dictionary:
 	var result := {}
 	for peer_id in _player_numbers:
@@ -320,6 +399,160 @@ func close_wardrobe() -> void:
 	_wardrobe_player = null
 	wardrobe_menu.close_menu()
 
+<<<<<<< Updated upstream
+=======
+
+func open_blackjack() -> void:
+	var player: Node2D = spawned_players.get(multiplayer.get_unique_id())
+	close_eight_ball()
+	if player != null:
+		player.set_external_input_lock(&"blackjack", true)
+	_mouse_idle = 0.0
+	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+	blackjack_menu.open_menu()
+
+
+func close_blackjack() -> void:
+	if not blackjack_menu.visible:
+		return
+	blackjack_menu.close_menu()
+	var player: Node2D = spawned_players.get(multiplayer.get_unique_id())
+	if player != null:
+		player.set_external_input_lock(&"blackjack", false)
+
+
+func open_eight_ball() -> void:
+	var player: Node2D = spawned_players.get(multiplayer.get_unique_id())
+	close_blackjack()
+	close_wardrobe()
+	if player != null:
+		player.set_external_input_lock(&"eight_ball", true)
+	_mouse_idle = 0.0
+	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+	eight_ball_menu.open_menu()
+	_push_eight_ball_state_local(false)
+
+
+func close_eight_ball() -> void:
+	if not eight_ball_menu.visible:
+		return
+	eight_ball_menu.close_menu()
+	var player: Node2D = spawned_players.get(multiplayer.get_unique_id())
+	if player != null:
+		player.set_external_input_lock(&"eight_ball", false)
+
+func request_eight_ball_challenge(opponent_id: int) -> void:
+	var peer_id := _local_peer_id()
+	if peer_id == 0 or opponent_id == 0 or peer_id == opponent_id:
+		return
+	if NetworkManager.is_online() and not multiplayer.is_server():
+		_req_eight_ball_challenge.rpc_id(1, peer_id, opponent_id)
+		return
+	_do_eight_ball_challenge(peer_id, opponent_id)
+
+@rpc("any_peer", "reliable")
+func _req_eight_ball_challenge(peer_id: int, opponent_id: int) -> void:
+	if multiplayer.get_remote_sender_id() != peer_id:
+		return
+	_do_eight_ball_challenge(peer_id, opponent_id)
+
+func _do_eight_ball_challenge(peer_id: int, opponent_id: int) -> void:
+	if String(_eight_ball_session.get("phase", "idle")) != "idle":
+		return
+	if peer_id not in spawned_players:
+		return
+	if opponent_id == _EIGHT_BALL_AI_ID:
+		_set_eight_ball_session(EightBallLogic.create_match_session(peer_id, opponent_id))
+		return
+	if opponent_id not in spawned_players:
+		return
+	_set_eight_ball_session(EightBallLogic.create_invite_session(peer_id, opponent_id))
+
+func request_accept_eight_ball() -> void:
+	var peer_id := _local_peer_id()
+	if NetworkManager.is_online() and not multiplayer.is_server():
+		_req_accept_eight_ball.rpc_id(1, peer_id)
+		return
+	_do_accept_eight_ball(peer_id)
+
+@rpc("any_peer", "reliable")
+func _req_accept_eight_ball(peer_id: int) -> void:
+	if multiplayer.get_remote_sender_id() != peer_id:
+		return
+	_do_accept_eight_ball(peer_id)
+
+func _do_accept_eight_ball(peer_id: int) -> void:
+	if String(_eight_ball_session.get("phase", "idle")) != "invite":
+		return
+	if int(_eight_ball_session.get("opponent_id", 0)) != peer_id:
+		return
+	_set_eight_ball_session(EightBallLogic.create_match_session(int(_eight_ball_session.get("challenger_id", 0)), peer_id))
+
+func request_decline_eight_ball() -> void:
+	var peer_id := _local_peer_id()
+	if NetworkManager.is_online() and not multiplayer.is_server():
+		_req_decline_eight_ball.rpc_id(1, peer_id)
+		return
+	_do_decline_eight_ball(peer_id)
+
+@rpc("any_peer", "reliable")
+func _req_decline_eight_ball(peer_id: int) -> void:
+	if multiplayer.get_remote_sender_id() != peer_id:
+		return
+	_do_decline_eight_ball(peer_id)
+
+func _do_decline_eight_ball(peer_id: int) -> void:
+	if String(_eight_ball_session.get("phase", "idle")) != "invite":
+		return
+	if int(_eight_ball_session.get("opponent_id", 0)) != peer_id:
+		return
+	_set_eight_ball_session(EightBallLogic.create_idle_session("%s declined the challenge." % get_player_display_name(peer_id)))
+
+func request_leave_eight_ball() -> void:
+	var peer_id := _local_peer_id()
+	if NetworkManager.is_online() and not multiplayer.is_server():
+		_req_leave_eight_ball.rpc_id(1, peer_id)
+		return
+	_do_leave_eight_ball(peer_id)
+
+@rpc("any_peer", "reliable")
+func _req_leave_eight_ball(peer_id: int) -> void:
+	if multiplayer.get_remote_sender_id() != peer_id:
+		return
+	_do_leave_eight_ball(peer_id)
+
+func _do_leave_eight_ball(peer_id: int) -> void:
+	if not EightBallLogic.is_participant(_eight_ball_session, peer_id):
+		return
+	var phase := String(_eight_ball_session.get("phase", "idle"))
+	var message := "%s left the table." % get_player_display_name(peer_id)
+	if phase == "invite":
+		if int(_eight_ball_session.get("challenger_id", 0)) == peer_id:
+			message = "%s cancelled the challenge." % get_player_display_name(peer_id)
+		else:
+			message = "%s backed out of the challenge." % get_player_display_name(peer_id)
+	_set_eight_ball_session(EightBallLogic.create_idle_session(message))
+
+func request_eight_ball_shot(angle: float, power: float) -> void:
+	var peer_id := _local_peer_id()
+	if NetworkManager.is_online() and not multiplayer.is_server():
+		_req_eight_ball_shot.rpc_id(1, peer_id, angle, power)
+		return
+	_do_eight_ball_shot(peer_id, angle, power)
+
+@rpc("any_peer", "reliable")
+func _req_eight_ball_shot(peer_id: int, angle: float, power: float) -> void:
+	if multiplayer.get_remote_sender_id() != peer_id:
+		return
+	_do_eight_ball_shot(peer_id, angle, power)
+
+func _do_eight_ball_shot(peer_id: int, angle: float, power: float) -> void:
+	if not EightBallLogic.is_shot_allowed(_eight_ball_session, peer_id):
+		return
+	var animation_id := int(_eight_ball_session.get("animation_id", 0)) + 1
+	_set_eight_ball_session(EightBallLogic.apply_shot(_eight_ball_session, peer_id, angle, power, animation_id))
+
+>>>>>>> Stashed changes
 func request_player_outfit_change(peer_id: int, outfit_id: int) -> void:
 	if NetworkManager.is_online() and not multiplayer.is_server():
 		_req_player_outfit_change.rpc_id(1, peer_id, outfit_id)
