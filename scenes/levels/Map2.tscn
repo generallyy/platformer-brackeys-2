@@ -371,9 +371,3 @@ tile_set = SubResource("TileSet_853a3")
 
 [node name="LevelSettings" parent="." unique_id=853737155 instance=ExtResource("5_wcn7t")]
 points_to_win = 40
-
-[node name="Camera2D" type="Camera2D" parent="." unique_id=636654495]
-position = Vector2(894, -129)
-offset = Vector2(-500, 0)
-zoom = Vector2(3, 3)
-position_smoothing_enabled = true

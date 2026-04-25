@@ -64,3 +64,33 @@ const MAX_STACKS: Dictionary = {
 
 static func get_max_stacks(id: String) -> int:
 	return MAX_STACKS.get(id, DEFAULT_MAX_STACKS)
+
+const DISPLAY_NAMES: Dictionary = {
+	JUMP_BOOST:        "Spring Legs",
+	DAMAGE_BOOST:      "Heavy Hitter",
+	KNOCKBACK_BOOST:   "Knock Out",
+	EXTRA_HEARTS:      "Extra Hearts",
+	LOW_GRAVITY:       "Featherweight",
+	SPEED_UP:          "Swift",
+	EXTRA_JUMP:        "Extra Jump",
+	GET_BIGGER:        "Grow",
+	GET_SMALLER:       "Shrink",
+	LIFESTEAL:         "Lifesteal",
+	BIG_MELEE:         "Big Swing",
+	SLOW_ON_HIT:       "Chilling Strikes",
+	DASH_BOOST_GROUND: "Power Slide",
+	DASH_BOOST_AIR:    "Rocket Boost",
+	SHIELD_SPIKE:      "Thorns",
+	PARRY_STUN:        "Parry",
+	GHOST_HUNTER:      "Ghost Hunter",
+	HEAVY_HITTER:      "Heavyweight",
+	SPEED_BOOST:       "Speed Surge",
+	HOMER_ONCE:        "Seeker",
+	INVISIBLE:         "Cloak",
+	TELEPORT:          "Blink",
+	HEART_RESET:       "Equalizer",
+	CONFUSION_RAY:     "Confusion Ray",
+}
+
+static func get_display_name(id: String) -> String:
+	return DISPLAY_NAMES.get(id, id)

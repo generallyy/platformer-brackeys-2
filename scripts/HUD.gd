@@ -65,15 +65,7 @@ func update_powerups(passive: Array, active: String) -> void:
 	_powerups_label.visible = not lines.is_empty()
 
 func _powerup_display_name(id: String) -> String:
-	match id:
-		PowerupIds.JUMP_BOOST:      return "Jump Boost"
-		PowerupIds.DAMAGE_BOOST:    return "Damage Boost"
-		PowerupIds.KNOCKBACK_BOOST: return "Knockback Boost"
-		PowerupIds.EXTRA_HEARTS:    return "Extra Hearts"
-		PowerupIds.LOW_GRAVITY:     return "Low Gravity"
-		PowerupIds.SPEED_BOOST:     return "Speed Boost"
-		PowerupIds.HOMER_ONCE:      return "Homer"
-		_:                          return id
+	return PowerupIds.get_display_name(id)
 
 func update_scores(scores: Dictionary, player_numbers: Dictionary = {}, stocks: Dictionary = {}, player_names: Dictionary = {}) -> void:
 	for child in _score_row.get_children():
