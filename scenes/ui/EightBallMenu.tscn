@@ -1,10 +1,14 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene format=3 uid="uid://drxwha7jplgnk"]
 
-[ext_resource type="Script" path="res://scripts/EightBallMenu.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://qtyd5bf7wuip" path="res://scripts/EightBallMenu.gd" id="1_script"]
 [ext_resource type="Theme" uid="uid://2p378flu0i2e" path="res://assets/fonts/labrada.tres" id="2_theme"]
-[ext_resource type="Script" path="res://scripts/EightBallTable.gd" id="3_table"]
+[ext_resource type="Script" uid="uid://c0xq2wu3yhoyy" path="res://scripts/EightBallTable.gd" id="3_table"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_shell"]
+content_margin_left = 26.0
+content_margin_top = 24.0
+content_margin_right = 26.0
+content_margin_bottom = 24.0
 bg_color = Color(0.07058824, 0.13333334, 0.12941177, 0.96)
 border_width_left = 8
 border_width_top = 8
@@ -17,18 +21,14 @@ corner_radius_bottom_right = 34
 corner_radius_bottom_left = 34
 shadow_color = Color(0, 0, 0, 0.35)
 shadow_size = 18
-content_margin_left = 26.0
-content_margin_top = 24.0
-content_margin_right = 26.0
-content_margin_bottom = 24.0
 
-[node name="EightBallMenu" type="CanvasLayer"]
-visible = false
+[node name="EightBallMenu" type="CanvasLayer" unique_id=403631953]
 process_mode = 3
 layer = 4
+visible = false
 script = ExtResource("1_script")
 
-[node name="Dim" type="ColorRect" parent="."]
+[node name="Dim" type="ColorRect" parent="." unique_id=1747819546]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -36,7 +36,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.015686275, 0.02745098, 0.039215688, 0.82)
 
-[node name="Root" type="CenterContainer" parent="."]
+[node name="Root" type="CenterContainer" parent="." unique_id=620467605]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -44,120 +44,120 @@ grow_horizontal = 2
 grow_vertical = 2
 theme = ExtResource("2_theme")
 
-[node name="Panel" type="PanelContainer" parent="Root"]
+[node name="Panel" type="PanelContainer" parent="Root" unique_id=804735724]
 custom_minimum_size = Vector2(1540, 920)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_shell")
 
-[node name="Content" type="VBoxContainer" parent="Root/Panel"]
+[node name="Content" type="VBoxContainer" parent="Root/Panel" unique_id=1197083784]
 layout_mode = 2
 theme_override_constants/separation = 18
 
-[node name="Header" type="VBoxContainer" parent="Root/Panel/Content"]
+[node name="Header" type="VBoxContainer" parent="Root/Panel/Content" unique_id=242471235]
 layout_mode = 2
 
-[node name="Title" type="Label" parent="Root/Panel/Content/Header"]
+[node name="Title" type="Label" parent="Root/Panel/Content/Header" unique_id=6529322]
 layout_mode = 2
 theme_override_font_sizes/font_size = 52
 text = "8-BALL"
 horizontal_alignment = 1
 
-[node name="Subtitle" type="Label" parent="Root/Panel/Content/Header"]
+[node name="Subtitle" type="Label" parent="Root/Panel/Content/Header" unique_id=57256878]
 layout_mode = 2
 theme_override_font_sizes/font_size = 22
 text = "Press [B] to open or close the table."
 horizontal_alignment = 1
 
-[node name="Body" type="HBoxContainer" parent="Root/Panel/Content"]
+[node name="Body" type="HBoxContainer" parent="Root/Panel/Content" unique_id=1317321561]
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 18
 
-[node name="TableWrap" type="PanelContainer" parent="Root/Panel/Content/Body"]
+[node name="TableWrap" type="PanelContainer" parent="Root/Panel/Content/Body" unique_id=16792120]
 custom_minimum_size = Vector2(1050, 620)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="EightBallTable" type="Control" parent="Root/Panel/Content/Body/TableWrap"]
+[node name="EightBallTable" type="Control" parent="Root/Panel/Content/Body/TableWrap" unique_id=152035540]
 custom_minimum_size = Vector2(1020, 600)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 script = ExtResource("3_table")
 
-[node name="Sidebar" type="VBoxContainer" parent="Root/Panel/Content/Body"]
+[node name="Sidebar" type="VBoxContainer" parent="Root/Panel/Content/Body" unique_id=1714849277]
 custom_minimum_size = Vector2(360, 620)
 layout_mode = 2
 theme_override_constants/separation = 14
 
-[node name="Players" type="Label" parent="Root/Panel/Content/Body/Sidebar"]
+[node name="Players" type="Label" parent="Root/Panel/Content/Body/Sidebar" unique_id=1115220709]
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
 text = "Players: choose an opponent to start a rack."
 autowrap_mode = 3
 
-[node name="Turn" type="Label" parent="Root/Panel/Content/Body/Sidebar"]
+[node name="Turn" type="Label" parent="Root/Panel/Content/Body/Sidebar" unique_id=1676772646]
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
 text = "Turn: no active rack."
 autowrap_mode = 3
 
-[node name="Assignments" type="Label" parent="Root/Panel/Content/Body/Sidebar"]
+[node name="Assignments" type="Label" parent="Root/Panel/Content/Body/Sidebar" unique_id=794534968]
 layout_mode = 2
 theme_override_font_sizes/font_size = 22
 text = "Assignments: open table."
 autowrap_mode = 3
 
-[node name="Status" type="Label" parent="Root/Panel/Content/Body/Sidebar"]
+[node name="Status" type="Label" parent="Root/Panel/Content/Body/Sidebar" unique_id=666948941]
 custom_minimum_size = Vector2(0, 140)
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
 text = "Challenge another player to an 8-ball match."
-autowrap_mode = 3
 vertical_alignment = 1
+autowrap_mode = 3
 
-[node name="OpponentSelect" type="OptionButton" parent="Root/Panel/Content/Body/Sidebar"]
+[node name="OpponentSelect" type="OptionButton" parent="Root/Panel/Content/Body/Sidebar" unique_id=1860942906]
 layout_mode = 2
 
-[node name="PrimaryActions" type="VBoxContainer" parent="Root/Panel/Content/Body/Sidebar"]
+[node name="PrimaryActions" type="VBoxContainer" parent="Root/Panel/Content/Body/Sidebar" unique_id=2117623481]
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="Challenge" type="Button" parent="Root/Panel/Content/Body/Sidebar/PrimaryActions"]
+[node name="Challenge" type="Button" parent="Root/Panel/Content/Body/Sidebar/PrimaryActions" unique_id=1951581304]
 custom_minimum_size = Vector2(0, 54)
 layout_mode = 2
 text = "Challenge"
 
-[node name="Accept" type="Button" parent="Root/Panel/Content/Body/Sidebar/PrimaryActions"]
+[node name="Accept" type="Button" parent="Root/Panel/Content/Body/Sidebar/PrimaryActions" unique_id=617976812]
 custom_minimum_size = Vector2(0, 54)
 layout_mode = 2
 text = "Accept Challenge"
 
-[node name="Decline" type="Button" parent="Root/Panel/Content/Body/Sidebar/PrimaryActions"]
+[node name="Decline" type="Button" parent="Root/Panel/Content/Body/Sidebar/PrimaryActions" unique_id=696603160]
 custom_minimum_size = Vector2(0, 54)
 layout_mode = 2
 text = "Decline"
 
-[node name="SecondaryActions" type="VBoxContainer" parent="Root/Panel/Content/Body/Sidebar"]
+[node name="SecondaryActions" type="VBoxContainer" parent="Root/Panel/Content/Body/Sidebar" unique_id=53261701]
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="Leave" type="Button" parent="Root/Panel/Content/Body/Sidebar/SecondaryActions"]
+[node name="Leave" type="Button" parent="Root/Panel/Content/Body/Sidebar/SecondaryActions" unique_id=2038997762]
 custom_minimum_size = Vector2(0, 54)
 layout_mode = 2
 text = "Leave Match"
 
-[node name="Close" type="Button" parent="Root/Panel/Content/Body/Sidebar/SecondaryActions"]
+[node name="Close" type="Button" parent="Root/Panel/Content/Body/Sidebar/SecondaryActions" unique_id=1894258646]
 custom_minimum_size = Vector2(0, 54)
 layout_mode = 2
 text = "Close"
 
-[node name="Hint" type="Label" parent="Root/Panel/Content/Body/Sidebar"]
+[node name="Hint" type="Label" parent="Root/Panel/Content/Body/Sidebar" unique_id=520087670]
 custom_minimum_size = Vector2(0, 110)
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_font_sizes/font_size = 20
 text = "Click and drag away from the cue ball to line up the shot, then release to strike."
-autowrap_mode = 3
 vertical_alignment = 1
+autowrap_mode = 3
