@@ -2,6 +2,8 @@
 
 [ext_resource type="Script" uid="uid://bll64vmi1miib" path="res://scripts/main.gd" id="1_exn86"]
 [ext_resource type="PackedScene" uid="uid://dg30pfci4cpnd" path="res://scenes/ui/WardrobeMenu.tscn" id="2_wardrobe"]
+[ext_resource type="PackedScene" path="res://scenes/ui/BlackjackMenu.tscn" id="3_blackjack"]
+[ext_resource type="PackedScene" path="res://scenes/ui/EightBallMenu.tscn" id="4_eightball"]
 [ext_resource type="Script" uid="uid://cbcey5h2tbcht" path="res://scripts/PauseMenu.gd" id="3_7frdm"]
 [ext_resource type="Theme" uid="uid://2p378flu0i2e" path="res://assets/fonts/labrada.tres" id="5_tipki"]
 [ext_resource type="PackedScene" uid="uid://djmiku3mt7d5h" path="res://scenes/ui/KeybindRow.tscn" id="7_tipki"]
@@ -342,6 +344,10 @@ text = "KEYBINDS"
 horizontal_alignment = 1
 
 [node name="WardrobeMenu" parent="." unique_id=2125863574 instance=ExtResource("2_wardrobe")]
+
+[node name="BlackjackMenu" parent="." instance=ExtResource("3_blackjack")]
+
+[node name="EightBallMenu" parent="." instance=ExtResource("4_eightball")]
 
 [node name="LoadingScreen" type="CanvasLayer" parent="." unique_id=2092700025]
 visible = false

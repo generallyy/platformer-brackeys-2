@@ -1,0 +1,29 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/hazards/contact_hazard.gd" id="1_script"]
+
+[sub_resource type="RectangleShape2D" id="1_rect"]
+size = Vector2(96, 24)
+
+[node name="Lava" type="Area2D"]
+script = ExtResource("1_script")
+hit_interval = 1.15
+local_knockback = Vector2(0, -170)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, 12)
+shape = SubResource("1_rect")
+
+[node name="Body" type="Polygon2D" parent="."]
+color = Color(0.8352941, 0.20784314, 0.050980393, 0.9)
+polygon = PackedVector2Array(-48, 0, 48, 0, 48, 24, -48, 24)
+
+[node name="Glow" type="Polygon2D" parent="."]
+color = Color(1, 0.52156866, 0.10980392, 0.55)
+polygon = PackedVector2Array(-44, 2, 44, 2, 44, 18, -44, 18)
+
+[node name="Surface" type="Line2D" parent="."]
+position = Vector2(0, 1)
+points = PackedVector2Array(-46, 0, -34, -3, -22, 1, -10, -2, 2, 2, 14, -2, 26, 1, 38, -3, 46, 0)
+width = 3.0
+default_color = Color(1, 0.7921569, 0.3019608, 1)

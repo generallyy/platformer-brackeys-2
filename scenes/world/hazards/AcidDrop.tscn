@@ -1,0 +1,29 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/hazards/hazard_projectile.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/sprites/white_circle.png" id="2_circle"]
+
+[sub_resource type="CircleShape2D" id="1_circle_shape"]
+radius = 4.0
+
+[node name="AcidDrop" type="Area2D"]
+script = ExtResource("1_script")
+local_velocity = Vector2(185, 0)
+world_acceleration = Vector2(0, 540)
+lifetime = 2.2
+hit_knockback = 120.0
+knockback_bias = Vector2(0, 55)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("1_circle_shape")
+
+[node name="Trail" type="Line2D" parent="."]
+position = Vector2(-11, 0)
+points = PackedVector2Array(0, 0, 11, 0)
+width = 2.5
+default_color = Color(0.5647059, 1, 0.6666667, 0.45)
+
+[node name="Drop" type="Sprite2D" parent="."]
+scale = Vector2(0.08, 0.08)
+texture = ExtResource("2_circle")
+modulate = Color(0.5882353, 0.9607843, 0.4509804, 1)

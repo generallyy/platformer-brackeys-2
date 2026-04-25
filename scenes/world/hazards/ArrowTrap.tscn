@@ -1,0 +1,19 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/hazards/hazard_emitter.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://scenes/world/hazards/HazardArrow.tscn" id="2_arrow"]
+
+[node name="ArrowTrap" type="Node2D"]
+script = ExtResource("1_script")
+projectile_scene = ExtResource("2_arrow")
+fire_interval = 1.6
+start_delay = 0.35
+projectile_offset = Vector2(18, 0)
+
+[node name="Base" type="Polygon2D" parent="."]
+color = Color(0.23529412, 0.23529412, 0.28627452, 1)
+polygon = PackedVector2Array(-10, -10, 6, -10, 10, 0, 6, 10, -10, 10)
+
+[node name="Slot" type="Polygon2D" parent="."]
+color = Color(0.7254902, 0.2509804, 0.21176471, 1)
+polygon = PackedVector2Array(-2, -4, 14, 0, -2, 4)

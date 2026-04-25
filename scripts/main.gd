@@ -22,11 +22,8 @@ var kills_required_for_goal: bool = false
 var current_level_path := "res://scenes/levels/Level0.tscn"
 var _respawn_points: Dictionary = {}
 var _wardrobe_player: Node = null
-<<<<<<< Updated upstream
-=======
 var _eight_ball_session: Dictionary = EightBallLogic.create_idle_session()
 var _eight_ball_ai_turn_serial := 0
->>>>>>> Stashed changes
 
 const _MOUSE_HIDE_DELAY := 2.0
 var _mouse_idle := 0.0
@@ -37,6 +34,8 @@ var _window_focused := true
 @onready var loading_screen = $LoadingScreen
 @onready var hud = $HUD
 @onready var wardrobe_menu = $WardrobeMenu
+@onready var blackjack_menu = $BlackjackMenu
+@onready var eight_ball_menu = $EightBallMenu
 @onready var game_mode = $GameMode
 @onready var powerups_menu = $HUD/PowerupsMenu
 
@@ -49,7 +48,17 @@ func _ready() -> void:
 	)
 	#pause_menu.visible = false
 	wardrobe_menu.visible = false
+	blackjack_menu.close_menu()
+	eight_ball_menu.close_menu()
 	hud.visible = true
+	blackjack_menu.close_requested.connect(close_blackjack)
+	eight_ball_menu.close_requested.connect(close_eight_ball)
+	eight_ball_menu.challenge_requested.connect(request_eight_ball_challenge)
+	eight_ball_menu.accept_requested.connect(request_accept_eight_ball)
+	eight_ball_menu.decline_requested.connect(request_decline_eight_ball)
+	eight_ball_menu.leave_requested.connect(request_leave_eight_ball)
+	eight_ball_menu.shot_requested.connect(request_eight_ball_shot)
+	_push_eight_ball_state_local()
 	
 	hud.set_game_mode(game_mode)
 	game_mode.round_started.connect(_on_round_started)
@@ -72,7 +81,7 @@ func _ready() -> void:
 		_request_state.rpc_id(1, NetworkManager.local_name)
 
 func _process(delta: float) -> void:
-	if not _window_focused or pause_menu.visible:
+	if not _window_focused or pause_menu.visible or blackjack_menu.visible or eight_ball_menu.visible:
 		return
 	_mouse_idle += delta
 	if _mouse_idle >= _MOUSE_HIDE_DELAY:
@@ -82,6 +91,26 @@ func _input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion:
 		_mouse_idle = 0.0
 		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+	if event is InputEventKey and event.echo:
+		return
+	if event.is_action_pressed("blackjack"):
+		if blackjack_menu.visible:
+			close_blackjack()
+		elif not pause_menu.visible and not loading_screen.visible and not wardrobe_menu.visible and not powerups_menu.visible and not eight_ball_menu.visible:
+			open_blackjack()
+		get_viewport().set_input_as_handled()
+		return
+	if event.is_action_pressed("eight_ball"):
+		if eight_ball_menu.visible:
+			close_eight_ball()
+		elif not pause_menu.visible and not loading_screen.visible and not powerups_menu.visible and not blackjack_menu.visible:
+			open_eight_ball()
+		get_viewport().set_input_as_handled()
+		return
+
+
+func _unhandled_input(_event: InputEvent) -> void:
+	pass
 
 func _on_peer_connected(_id: int):
 	pass  # client initiates via _request_state
@@ -90,6 +119,8 @@ func _on_peer_disconnected(id: int):
 	for p in spawned_players.values():
 		p.remove_sync_peer(id)
 	if multiplayer.is_server():
+		if EightBallLogic.is_participant(_eight_ball_session, id):
+			_set_eight_ball_session(EightBallLogic.create_idle_session("%s left the table." % get_player_display_name(id)))
 		_rpc_despawn.rpc(id)
 
 # Client asks server for current state on join
@@ -121,6 +152,7 @@ func _request_state(player_name: String = ""):
 	for existing_id in player_teams:
 		if player_teams[existing_id] != 0:
 			_sync_team_change.rpc_id(caller, existing_id, player_teams[existing_id])
+	_sync_eight_ball_session.rpc_id(caller, _eight_ball_session)
 
 @rpc("authority", "call_local", "reliable")
 func _rpc_spawn(peer_id: int):
@@ -131,6 +163,7 @@ func _rpc_despawn(peer_id: int):
 	if peer_id in spawned_players:
 		spawned_players[peer_id].queue_free()
 		spawned_players.erase(peer_id)
+	_push_eight_ball_state_local()
 
 func get_player_number(peer_id: int) -> int:
 	return _player_numbers.get(peer_id, peer_id)
@@ -146,8 +179,6 @@ func get_player_display_name(peer_id: int) -> String:
 func _local_peer_id() -> int:
 	return multiplayer.get_unique_id()
 
-<<<<<<< Updated upstream
-=======
 func _active_peer_ids() -> Array:
 	var result: Array = []
 	for peer_id in spawned_players.keys():
@@ -212,8 +243,6 @@ func _run_eight_ball_ai_turn(token: int, wait_time: float) -> void:
 		return
 	var shot := EightBallLogic.choose_ai_shot(_eight_ball_session, _EIGHT_BALL_AI_ID)
 	_do_eight_ball_shot(_EIGHT_BALL_AI_ID, float(shot.get("angle", 0.0)), float(shot.get("power", 0.58)))
-
->>>>>>> Stashed changes
 func _active_player_numbers() -> Dictionary:
 	var result := {}
 	for peer_id in _player_numbers:
@@ -237,6 +266,7 @@ func _sync_player_name(peer_id: int, display_name: String) -> void:
 		spawned_players[peer_id].set_display_name(display_name)
 	hud.update_scores(game_mode.scores, _player_numbers, game_mode.stocks, player_names)
 	hud.update_kda(game_mode.kda_kills, game_mode.kda_deaths, _active_player_numbers(), player_names, game_mode.kda_damage, _local_peer_id(), team_colors, game_mode.kda_damage_taken)
+	_push_eight_ball_state_local()
 
 func _spawn_player(peer_id: int):
 	if peer_id in spawned_players:
@@ -259,6 +289,7 @@ func _spawn_player(peer_id: int):
 		p.health_changed.connect(hud.update_hearts)
 		p.powerups_changed.connect(hud.update_powerups)
 		p.nudge_changed.connect(hud.set_nudge)
+	_push_eight_ball_state_local()
 
 func request_load_level(path: String) -> void:
 	if NetworkManager.is_online() and not multiplayer.is_server():
@@ -281,6 +312,10 @@ func load_level(path: String) -> void:
 func _load_level_local(path: String) -> bool:
 	game_mode.stop_game()
 	_clear_all_player_powerups()
+	close_blackjack()
+	close_eight_ball()
+	if multiplayer.is_server():
+		_set_eight_ball_session(EightBallLogic.create_idle_session("Rack cleared for the new level."))
 	for p in spawned_players.values():
 		p.is_frozen = false
 		p.health = p.get_effective_max_health()
@@ -387,6 +422,8 @@ func open_wardrobe(player: Node) -> void:
 		return
 	if _wardrobe_player == player and wardrobe_menu.visible:
 		return
+	close_blackjack()
+	close_eight_ball()
 	close_wardrobe()
 	_wardrobe_player = player
 	if is_instance_valid(_wardrobe_player):
@@ -399,8 +436,6 @@ func close_wardrobe() -> void:
 	_wardrobe_player = null
 	wardrobe_menu.close_menu()
 
-<<<<<<< Updated upstream
-=======
 
 func open_blackjack() -> void:
 	var player: Node2D = spawned_players.get(multiplayer.get_unique_id())
@@ -552,7 +587,6 @@ func _do_eight_ball_shot(peer_id: int, angle: float, power: float) -> void:
 	var animation_id := int(_eight_ball_session.get("animation_id", 0)) + 1
 	_set_eight_ball_session(EightBallLogic.apply_shot(_eight_ball_session, peer_id, angle, power, animation_id))
 
->>>>>>> Stashed changes
 func request_player_outfit_change(peer_id: int, outfit_id: int) -> void:
 	if NetworkManager.is_online() and not multiplayer.is_server():
 		_req_player_outfit_change.rpc_id(1, peer_id, outfit_id)
@@ -619,6 +653,8 @@ func _freeze_for_all_players(duration: float) -> void:
 		p.freeze_for_duration(duration)
 
 func _on_round_started(round_number: int) -> void:
+	close_blackjack()
+	close_eight_ball()
 	powerups_menu.close_menu()
 	_grant_round_powerup_state()
 	var msg: String
@@ -634,6 +670,8 @@ func _on_round_started(round_number: int) -> void:
 	_freeze_for_all_players(hud.ANNOUNCEMENT_DURATION)
 
 func _on_round_ended(finishers: Array, scores: Dictionary) -> void:
+	close_blackjack()
+	close_eight_ball()
 	hud.update_scores(scores, _player_numbers, game_mode.stocks, player_names)
 	var msg: String
 	if finishers.is_empty():
@@ -644,8 +682,12 @@ func _on_round_ended(finishers: Array, scores: Dictionary) -> void:
 	_freeze_for_all_players(hud.ANNOUNCEMENT_DURATION)
 	for p in spawned_players.values():
 		p.set_finished(false)
+		p.health = p.get_effective_max_health()
+		p.health_changed.emit(p.health, p.get_effective_max_health())
 
 func _on_game_over(winner_peer_id: int, scores: Dictionary) -> void:
+	close_blackjack()
+	close_eight_ball()
 	hud.update_scores(scores, _player_numbers, {}, player_names)
 	hud.show_announcement("%s wins!" % get_player_display_name(winner_peer_id), 3.0)
 	respawn_all_at_spawn()
@@ -660,6 +702,8 @@ func _on_kda_changed(kda_kills: Dictionary, kda_deaths: Dictionary, kda_damage: 
 	hud.update_kda(kda_kills, kda_deaths, _active_player_numbers(), player_names, kda_damage, _local_peer_id(), team_colors, kda_damage_taken)
 
 func _on_powerups_distribute(_scores: Dictionary, finishers: Array) -> void:
+	close_blackjack()
+	close_eight_ball()
 	var local_peer := multiplayer.get_unique_id()
 	var player = spawned_players.get(local_peer)
 	if player == null:

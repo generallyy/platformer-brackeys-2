@@ -1,0 +1,32 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/hazards/push_hazard.gd" id="1_script"]
+
+[sub_resource type="RectangleShape2D" id="1_rect"]
+size = Vector2(120, 56)
+
+[node name="Wind" type="Area2D"]
+script = ExtResource("1_script")
+push_vector = Vector2(420, 0)
+max_speed = 320.0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("1_rect")
+
+[node name="Field" type="Polygon2D" parent="."]
+color = Color(0.48235294, 0.85490197, 0.98039216, 0.14)
+polygon = PackedVector2Array(-60, -28, 60, -28, 60, 28, -60, 28)
+
+[node name="ArrowTop" type="Polygon2D" parent="."]
+position = Vector2(0, -16)
+color = Color(0.7019608, 0.9607843, 1, 0.85)
+polygon = PackedVector2Array(-36, -4, 4, -4, 4, -10, 20, 0, 4, 10, 4, 4, -36, 4)
+
+[node name="ArrowMid" type="Polygon2D" parent="."]
+color = Color(0.7019608, 0.9607843, 1, 0.95)
+polygon = PackedVector2Array(-44, -4, 8, -4, 8, -10, 24, 0, 8, 10, 8, 4, -44, 4)
+
+[node name="ArrowBottom" type="Polygon2D" parent="."]
+position = Vector2(0, 16)
+color = Color(0.7019608, 0.9607843, 1, 0.85)
+polygon = PackedVector2Array(-32, -4, 6, -4, 6, -10, 22, 0, 6, 10, 6, 4, -32, 4)

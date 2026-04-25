@@ -1,0 +1,30 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/hazards/poison_cloud.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/sprites/white_circle.png" id="2_circle"]
+[ext_resource type="Script" path="res://scripts/hazards/poison_cloud_visual.gd" id="3_visual"]
+
+[sub_resource type="CircleShape2D" id="1_circle_shape"]
+radius = 28.0
+
+[node name="PoisonCloud" type="Area2D"]
+script = ExtResource("1_script")
+delay_before_damage = 1.4
+tick_interval = 1.25
+local_knockback = Vector2(30, -20)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("1_circle_shape")
+
+[node name="ParticleField" type="Node2D" parent="."]
+script = ExtResource("3_visual")
+particle_texture = ExtResource("2_circle")
+particle_count = 64
+cloud_radius = 28.0
+min_particle_scale = 0.08
+max_particle_scale = 0.19
+min_alpha = 0.08
+max_alpha = 0.78
+min_cycle_duration = 1.0
+max_cycle_duration = 2.5
+drift_strength = 5.0

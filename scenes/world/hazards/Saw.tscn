@@ -1,0 +1,37 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/hazards/contact_hazard.gd" id="1_script"]
+[ext_resource type="Script" path="res://scripts/hazards/spin_visual.gd" id="2_spin"]
+[ext_resource type="Texture2D" path="res://assets/sprites/white_circle.png" id="3_circle"]
+
+[sub_resource type="CircleShape2D" id="1_circle_shape"]
+radius = 13.0
+
+[node name="Saw" type="Area2D"]
+script = ExtResource("1_script")
+hit_interval = 1.1
+local_knockback = Vector2(0, -40)
+radial_knockback_strength = 170.0
+tangential_knockback_strength = 220.0
+tangent_spin_source_path = NodePath("Visual")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("1_circle_shape")
+
+[node name="Visual" type="Node2D" parent="."]
+script = ExtResource("2_spin")
+spin_speed = 9.0
+
+[node name="Blade" type="Polygon2D" parent="Visual"]
+color = Color(0.80784315, 0.827451, 0.8509804, 1)
+polygon = PackedVector2Array(0, -20, 6, -9, 18, -12, 10, 0, 18, 12, 6, 9, 0, 20, -6, 9, -18, 12, -10, 0, -18, -12, -6, -9)
+
+[node name="CoreShadow" type="Sprite2D" parent="Visual"]
+scale = Vector2(0.32, 0.32)
+texture = ExtResource("3_circle")
+modulate = Color(0.29803923, 0.30980393, 0.35686275, 0.55)
+
+[node name="Core" type="Sprite2D" parent="Visual"]
+scale = Vector2(0.18, 0.18)
+texture = ExtResource("3_circle")
+modulate = Color(0.21176471, 0.22352941, 0.2627451, 1)

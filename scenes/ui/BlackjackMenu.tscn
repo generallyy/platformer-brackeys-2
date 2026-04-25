@@ -1,0 +1,127 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/BlackjackMenu.gd" id="1_script"]
+[ext_resource type="Theme" uid="uid://2p378flu0i2e" path="res://assets/fonts/labrada.tres" id="2_theme"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_table"]
+bg_color = Color(0.05882353, 0.20392157, 0.15294118, 0.98)
+border_width_left = 8
+border_width_top = 8
+border_width_right = 8
+border_width_bottom = 8
+border_color = Color(0.8352941, 0.70980394, 0.3764706, 1)
+corner_radius_top_left = 32
+corner_radius_top_right = 32
+corner_radius_bottom_right = 32
+corner_radius_bottom_left = 32
+shadow_color = Color(0, 0, 0, 0.35)
+shadow_size = 16
+content_margin_left = 30.0
+content_margin_top = 28.0
+content_margin_right = 30.0
+content_margin_bottom = 28.0
+
+[node name="BlackjackMenu" type="CanvasLayer"]
+visible = false
+process_mode = 3
+layer = 3
+script = ExtResource("1_script")
+
+[node name="Dim" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.015686275, 0.047058824, 0.043137256, 0.82)
+
+[node name="Root" type="CenterContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("2_theme")
+
+[node name="Panel" type="PanelContainer" parent="Root"]
+custom_minimum_size = Vector2(1220, 760)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_table")
+
+[node name="Content" type="VBoxContainer" parent="Root/Panel"]
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="Header" type="VBoxContainer" parent="Root/Panel/Content"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Root/Panel/Content/Header"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 52
+text = "BLACKJACK"
+horizontal_alignment = 1
+
+[node name="Subtitle" type="Label" parent="Root/Panel/Content/Header"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Press [P] to open or close the table."
+horizontal_alignment = 1
+
+[node name="DealerSection" type="VBoxContainer" parent="Root/Panel/Content"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Header" type="Label" parent="Root/Panel/Content/DealerSection"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "Dealer  |  --"
+
+[node name="Cards" type="HBoxContainer" parent="Root/Panel/Content/DealerSection"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="PlayerSection" type="VBoxContainer" parent="Root/Panel/Content"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Header" type="Label" parent="Root/Panel/Content/PlayerSection"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "Player  |  --"
+
+[node name="Cards" type="HBoxContainer" parent="Root/Panel/Content/PlayerSection"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Status" type="Label" parent="Root/Panel/Content"]
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "Deal a hand to begin."
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Controls" type="HBoxContainer" parent="Root/Panel/Content"]
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="Hit" type="Button" parent="Root/Panel/Content/Controls"]
+custom_minimum_size = Vector2(180, 0)
+layout_mode = 2
+text = "Hit"
+
+[node name="Stand" type="Button" parent="Root/Panel/Content/Controls"]
+custom_minimum_size = Vector2(180, 0)
+layout_mode = 2
+text = "Stand"
+
+[node name="Deal" type="Button" parent="Root/Panel/Content/Controls"]
+custom_minimum_size = Vector2(220, 0)
+layout_mode = 2
+text = "New Hand"
+
+[node name="Close" type="Button" parent="Root/Panel/Content/Controls"]
+custom_minimum_size = Vector2(220, 0)
+layout_mode = 2
+text = "Close"
