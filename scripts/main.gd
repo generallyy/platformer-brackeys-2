@@ -14,6 +14,7 @@ var player_names: Dictionary = {}     # peer_id -> display name String
 var team_colors: Dictionary = {}      # peer_id -> Color
 var player_teams: Dictionary = {}     # peer_id -> team_id (0 = no team)
 var ghost_bombs_enabled: bool = true
+var kills_required_for_goal: bool = false
 var current_level_path := "res://scenes/levels/Level0.tscn"
 var _respawn_points: Dictionary = {}
 var _wardrobe_player: Node = null
@@ -156,7 +157,7 @@ func _sync_player_name(peer_id: int, display_name: String) -> void:
 	if peer_id in spawned_players:
 		spawned_players[peer_id].set_display_name(display_name)
 	hud.update_scores(game_mode.scores, _player_numbers, game_mode.stocks, player_names)
-	hud.update_kda(game_mode.kda_kills, game_mode.kda_deaths, _active_player_numbers(), player_names, game_mode.kda_damage, _local_peer_id(), team_colors)
+	hud.update_kda(game_mode.kda_kills, game_mode.kda_deaths, _active_player_numbers(), player_names, game_mode.kda_damage, _local_peer_id(), team_colors, game_mode.kda_damage_taken)
 
 func _spawn_player(peer_id: int):
 	if peer_id in spawned_players:
@@ -246,6 +247,7 @@ func _load_level_local(path: String) -> bool:
 	loading_screen.visible = false
 	var settings := level_container.get_child(0).get_node_or_null("LevelSettings")
 	ghost_bombs_enabled = settings.ghost_bombs_enabled if settings != null else true
+	kills_required_for_goal = settings.kills_required_for_goal if settings != null else false
 	if settings and settings.game_mode_enabled:
 		if multiplayer.is_server():
 			game_mode.start_game(settings.round_time_limit, settings.points_to_win)
@@ -395,7 +397,7 @@ func _on_round_started(round_number: int) -> void:
 		msg = "Round %d — GO!" % round_number
 	hud.show_announcement(msg)
 	hud.update_scores(game_mode.scores, _player_numbers, game_mode.stocks, player_names)
-	hud.update_kda(game_mode.kda_kills, game_mode.kda_deaths, _active_player_numbers(), player_names, game_mode.kda_damage, _local_peer_id(), team_colors)
+	hud.update_kda(game_mode.kda_kills, game_mode.kda_deaths, _active_player_numbers(), player_names, game_mode.kda_damage, _local_peer_id(), team_colors, game_mode.kda_damage_taken)
 	_freeze_for_all_players(hud.ANNOUNCEMENT_DURATION)
 
 func _on_round_ended(finishers: Array, scores: Dictionary) -> void:
@@ -421,8 +423,8 @@ func _on_scores_changed(scores: Dictionary) -> void:
 func _on_stocks_changed(_stocks: Dictionary) -> void:
 	hud.update_scores(game_mode.scores, _player_numbers, _stocks, player_names)
 
-func _on_kda_changed(kda_kills: Dictionary, kda_deaths: Dictionary, kda_damage: Dictionary) -> void:
-	hud.update_kda(kda_kills, kda_deaths, _player_numbers, player_names, kda_damage, _local_peer_id(), team_colors)
+func _on_kda_changed(kda_kills: Dictionary, kda_deaths: Dictionary, kda_damage: Dictionary, kda_damage_taken: Dictionary = {}) -> void:
+	hud.update_kda(kda_kills, kda_deaths, _active_player_numbers(), player_names, kda_damage, _local_peer_id(), team_colors, kda_damage_taken)
 
 func _on_powerups_distribute(_scores: Dictionary, finishers: Array) -> void:
 	var local_peer := multiplayer.get_unique_id()
@@ -500,7 +502,7 @@ func _sync_team_change(peer_id: int, tid: int) -> void:
 		team_colors[peer_id] = get_team_color(tid)
 	if peer_id in spawned_players:
 		spawned_players[peer_id].set_team(tid, get_team_color(tid))
-	hud.update_kda(game_mode.kda_kills, game_mode.kda_deaths, _active_player_numbers(), player_names, game_mode.kda_damage, _local_peer_id(), team_colors)
+	hud.update_kda(game_mode.kda_kills, game_mode.kda_deaths, _active_player_numbers(), player_names, game_mode.kda_damage, _local_peer_id(), team_colors, game_mode.kda_damage_taken)
 
 func notify_kill(killer_peer_id: int, victim_peer_id: int) -> void:
 	if NetworkManager.is_online() and not multiplayer.is_server():
@@ -547,12 +549,14 @@ func notify_damage(attacker_peer_id: int, victim_peer_id: int, amount: int) -> v
 		_req_notify_damage.rpc_id(1, attacker_peer_id, victim_peer_id, amount)
 		return
 	game_mode.record_damage(attacker_peer_id, amount)
+	game_mode.record_damage_taken(victim_peer_id, amount)
 
 @rpc("any_peer", "reliable")
 func _req_notify_damage(attacker_peer_id: int, victim_peer_id: int, amount: int) -> void:
 	if multiplayer.get_remote_sender_id() != victim_peer_id:
 		return
 	game_mode.record_damage(attacker_peer_id, amount)
+	game_mode.record_damage_taken(victim_peer_id, amount)
 
 func respawn_player_by_id(peer_id: int):
 	if NetworkManager.is_online() and not multiplayer.is_server():

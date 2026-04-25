@@ -236,8 +236,6 @@ func _physics_process(delta: float) -> void:
 				elif _extra_jumps_used < passive_powerups.count(PowerupIds.EXTRA_JUMP):
 					_extra_jumps_used += 1
 					_transition_to(PlayerState.DOUBLE_JUMP)
-				elif passive_powerups.has(PowerupIds.JUMP_BOOST):
-					_transition_to(PlayerState.DOUBLE_JUMP)
 		PlayerState.DASH:
 			velocity.x = facing_direction * stats.dash_speed * pow(1.30, passive_powerups.count(PowerupIds.DASH_BOOST_GROUND))
 			if is_multiplayer_authority():
@@ -439,7 +437,7 @@ func _apply_gravity(delta: float) -> void:
 	if is_on_floor() or _state == PlayerState.AIR_BOOST:
 		return
 	var low_grav := PowerupIds.LOW_GRAVITY in passive_powerups
-	var gravity_scale := 0.5 if low_grav else 1.0
+	var gravity_scale := 0.75 if low_grav else 1.0
 	var fall_cap      := stats.max_fall_speed * (0.6 if low_grav else 1.0)
 	velocity.y = min(velocity.y + gravity * gravity_scale * delta, fall_cap)
 
@@ -648,8 +646,6 @@ func _handle_input(_delta: float) -> void:
 			elif _extra_jumps_used < passive_powerups.count(PowerupIds.EXTRA_JUMP):
 				_extra_jumps_used += 1
 				_transition_to(PlayerState.DOUBLE_JUMP)
-			elif passive_powerups.has(PowerupIds.JUMP_BOOST):
-				_transition_to(PlayerState.DOUBLE_JUMP)
 
 	if Input.is_action_just_pressed("f") and not _is_shielding:
 		if is_on_floor() and _dash_cooldown <= 0.0:
@@ -688,7 +684,7 @@ func _handle_input(_delta: float) -> void:
 				if NetworkManager.is_online():
 					_rpc_set_invisible.rpc(true)
 				else:
-					modulate.a = 0.0
+					modulate.a = 0.4
 			PowerupIds.TELEPORT:
 				_active_used_this_round = true
 				var nearest := _find_nearest_player()
@@ -800,7 +796,7 @@ func freeze_for_duration(duration: float) -> void:
 
 
 func run_dbj(_delta = null) -> void:
-	velocity.y = stats.dbj_speed * pow(0.90, passive_powerups.count(PowerupIds.JUMP_BOOST))
+	velocity.y = stats.dbj_speed
 	audio_stream_player.stream = _DBJ_SFX
 	audio_stream_player.play()
 	_effects_anchor.position.y = 10.0
@@ -905,15 +901,16 @@ func _do_melee() -> void:
 	var soh := PowerupIds.SLOW_ON_HIT in passive_powerups
 	var ss  := passive_powerups.count(PowerupIds.SHIELD_SPIKE)
 	var ps  := PowerupIds.PARRY_STUN in passive_powerups
-	_rpc_throw_melee.rpc(facing_direction, multiplayer.get_unique_id(), _effective_damage(), _effective_knockback_scale(), bm, soh, ss, ps)
+	var cgh := PowerupIds.GHOST_HUNTER in passive_powerups
+	_rpc_throw_melee.rpc(facing_direction, multiplayer.get_unique_id(), _effective_damage(), _effective_knockback_scale(), bm, soh, ss, ps, cgh)
 
 
 @rpc("authority", "call_local", "reliable")
-func _rpc_throw_melee(dir: int, thrower_id: int, dmg: int = 1, kbs: float = 1.0, big_melee_stacks: int = 0, slow_on_hit: bool = false, shield_spike_dmg: int = 0, parry_stun: bool = false) -> void:
-	_do_spawn_melee(dir, thrower_id, dmg, kbs, big_melee_stacks, slow_on_hit, shield_spike_dmg, parry_stun)
+func _rpc_throw_melee(dir: int, thrower_id: int, dmg: int = 1, kbs: float = 1.0, big_melee_stacks: int = 0, slow_on_hit: bool = false, shield_spike_dmg: int = 0, parry_stun: bool = false, can_hit_ghosts: bool = false) -> void:
+	_do_spawn_melee(dir, thrower_id, dmg, kbs, big_melee_stacks, slow_on_hit, shield_spike_dmg, parry_stun, can_hit_ghosts)
 
 
-func _do_spawn_melee(dir: int, thrower_id: int, dmg: int = 1, kbs: float = 1.0, big_melee_stacks: int = 0, slow_on_hit: bool = false, shield_spike_dmg: int = 0, parry_stun: bool = false) -> void:
+func _do_spawn_melee(dir: int, thrower_id: int, dmg: int = 1, kbs: float = 1.0, big_melee_stacks: int = 0, slow_on_hit: bool = false, shield_spike_dmg: int = 0, parry_stun: bool = false, can_hit_ghosts: bool = false) -> void:
 	var m := MELEE_SCENE.instantiate()
 	m.direction       = dir
 	m.thrower_peer_id = thrower_id
@@ -922,8 +919,9 @@ func _do_spawn_melee(dir: int, thrower_id: int, dmg: int = 1, kbs: float = 1.0, 
 	m.slow_on_hit     = slow_on_hit
 	m.shield_spike_dmg = shield_spike_dmg
 	m.parry_stun      = parry_stun
+	m.can_hit_ghosts  = can_hit_ghosts
 	if big_melee_stacks > 0:
-		var s := pow(1.40, big_melee_stacks)
+		var s := pow(1.20, big_melee_stacks)
 		m.scale = Vector2(dir * s, s)
 	else:
 		m.scale.x = dir
@@ -1245,7 +1243,8 @@ func _find_local_player() -> Node:
 func _rpc_set_invisible(invisible: bool) -> void:
 	_is_invisible = invisible
 	if is_multiplayer_authority():
-		return  # local player always sees themselves at full opacity
+		modulate.a = 0.4 if invisible else 1.0
+		return
 	var local_player := _find_local_player()
 	var has_hunter: bool = local_player != null and PowerupIds.GHOST_HUNTER in local_player.passive_powerups
 	modulate.a = (0.4 if has_hunter else 0.0) if invisible else 1.0

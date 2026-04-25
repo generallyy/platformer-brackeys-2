@@ -19,7 +19,7 @@ shape = SubResource("RectangleShape2D_dagger")
 position = Vector2(-5, 0)
 points = PackedVector2Array(0, 0, 10, 0)
 width = 3.0
-default_color = Color(0.84619087, 0.8462649, 0.85928273, 1)
+default_color = Color(0.98878056, 0.5453538, 1, 1)
 
 [connection signal="area_entered" from="." to="." method="_on_area_entered"]
 [connection signal="body_entered" from="." to="." method="_on_body_entered"]

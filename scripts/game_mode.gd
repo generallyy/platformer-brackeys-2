@@ -15,7 +15,7 @@ signal game_over(winner_peer_id: int, scores: Dictionary)
 signal powerups_distribute(scores: Dictionary, finishers: Array)
 signal scores_changed(scores: Dictionary)
 signal stocks_changed(stocks: Dictionary)
-signal kda_changed(kda_kills: Dictionary, kda_deaths: Dictionary, kda_damage: Dictionary)
+signal kda_changed(kda_kills: Dictionary, kda_deaths: Dictionary, kda_damage: Dictionary, kda_damage_taken: Dictionary)
 
 var state: int = State.INACTIVE
 var sudden_death_peers: Array = []  # non-empty only during a sudden death round
@@ -26,6 +26,8 @@ var stocks: Dictionary = {}
 var kda_kills: Dictionary = {}
 var kda_deaths: Dictionary = {}
 var kda_damage: Dictionary = {}
+var kda_damage_taken: Dictionary = {}
+var round_kills: Dictionary = {}
 var round_number: int = 0
 var _round_active := false
 var _finishers: Array = []
@@ -68,7 +70,9 @@ func stop_game() -> void:
 	kda_kills.clear()
 	kda_deaths.clear()
 	kda_damage.clear()
-	kda_changed.emit(kda_kills, kda_deaths, kda_damage)
+	kda_damage_taken.clear()
+	round_kills.clear()
+	kda_changed.emit(kda_kills, kda_deaths, kda_damage, kda_damage_taken)
 
 func register_player(peer_id: int) -> void:
 	if state != State.INACTIVE and peer_id not in scores:
@@ -86,6 +90,7 @@ func start_game(time_limit: float = 60.0, win_score: int = 30) -> void:
 	_finish_scores.clear()
 	kills.clear()
 	total_kills.clear()
+	round_kills.clear()
 	stocks.clear()
 	for peer_id in get_parent().spawned_players:
 		scores[peer_id] = 0
@@ -150,6 +155,8 @@ func record_kill(killer_id: int, victim_id: int) -> void:
 		kills[killer_id] = {}
 	kills[killer_id][victim_id] = kills[killer_id].get(victim_id, 0) + 1
 	total_kills[killer_id] = total_kills.get(killer_id, 0) + 1
+	round_kills[killer_id] = round_kills.get(killer_id, 0) + 1
+	_broadcast_round_kills()
 	if victim_id in stocks and stocks[victim_id] > 0:
 		stocks[victim_id] -= 1
 	_broadcast_stocks()
@@ -187,17 +194,29 @@ func _sync_stocks_rpc(new_stocks: Dictionary) -> void:
 	stocks_changed.emit(stocks)
 
 func _broadcast_kda() -> void:
-	_sync_kda_rpc.rpc(kda_kills, kda_deaths, kda_damage)
+	_sync_kda_rpc.rpc(kda_kills, kda_deaths, kda_damage, kda_damage_taken)
 
 @rpc("authority", "call_local", "reliable")
-func _sync_kda_rpc(new_kills: Dictionary, new_deaths: Dictionary, new_damage: Dictionary) -> void:
+func _sync_kda_rpc(new_kills: Dictionary, new_deaths: Dictionary, new_damage: Dictionary, new_damage_taken: Dictionary = {}) -> void:
 	kda_kills = new_kills
 	kda_deaths = new_deaths
 	kda_damage = new_damage
-	kda_changed.emit(kda_kills, kda_deaths, kda_damage)
+	kda_damage_taken = new_damage_taken
+	kda_changed.emit(kda_kills, kda_deaths, kda_damage, kda_damage_taken)
+
+func _broadcast_round_kills() -> void:
+	_sync_round_kills_rpc.rpc(round_kills)
+
+@rpc("authority", "call_local", "reliable")
+func _sync_round_kills_rpc(new_round_kills: Dictionary) -> void:
+	round_kills = new_round_kills
 
 func record_damage(attacker_id: int, amount: int) -> void:
 	kda_damage[attacker_id] = kda_damage.get(attacker_id, 0) + amount
+	_broadcast_kda()
+
+func record_damage_taken(victim_id: int, amount: int) -> void:
+	kda_damage_taken[victim_id] = kda_damage_taken.get(victim_id, 0) + amount
 	_broadcast_kda()
 
 func _compute_kill_points(peer_id: int) -> int:
@@ -284,6 +303,7 @@ func _sync_round_state(new_state: int, new_scores: Dictionary, round_num: int, e
 			_time_limit = time_limit
 			_time_remaining = time_limit
 			_start_delay = ROUND_START_DELAY
+			round_kills.clear()
 			for peer_id in new_scores:
 				stocks[peer_id] = STOCKS_PER_ROUND
 			stocks_changed.emit(stocks)

@@ -4,7 +4,6 @@ class_name PowerupIds
 ## Use these everywhere instead of raw strings to prevent typos.
 
 # Passive
-const JUMP_BOOST        := "jump_boost"
 const DAMAGE_BOOST      := "damage_boost"
 const KNOCKBACK_BOOST   := "knockback_boost"
 const EXTRA_HEARTS      := "extra_hearts"
@@ -39,7 +38,6 @@ const ALL_ACTIVE: Array[String] = [
 ## How many times each powerup can be picked. Omitted = DEFAULT_MAX_STACKS.
 const DEFAULT_MAX_STACKS := 10
 const MAX_STACKS: Dictionary = {
-	JUMP_BOOST:        2,
 	LOW_GRAVITY:       1,
 	SPEED_BOOST:       1,
 	HOMER_ONCE:        1,
@@ -66,7 +64,6 @@ static func get_max_stacks(id: String) -> int:
 	return MAX_STACKS.get(id, DEFAULT_MAX_STACKS)
 
 const DISPLAY_NAMES: Dictionary = {
-	JUMP_BOOST:        "Spring Legs",
 	DAMAGE_BOOST:      "Heavy Hitter",
 	KNOCKBACK_BOOST:   "Knock Out",
 	EXTRA_HEARTS:      "Extra Hearts",

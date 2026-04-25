@@ -81,15 +81,15 @@ func update_scores(scores: Dictionary, player_numbers: Dictionary = {}, stocks: 
 			lbl.text = "  %s: %d" % [label, scores[peer_id]]
 		_score_row.add_child(lbl)
 
-func update_kda(kda_kills: Dictionary, kda_deaths: Dictionary, player_numbers: Dictionary = {}, player_names: Dictionary = {}, kda_damage: Dictionary = {}, local_peer_id: int = -1, team_colors: Dictionary = {}) -> void:
+func update_kda(kda_kills: Dictionary, kda_deaths: Dictionary, player_numbers: Dictionary = {}, player_names: Dictionary = {}, kda_damage: Dictionary = {}, local_peer_id: int = -1, team_colors: Dictionary = {}, kda_damage_taken: Dictionary = {}) -> void:
 	var grid := $KDA/GridContainer
-	grid.columns = 5
+	grid.columns = 6
 	for child in grid.get_children():
 		child.queue_free()
 
 	# Header row
-	for i in 5:
-		var header_text: String = ["", "Name", "Kills", "Deaths", "Dmg Dealt"][i]
+	for i in 6:
+		var header_text: String = ["", "Name", "Kills", "Deaths", "Dmg Dealt", "Dmg Taken"][i]
 		var h := Label.new()
 		h.add_theme_font_size_override("font_size", 30)
 		h.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0, 1.0))
@@ -115,8 +115,8 @@ func update_kda(kda_kills: Dictionary, kda_deaths: Dictionary, player_numbers: D
 		else:
 			color = Color.WHITE
 		var prefix := "▶" if is_local else ""
-		var cells := [prefix, name_str, str(kda_kills.get(peer_id, 0)), str(kda_deaths.get(peer_id, 0)), str(kda_damage.get(peer_id, 0))]
-		for i in 5:
+		var cells := [prefix, name_str, str(kda_kills.get(peer_id, 0)), str(kda_deaths.get(peer_id, 0)), str(kda_damage.get(peer_id, 0)), str(kda_damage_taken.get(peer_id, 0))]
+		for i in 6:
 			var lbl := Label.new()
 			lbl.add_theme_font_size_override("font_size", 40)
 			lbl.add_theme_color_override("font_color", color)
