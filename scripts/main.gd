@@ -639,6 +639,8 @@ func _on_round_ended(finishers: Array, scores: Dictionary) -> void:
 	_freeze_for_all_players(hud.ANNOUNCEMENT_DURATION)
 	for p in spawned_players.values():
 		p.set_finished(false)
+		p.health = p.get_effective_max_health()
+		p.health_changed.emit(p.health, p.get_effective_max_health())
 
 func _on_game_over(winner_peer_id: int, scores: Dictionary) -> void:
 	close_blackjack()

@@ -1229,7 +1229,7 @@ func clear_powerups() -> void:
 	_is_invisible           = false
 	_invisible_timer        = 0.0
 	scale                   = Vector2(1.0, 1.0)
-	if NetworkManager.is_online():
+	if NetworkManager.is_online() and is_multiplayer_authority():
 		_rpc_set_invisible.rpc(false)
 	else:
 		modulate.a = 1.0
@@ -1252,7 +1252,7 @@ func reset_round_powerup_state() -> void:
 	_confusion_timer        = 0.0
 	_is_invisible           = false
 	_invisible_timer        = 0.0
-	if NetworkManager.is_online():
+	if NetworkManager.is_online() and is_multiplayer_authority():
 		_rpc_set_invisible.rpc(false)
 	else:
 		modulate.a = 1.0

@@ -40,7 +40,7 @@ func _on_body_entered(body: Node2D) -> void:
 		if body.get_multiplayer_authority() == thrower_peer_id:
 			return
 		_hit_targets.append(body)
-		body.take_damage(damage, Vector2(direction * knockback.x, knockback.y))
+		body.take_damage(damage, Vector2(direction * knockback.x, knockback.y), thrower_peer_id)
 		return
 	if body is CharacterBody2D or body.is_in_group("enemy"):
 		return
