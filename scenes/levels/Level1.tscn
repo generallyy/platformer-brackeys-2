@@ -24,7 +24,12 @@
 [ext_resource type="PackedScene" uid="uid://dghf2fi812ufr" path="res://scenes/world/CollisionToggle.tscn" id="22_usw5k"]
 [ext_resource type="PackedScene" uid="uid://ci71fpxtxsgj7" path="res://scenes/world/hazards/Spikes.tscn" id="23_jsker"]
 [ext_resource type="PackedScene" uid="uid://cqv3v4ijcgxo4" path="res://scenes/world/TeamPedestal.tscn" id="24_6ex7q"]
+[ext_resource type="PackedScene" path="res://scenes/world/hazards/AcidShowerhead.tscn" id="26_86um8"]
 [ext_resource type="PackedScene" path="res://scenes/world/hazards/Wind.tscn" id="27_hnhv5"]
+[ext_resource type="PackedScene" path="res://scenes/world/hazards/ArrowTrap.tscn" id="27_hpass"]
+[ext_resource type="PackedScene" path="res://scenes/world/hazards/Lava.tscn" id="28_srkvl"]
+[ext_resource type="PackedScene" path="res://scenes/world/hazards/PoisonCloud.tscn" id="29_pgakm"]
+[ext_resource type="PackedScene" path="res://scenes/world/hazards/Saw.tscn" id="30_s7ois"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_bspq0"]
 texture = ExtResource("2_lc44e")
@@ -539,3 +544,27 @@ position = Vector2(-199, -126)
 position = Vector2(138, -11.000015)
 rotation = -1.5423523
 scale = Vector2(0.99999994, 0.99999994)
+
+[node name="AcidShowerhead" parent="." unique_id=1276830137 instance=ExtResource("26_86um8")]
+position = Vector2(-367, -125)
+
+[node name="ArrowTrap2" parent="." unique_id=954707408 instance=ExtResource("27_hpass")]
+position = Vector2(-178, -191.99997)
+rotation = -4.700613
+
+[node name="ArrowTrap" parent="." unique_id=1635389704 instance=ExtResource("27_hpass")]
+position = Vector2(-221, -190)
+rotation = 1.5978425
+
+[node name="Lava" parent="." unique_id=2117888400 instance=ExtResource("28_srkvl")]
+position = Vector2(198, -43)
+rotation = -0.09632871
+
+[node name="PoisonCloud" parent="." unique_id=1797223888 instance=ExtResource("29_pgakm")]
+position = Vector2(63, -89)
+
+[node name="Saw" parent="." unique_id=1951577726 instance=ExtResource("30_s7ois")]
+position = Vector2(1, -143)
+
+[node name="Wind" parent="." unique_id=1311987384 instance=ExtResource("27_hnhv5")]
+position = Vector2(-168, -29)
