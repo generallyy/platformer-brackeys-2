@@ -51,14 +51,11 @@ func update_hearts(current: int, max_health: int = 3) -> void:
 		text += "♥" if i < current else "♡"
 	$Hearts/Label.text = text
 
-func update_powerups(passive: Array, active: String) -> void:
+func update_powerups(passive: Dictionary, active: String) -> void:
 	var lines: Array[String] = []
-	var counts := {}
 	for id in passive:
-		counts[id] = counts.get(id, 0) + 1
-	for id in counts:
 		var powerup_name := _powerup_display_name(id)
-		lines.append(powerup_name if counts[id] == 1 else "%s x%d" % [powerup_name, counts[id]])
+		lines.append(powerup_name if passive[id] == 1 else "%s x%d" % [powerup_name, passive[id]])
 	if active != "":
 		lines.append("[%s]" % _powerup_display_name(active))
 	_powerups_label.text = "\n".join(lines)

@@ -2,6 +2,7 @@ extends Control
 
 const CONNECT_TIMEOUT = 10.0
 
+@onready var host_button = $CenterContainer/VBoxContainer/HostButton
 @onready var name_input = $CenterContainer/VBoxContainer/NameInput
 @onready var address_input = $CenterContainer/VBoxContainer/AddressInput
 @onready var join_button = $CenterContainer/VBoxContainer/JoinButton
@@ -13,6 +14,7 @@ func _ready():
 	NetworkManager.connection_failed.connect(_on_connection_failed)
 	NetworkManager.server_disconnected.connect(_on_connection_failed)
 	set_process(false)
+	host_button.grab_focus()
 
 func _on_host_button_pressed():
 	UiAudio.play_click()

@@ -927,13 +927,8 @@ func _do_respawn(peer_id: int):
 	if not game_mode.can_respawn(peer_id):
 		if game_mode.state == game_mode.State.PLAYING:
 			_activate_ghost(peer_id)
-		elif game_mode.state == game_mode.State.INTERMISSION:
-			# Out of stocks but round just ended — snap to spawn so the player
-			# isn't falling off-screen during the powerup menu.
-			var spawn = get_current_spawn_for_peer(peer_id)
-			var pos = spawn.global_position if spawn else Vector2.ZERO
-			_sync_respawn.rpc(peer_id, pos)
-		return
+		elif game_mode.state != game_mode.State.INTERMISSION:
+			return
 	var spawn = get_current_spawn_for_peer(peer_id)
 	var pos = spawn.global_position if spawn else Vector2.ZERO
 	_sync_respawn.rpc(peer_id, pos)

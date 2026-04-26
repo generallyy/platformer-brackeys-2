@@ -13,7 +13,7 @@ const POWERUPS_LIST := [
 	{ "id": PowerupIds.GET_SMALLER,        "name": "Shrink",           "desc": "-25% size, -20% speed\nharder to hit",         "is_active": false, "min_place": 0, "max_place": 9999 },
 	{ "id": PowerupIds.LIFESTEAL,          "name": "Lifesteal",        "desc": "Every 4 melee hits\nrestore 1 HP (stacks)",    "is_active": false, "min_place": 0, "max_place": 9999 },
 	{ "id": PowerupIds.BIG_MELEE,          "name": "Big Swing",        "desc": "Larger melee hitzone\n(stacks ×2)",            "is_active": false, "min_place": 0, "max_place": 9999 },
-	{ "id": PowerupIds.SLOW_ON_HIT,        "name": "Chilling Strikes", "desc": "Attacks slow target\n−40% speed for 1.5s",    "is_active": false, "min_place": 0, "max_place": 9999 },
+	{ "id": PowerupIds.SLOW_ON_HIT,        "name": "Chilling Strikes", "desc": "Attacks slow target\n−20% speed for 1.5s",    "is_active": false, "min_place": 0, "max_place": 9999 },
 	{ "id": PowerupIds.DASH_BOOST_GROUND,  "name": "Power Slide",      "desc": "+30% ground dash speed\n(stacks)",             "is_active": false, "min_place": 0, "max_place": 9999 },
 	{ "id": PowerupIds.DASH_BOOST_AIR,     "name": "Rocket Boost",     "desc": "+30% air boost speed\n(stacks)",               "is_active": false, "min_place": 0, "max_place": 9999 },
 	{ "id": PowerupIds.SHIELD_SPIKE,       "name": "Thorns",           "desc": "Shield reflects 1 dmg\nper hit (stacks)",      "is_active": false, "min_place": 0, "max_place": 9999 },
@@ -106,7 +106,7 @@ func _rebuild_options(placement: int) -> void:
 			if _player != null:
 				if id in PowerupIds.ALL_ACTIVE:
 					return _player.active_powerup != id or PowerupIds.get_max_stacks(id) > 1
-				if _player.passive_powerups.count(id) >= PowerupIds.get_max_stacks(id):
+				if _player.passive_powerups.get(id, 0) >= PowerupIds.get_max_stacks(id):
 					return false
 			return true
 	)

@@ -69,7 +69,7 @@ func _on_body_entered(body: Node2D) -> void:
 			return
 		body.take_damage(damage, Vector2(direction * knockback.x, knockback.y), thrower_peer_id)
 		if slow_on_hit:
-			body.apply_slow(1.5)
+			body.apply_slow(PowerupIds.SLOW_DURATION)
 		_on_hit_character(body)
 		return
 	if body is CharacterBody2D or body.is_in_group("enemy"):

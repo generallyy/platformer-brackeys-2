@@ -36,6 +36,13 @@ func _physics_process(delta: float) -> void:
 		var delay_remaining: float = state.get("delay", delay_before_damage)
 		var tick_remaining: float = state.get("tick", safe_tick)
 
+		if body.get("_is_dying"):
+			_tracked_bodies[body_id] = {
+				"delay": maxf(delay_before_damage, 0.0),
+				"tick": maxf(tick_interval, 0.01),
+			}
+			continue
+
 		if delay_remaining > 0.0:
 			delay_remaining -= delta
 			if delay_remaining <= 0.0:
