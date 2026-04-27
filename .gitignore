@@ -5,4 +5,4 @@
 .claude
 export_presets.cfg
 addons/*
-!addons/smart_shape_2d/
+!addons/rmsmartshape/
