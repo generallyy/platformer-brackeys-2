@@ -31,22 +31,6 @@ region = Rect2(384, 0, 64, 64)
 atlas = ExtResource("2_o2dby")
 region = Rect2(448, 0, 64, 64)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_miirx"]
-atlas = ExtResource("1_okj15")
-region = Rect2(0, 224, 32, 32)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_m6phi"]
-atlas = ExtResource("1_okj15")
-region = Rect2(32, 224, 32, 32)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_oihyf"]
-atlas = ExtResource("1_okj15")
-region = Rect2(64, 224, 32, 32)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_7lms1"]
-atlas = ExtResource("1_okj15")
-region = Rect2(96, 224, 32, 32)
-
 [sub_resource type="AtlasTexture" id="AtlasTexture_b17sb"]
 atlas = ExtResource("1_okj15")
 region = Rect2(0, 0, 32, 32)
@@ -152,23 +136,6 @@ animations = [{
 "loop": true,
 "name": &"dbj",
 "speed": 10.0
-}, {
-"frames": [{
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_miirx")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_m6phi")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_oihyf")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_7lms1")
-}],
-"loop": false,
-"name": &"die",
-"speed": 5.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -635,17 +602,15 @@ position = Vector2(0, -5)
 shape = SubResource("CircleShape2D_ngcs4")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1279863303]
+visible = false
 z_index = 1
 texture_filter = 1
 position = Vector2(0, -12)
 sprite_frames = SubResource("SpriteFrames_sqkdx")
-animation = &"die"
+animation = &"idle"
 autoplay = "idle"
-frame = 3
-frame_progress = 1.0
 
 [node name="StickRig" type="Node2D" parent="." unique_id=1765512735]
-visible = false
 z_index = 2
 script = ExtResource("7_stick")
 

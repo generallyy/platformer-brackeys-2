@@ -87,7 +87,10 @@ func _fire() -> void:
 	for i in range(shot_count):
 		var projectile := projectile_scene.instantiate()
 		var angle_offset := deg_to_rad(spread_degrees) * (float(i) - center_offset)
+		var fire_rotation := base_rotation + angle_offset
+		if projectile is Node2D:
+			projectile.rotation = fire_rotation
 		container.add_child(projectile)
 		if projectile is Node2D:
 			projectile.global_position = to_global(projectile_offset)
-			projectile.global_rotation = base_rotation + angle_offset
+			projectile.global_rotation = fire_rotation

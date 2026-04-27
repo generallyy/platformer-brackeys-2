@@ -48,7 +48,7 @@ func _on_body_entered(body: Node2D) -> void:
 		hit_landed.emit()
 
 		if slow_on_hit:
-			body.apply_slow(1.5)
+			body.apply_slow(PowerupIds.SLOW_DURATION)
 
 func _on_area_entered(area: Area2D) -> void:
 	if area in _hit:

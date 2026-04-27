@@ -2,8 +2,8 @@ extends Area2D
 
 const HazardUtils = preload("res://scripts/hazards/hazard_utils.gd")
 
-@export var push_vector := Vector2(360.0, 0.0)
-@export var max_speed: float = 300.0
+@export var push_force: float = 360.0
+@export var max_speed: float = 1000.0
 @export var upward_lift_multiplier: float = 1.15
 
 var _default_gravity: float = 0.0
@@ -20,10 +20,10 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
-	if _tracked_bodies.is_empty() or push_vector.is_zero_approx():
+	if _tracked_bodies.is_empty() or is_zero_approx(push_force):
 		return
 
-	var world_push := push_vector.rotated(global_rotation)
+	var world_push := Vector2(push_force, 0.0).rotated(global_rotation)
 	if world_push.y < 0.0 and upward_lift_multiplier > 0.0:
 		var minimum_upward_accel := _default_gravity * upward_lift_multiplier
 		world_push.y = minf(world_push.y, -minimum_upward_accel)

@@ -58,7 +58,7 @@ var _state: PlayerState = PlayerState.GROUNDED
 # ============================================================
 
 signal health_changed(new_health: int, max_health: int)
-signal powerups_changed(passive: Array, active: String)
+signal powerups_changed(passive: Dictionary, active: String)
 signal nudge_changed(text: String)
 
 func set_display_name(display_name: String) -> void:
@@ -101,6 +101,11 @@ var _dbj_frozen         := false
 var _dbj_freeze_timer   := 0.0
 var _dbj_boost_lockout  := 0.0
 var _boost_dbj_lockout  := 0.0
+var _dbj_jump_lockout   := 0.0
+var _jump_buffered      := false
+var _blink_timer        := 0.0
+var _blink_saved_mask   := 0
+var _blink_saved_layer  := 0
 var _boost_timer        := 0.0
 var _dash_timer         := 0.0
 var _dash_cooldown      := 0.0
@@ -129,6 +134,7 @@ var _knockback_timer      := 0.0
 var _melee_cooldown       := 0.0
 var _last_attacker_peer_id: int = -1
 var _last_hit_timer       := 0.0
+var _is_dying             := false
 
 # --- Weapon ---
 var equipped_projectile_scene: PackedScene
@@ -145,7 +151,7 @@ var _is_shielding := false
 var _shield_node: Node = null
 
 # --- Powerups ---
-var passive_powerups: Array[String] = []
+var passive_powerups: Dictionary = {}
 var active_powerup: String = ""
 var _active_used_this_round := false
 var _speed_surge_active     := false
@@ -162,7 +168,7 @@ var _is_invisible      := false
 var _invisible_timer   := 0.0
 var _is_confused       := false
 var _confusion_timer   := 0.0
-const INVISIBLE_DURATION := 3.0
+const INVISIBLE_DURATION := PowerupIds.INVISIBLE_DURATION
 
 # --- Kill indicator ---
 const KILL_INDICATOR_DURATION := 1.0
@@ -232,16 +238,16 @@ func _physics_process(delta: float) -> void:
 		PlayerState.KNOCKED_BACK:
 			pass  # gravity applied; no input
 		PlayerState.AIR_BOOST:
-			velocity.x = facing_direction * stats.boost_speed * pow(1.30, passive_powerups.count(PowerupIds.DASH_BOOST_AIR))
+			velocity.x = facing_direction * stats.boost_speed * pow(PowerupIds.DASH_BOOST_MULT, passive_powerups.get(PowerupIds.DASH_BOOST_AIR, 0))
 			velocity.y = 0.0
 			if Input.is_action_just_pressed("jump") and not _is_shielding and _boost_dbj_lockout <= 0.0:
 				if not has_dbj:
 					_transition_to(PlayerState.DOUBLE_JUMP)
-				elif _extra_jumps_used < passive_powerups.count(PowerupIds.EXTRA_JUMP):
+				elif _extra_jumps_used < passive_powerups.get(PowerupIds.EXTRA_JUMP, 0):
 					_extra_jumps_used += 1
 					_transition_to(PlayerState.DOUBLE_JUMP)
 		PlayerState.DASH:
-			velocity.x = facing_direction * stats.dash_speed * pow(1.30, passive_powerups.count(PowerupIds.DASH_BOOST_GROUND))
+			velocity.x = facing_direction * stats.dash_speed * pow(PowerupIds.DASH_BOOST_MULT, passive_powerups.get(PowerupIds.DASH_BOOST_GROUND, 0))
 			if is_multiplayer_authority():
 				for t in _passthrough_targets:
 					if is_instance_valid(t) and t.is_in_group("player"):
@@ -254,6 +260,9 @@ func _physics_process(delta: float) -> void:
 		PlayerState.DOUBLE_JUMP:
 			if _dbj_frozen:
 				return
+			if _jump_buffered and _dbj_jump_lockout <= 0.0:
+				_jump_buffered = false
+				_try_dbj_buffered()
 			_handle_input(delta)
 			if _state == PlayerState.DOUBLE_JUMP:
 				_apply_movement(delta)
@@ -281,18 +290,22 @@ func _transition_to(new_state: PlayerState) -> void:
 func _enter_state(state: PlayerState) -> void:
 	match state:
 		PlayerState.GROUNDED:
-			_dbj_frozen = false
+			_dbj_frozen    = false
+			_jump_buffered = false
 		PlayerState.DOUBLE_JUMP:
 			has_dbj            = true
 			_dbj_boost_lockout = stats.dbj_boost_lockout
+			_dbj_jump_lockout  = 0.4
+			_jump_buffered     = false
 			_dbj_frozen        = false
 			_play_visual_animation(&"dbj")
 			animated_sprite.play(&"dbj")
 			animation_player.play("dbj")
+			animation_player.seek(0, true)
 		PlayerState.DASH:
 			_dash_timer    = stats.dash_duration
 			_dash_cooldown = stats.dash_cooldown
-			var ground_mult := pow(1.30, passive_powerups.count(PowerupIds.DASH_BOOST_GROUND))
+			var ground_mult := pow(PowerupIds.DASH_BOOST_MULT, passive_powerups.get(PowerupIds.DASH_BOOST_GROUND, 0))
 			velocity.x = facing_direction * stats.dash_speed * ground_mult
 			var others := get_tree().get_nodes_in_group("player").filter(func(p): return p != self)
 			_add_passthrough(others, stats.dash_duration + 0.15)
@@ -300,7 +313,7 @@ func _enter_state(state: PlayerState) -> void:
 			_boost_timer       = stats.boost_duration
 			has_air_boosted    = true
 			_boost_dbj_lockout = stats.boost_dbj_lockout
-			var air_mult := pow(1.30, passive_powerups.count(PowerupIds.DASH_BOOST_AIR))
+			var air_mult := pow(PowerupIds.DASH_BOOST_MULT, passive_powerups.get(PowerupIds.DASH_BOOST_AIR, 0))
 			velocity.x = facing_direction * stats.boost_speed * air_mult
 			velocity.y = 0.0
 			audio_stream_player.stream = _BOOST_SFX
@@ -334,6 +347,15 @@ func _tick_timers(delta: float) -> void:
 	_ghost_bomb_cooldown  = max(0.0, _ghost_bomb_cooldown  - delta)
 	_dbj_boost_lockout   = max(0.0, _dbj_boost_lockout   - delta)
 	_boost_dbj_lockout   = max(0.0, _boost_dbj_lockout   - delta)
+	_dbj_jump_lockout = max(0.0, _dbj_jump_lockout - delta)
+	if _blink_timer > 0.0:
+		_blink_timer = max(0.0, _blink_timer - delta)
+		if _blink_timer <= 0.0:
+			_input_locked      = false
+			velocity           = Vector2.ZERO
+			collision_mask     = _blink_saved_mask
+			collision_layer    = _blink_saved_layer
+			_rpc_end_blink.rpc()
 
 	if _speed_surge_active:
 		_speed_surge_timer -= delta
@@ -439,7 +461,7 @@ func _clear_passthrough() -> void:
 	_passthrough_targets.clear()
 
 func _apply_gravity(delta: float) -> void:
-	if is_on_floor() or _state == PlayerState.AIR_BOOST:
+	if is_on_floor() or _state == PlayerState.AIR_BOOST or _blink_timer > 0.0:
 		return
 	var low_grav := PowerupIds.LOW_GRAVITY in passive_powerups
 	var gravity_scale := 0.75 if low_grav else 1.0
@@ -623,7 +645,7 @@ func deactivate_ghost_mode() -> void:
 
 
 func _input(event: InputEvent) -> void:
-	if not is_multiplayer_authority():
+	if multiplayer.has_multiplayer_peer() and not is_multiplayer_authority():
 		return
 	if _finished_at_goal and not is_spectator and _state == PlayerState.UI_LOCKED:
 		if event.is_action_pressed("interact"):
@@ -648,9 +670,11 @@ func _handle_input(_delta: float) -> void:
 			_add_passthrough(_get_overhead_players(), 0.4)
 			_do_jump()
 		elif _boost_dbj_lockout <= 0.0:
-			if not has_dbj:
+			if _dbj_jump_lockout > 0.0:
+				_jump_buffered = true
+			elif not has_dbj:
 				_transition_to(PlayerState.DOUBLE_JUMP)
-			elif _extra_jumps_used < passive_powerups.count(PowerupIds.EXTRA_JUMP):
+			elif _extra_jumps_used < passive_powerups.get(PowerupIds.EXTRA_JUMP, 0):
 				_extra_jumps_used += 1
 				_transition_to(PlayerState.DOUBLE_JUMP)
 
@@ -696,6 +720,13 @@ func _handle_input(_delta: float) -> void:
 				_active_used_this_round = true
 				var nearest := _find_nearest_player()
 				if nearest != null:
+					_blink_timer = 0.25
+					_input_locked = true
+					velocity = Vector2.ZERO
+					_blink_saved_mask  = collision_mask
+					_blink_saved_layer = collision_layer
+					collision_mask  = 0
+					collision_layer = 0
 					_rpc_teleport_to.rpc(nearest.global_position)
 			PowerupIds.HEART_RESET:
 				_active_used_this_round = true
@@ -708,18 +739,18 @@ func _handle_input(_delta: float) -> void:
 
 func _apply_movement(delta: float) -> void:
 	var effective_speed := stats.speed_surge_speed if _speed_surge_active else stats.speed
-	var speed_up_stacks := passive_powerups.count(PowerupIds.SPEED_UP)
+	var speed_up_stacks: int = passive_powerups.get(PowerupIds.SPEED_UP, 0)
 	if speed_up_stacks > 0:
-		effective_speed *= pow(1.10, speed_up_stacks)
+		effective_speed *= pow(PowerupIds.SPEED_UP_MULT, speed_up_stacks)
 	if PowerupIds.GET_BIGGER in passive_powerups:
-		effective_speed *= 1.15
+		effective_speed *= PowerupIds.GET_BIGGER_SPEED_MULT
 	if PowerupIds.GET_SMALLER in passive_powerups:
-		effective_speed *= 0.80
-	var hh_stacks := passive_powerups.count(PowerupIds.HEAVY_HITTER)
+		effective_speed *= PowerupIds.GET_SMALLER_SPEED_MULT
+	var hh_stacks: int = passive_powerups.get(PowerupIds.HEAVY_HITTER, 0)
 	if hh_stacks > 0:
-		effective_speed *= pow(0.80, hh_stacks)
+		effective_speed *= pow(PowerupIds.HEAVY_HITTER_SPEED_MULT, hh_stacks)
 	if _is_slowed:
-		effective_speed *= 0.60
+		effective_speed *= PowerupIds.SLOW_SPEED_MULT
 	if _input_direction:
 		_add_passthrough(_get_overhead_players(), 0.12)  # refreshed every frame while walking
 		var turning := _input_direction * velocity.x < 0.0
@@ -759,6 +790,8 @@ func update_direction(direction: float) -> void:
 
 
 func update_animation() -> void:
+	if _state == PlayerState.UI_LOCKED or _is_dying:
+		return
 	var next_animation: StringName
 	if is_on_floor():
 		if abs(velocity.x) < 1.0:
@@ -803,7 +836,10 @@ func freeze_for_duration(duration: float) -> void:
 
 
 func run_dbj(_delta = null) -> void:
-	velocity.y = stats.dbj_speed
+	var spd := stats.dbj_speed
+	if passive_powerups.get(PowerupIds.EXTRA_JUMP, 0) >= 1:
+		spd *= PowerupIds.EXTRA_JUMP_DBJ_SPEED_MULT
+	velocity.y = spd
 	audio_stream_player.stream = _DBJ_SFX
 	audio_stream_player.play()
 	_effects_anchor.position.y = 10.0
@@ -826,17 +862,25 @@ func _do_jump() -> void:
 	audio_stream_player.stream = _JUMP_SFX
 	audio_stream_player.play()
 
+
+func _try_dbj_buffered() -> void:
+	if is_on_floor() or _boost_dbj_lockout > 0.0 or _is_shielding:
+		return
+	if _extra_jumps_used < passive_powerups.get(PowerupIds.EXTRA_JUMP, 0):
+		_extra_jumps_used += 1
+		_transition_to(PlayerState.DOUBLE_JUMP)
+
 # ============================================================
 # COMBAT — helpers
 # ============================================================
 
 func _effective_damage() -> int:
-	return 1 + passive_powerups.count(PowerupIds.DAMAGE_BOOST)
+	return 1 + passive_powerups.get(PowerupIds.DAMAGE_BOOST, 0)
 
 
 func _effective_knockback_scale() -> float:
-	var base := pow(1.6, passive_powerups.count(PowerupIds.KNOCKBACK_BOOST))
-	return base * pow(1.20, passive_powerups.count(PowerupIds.HEAVY_HITTER))
+	var base := pow(PowerupIds.KNOCKBACK_BOOST_MULT, passive_powerups.get(PowerupIds.KNOCKBACK_BOOST, 0))
+	return base * pow(PowerupIds.HEAVY_HITTER_KNOCKBACK_MULT, passive_powerups.get(PowerupIds.HEAVY_HITTER, 0))
 
 # ============================================================
 # COMBAT — weapons
@@ -904,9 +948,9 @@ func _on_projectile_returned() -> void:
 
 func _do_melee() -> void:
 	_melee_cooldown = stats.melee_cooldown
-	var bm  := passive_powerups.count(PowerupIds.BIG_MELEE)
+	var bm : int = passive_powerups.get(PowerupIds.BIG_MELEE, 0)
 	var soh := PowerupIds.SLOW_ON_HIT in passive_powerups
-	var ss  := passive_powerups.count(PowerupIds.SHIELD_SPIKE)
+	var ss: int = passive_powerups.get(PowerupIds.SHIELD_SPIKE, 0)
 	var ps  := PowerupIds.PARRY_STUN in passive_powerups
 	var cgh := PowerupIds.GHOST_HUNTER in passive_powerups
 	_rpc_throw_melee.rpc(facing_direction, multiplayer.get_unique_id(), _effective_damage(), _effective_knockback_scale(), bm, soh, ss, ps, cgh)
@@ -928,7 +972,7 @@ func _do_spawn_melee(dir: int, thrower_id: int, dmg: int = 1, kbs: float = 1.0, 
 	m.parry_stun      = parry_stun
 	m.can_hit_ghosts  = can_hit_ghosts
 	if big_melee_stacks > 0:
-		var s := pow(1.20, big_melee_stacks)
+		var s := pow(PowerupIds.BIG_MELEE_SCALE_MULT, big_melee_stacks)
 		m.scale = Vector2(dir * s, s)
 	else:
 		m.scale.x = dir
@@ -939,20 +983,22 @@ func _do_spawn_melee(dir: int, thrower_id: int, dmg: int = 1, kbs: float = 1.0, 
 
 func _do_zap() -> void:
 	_melee_cooldown = stats.melee_cooldown
-	_rpc_throw_zap.rpc(facing_direction, multiplayer.get_unique_id(), _effective_damage(), _effective_knockback_scale())
+	var soh := PowerupIds.SLOW_ON_HIT in passive_powerups
+	_rpc_throw_zap.rpc(facing_direction, multiplayer.get_unique_id(), _effective_damage(), _effective_knockback_scale(), soh)
 
 
 @rpc("authority", "call_local", "reliable")
-func _rpc_throw_zap(dir: int, thrower_id: int, dmg: int = 1, kbs: float = 1.0) -> void:
-	_do_spawn_zap(dir, thrower_id, dmg, kbs)
+func _rpc_throw_zap(dir: int, thrower_id: int, dmg: int = 1, kbs: float = 1.0, slow_on_hit: bool = false) -> void:
+	_do_spawn_zap(dir, thrower_id, dmg, kbs, slow_on_hit)
 
 
-func _do_spawn_zap(dir: int, thrower_id: int, dmg: int = 1, kbs: float = 1.0) -> void:
+func _do_spawn_zap(dir: int, thrower_id: int, dmg: int = 1, kbs: float = 1.0, slow_on_hit: bool = false) -> void:
 	var z := ZAP_SCENE.instantiate()
 	z.direction       = dir
 	z.thrower_peer_id = thrower_id
 	z.damage          = dmg
 	z.knockback_scale = kbs
+	z.slow_on_hit     = slow_on_hit
 	add_child(z)
 	z.position = Vector2(0.0, -7.0)
 
@@ -965,7 +1011,7 @@ func take_damage(amount: int, knockback: Vector2 = Vector2.ZERO, attacker_peer_i
 		return
 	if is_ghost and not bypass_ghost:
 		return
-	if is_invuln or _is_shielding or _state == PlayerState.UI_LOCKED:
+	if is_invuln or _is_dying or _is_shielding or _state == PlayerState.UI_LOCKED:
 		return
 	# Friendly-fire prevention
 	if attacker_peer_id != -1 and team_id != 0:
@@ -985,6 +1031,9 @@ func take_damage(amount: int, knockback: Vector2 = Vector2.ZERO, attacker_peer_i
 		if main:
 			main.notify_damage(attacker_peer_id, multiplayer.get_unique_id(), actual)
 	if health <= 0:
+		if knockback != Vector2.ZERO:
+			velocity = knockback
+			_transition_to(PlayerState.KNOCKED_BACK)
 		die()
 		return
 	if knockback != Vector2.ZERO:
@@ -994,7 +1043,7 @@ func take_damage(amount: int, knockback: Vector2 = Vector2.ZERO, attacker_peer_i
 	_invuln_timer = stats.invuln_duration
 
 
-func die() -> void:
+func die(instant: bool = false) -> void:
 	if is_ghost:
 		var ghost_main := get_tree().get_root().get_node_or_null("Main")
 		if ghost_main:
@@ -1004,10 +1053,19 @@ func die() -> void:
 		velocity = Vector2.ZERO
 		return
 	is_invuln = true
-	velocity = Vector2.ZERO
 	_kill_count = 0
 	_kill_indicator_timer = 0.0
 	_kill_indicator.visible = false
+	if not instant:
+		_is_dying = true
+		_input_locked = true
+		animated_sprite.play(&"die")
+		_play_visual_animation(&"die")
+		await animated_sprite.animation_finished
+		animated_sprite.pause()
+		await get_tree().create_timer(0.25).timeout
+		_is_dying = false
+		_input_locked = false
 	hide()
 	await get_tree().create_timer(stats.respawn_delay).timeout
 	health = get_effective_max_health()
@@ -1185,7 +1243,7 @@ func _rpc_set_finished(finished: bool) -> void:
 # ============================================================
 
 func get_effective_max_health() -> int:
-	return stats.max_health + passive_powerups.count(PowerupIds.EXTRA_HEARTS) * 2
+	return stats.max_health + passive_powerups.get(PowerupIds.EXTRA_HEARTS, 0) * PowerupIds.EXTRA_HEARTS_PER_STACK
 
 
 func apply_powerup(id: String) -> void:
@@ -1197,17 +1255,22 @@ func apply_powerup(id: String) -> void:
 			return
 		if id == PowerupIds.GET_SMALLER and PowerupIds.GET_BIGGER in passive_powerups:
 			return
-		if passive_powerups.count(id) >= PowerupIds.get_max_stacks(id):
+		if passive_powerups.get(id, 0) >= PowerupIds.get_max_stacks(id):
 			return
-		passive_powerups.append(id)
+		passive_powerups[id] = passive_powerups.get(id, 0) + 1
 		if id == PowerupIds.EXTRA_HEARTS:
 			health = mini(health + 2, get_effective_max_health())
 			health_changed.emit(health, get_effective_max_health())
 		elif id == PowerupIds.GET_BIGGER:
-			scale = Vector2(1.25, 1.25)
+			_rpc_sync_scale.rpc(PowerupIds.GET_BIGGER_SCALE)
 		elif id == PowerupIds.GET_SMALLER:
-			scale = Vector2(0.75, 0.75)
+			_rpc_sync_scale.rpc(PowerupIds.GET_SMALLER_SCALE)
 	powerups_changed.emit(passive_powerups, active_powerup)
+
+
+@rpc("authority", "call_local", "reliable")
+func _rpc_sync_scale(s: Vector2) -> void:
+	scale = s
 
 
 func clear_powerups() -> void:
@@ -1217,12 +1280,15 @@ func clear_powerups() -> void:
 	_speed_surge_active     = false
 	_speed_surge_timer      = 0.0
 	_extra_jumps_used       = 0
+	_dbj_jump_lockout       = 0.0
+	_jump_buffered          = false
 	_lifesteal_hits         = 0
 	_is_slowed              = false
 	_slow_timer             = 0.0
 	_is_stunned             = false
 	_stun_timer             = 0.0
 	_input_locked           = false
+	_is_dying               = false
 	_external_input_locks.clear()
 	_is_confused            = false
 	_confusion_timer        = 0.0
@@ -1241,6 +1307,8 @@ func reset_round_powerup_state() -> void:
 	_speed_surge_active     = false
 	_speed_surge_timer      = 0.0
 	_extra_jumps_used       = 0
+	_dbj_jump_lockout       = 0.0
+	_jump_buffered          = false
 	_lifesteal_hits         = 0
 	_is_slowed              = false
 	_slow_timer             = 0.0
@@ -1266,7 +1334,7 @@ func _on_melee_hit_landed() -> void:
 		return
 	if PowerupIds.LIFESTEAL not in passive_powerups:
 		return
-	var threshold := 4 - passive_powerups.count(PowerupIds.LIFESTEAL)  # 4 at 1 stack, 3 at 2 stacks
+	var threshold: int = PowerupIds.LIFESTEAL_THRESHOLD_BASE - passive_powerups.get(PowerupIds.LIFESTEAL, 0)
 	_lifesteal_hits += 1
 	if _lifesteal_hits >= threshold:
 		_lifesteal_hits = 0
@@ -1334,9 +1402,25 @@ func _rpc_set_invisible(invisible: bool) -> void:
 	modulate.a = (0.4 if has_hunter else 0.0) if invisible else 1.0
 
 
+func _find_safe_teleport_pos(target_pos: Vector2) -> Vector2:
+	var space := get_world_2d().direct_space_state
+	var params := PhysicsPointQueryParameters2D.new()
+	params.exclude        = [get_rid()]
+	params.collision_mask = 1
+	for nudge in [0, -16, -32, -48, -64, -80, 16, 32]:
+		params.position = target_pos + Vector2(0, nudge)
+		if space.intersect_point(params, 1).is_empty():
+			return params.position
+	return target_pos
+
 @rpc("authority", "call_local", "reliable")
 func _rpc_teleport_to(target_pos: Vector2) -> void:
-	global_position = target_pos
+	global_position = _find_safe_teleport_pos(target_pos)
+	modulate.a = 0.5
+
+@rpc("authority", "call_local", "reliable")
+func _rpc_end_blink() -> void:
+	modulate.a = 1.0
 
 
 @rpc("authority", "call_local", "reliable")

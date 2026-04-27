@@ -60,6 +60,8 @@ const MAX_STACKS: Dictionary = {
 	CONFUSION_RAY:     1,
 }
 
+static var debug_forced_powerup: String = ""
+
 static func get_max_stacks(id: String) -> int:
 	return MAX_STACKS.get(id, DEFAULT_MAX_STACKS)
 
@@ -91,3 +93,36 @@ const DISPLAY_NAMES: Dictionary = {
 
 static func get_display_name(id: String) -> String:
 	return DISPLAY_NAMES.get(id, id)
+
+
+## ---------------------------------------------------------------
+## Modifiers — tweak these to change how each powerup feels.
+## ---------------------------------------------------------------
+
+# SPEED_UP: multiplier applied per stack to movement speed
+const SPEED_UP_MULT              := 1.10
+# GET_BIGGER / GET_SMALLER: player scale and speed effect
+const GET_BIGGER_SCALE           := Vector2(1.25, 1.25)
+const GET_SMALLER_SCALE          := Vector2(0.75, 0.75)
+const GET_BIGGER_SPEED_MULT      := 1.15  # +15 % speed
+const GET_SMALLER_SPEED_MULT     := 0.80  # -20 % speed
+# HEAVY_HITTER: speed and knockback multipliers per stack
+const HEAVY_HITTER_SPEED_MULT    := 0.80  # -20 % speed per stack
+const HEAVY_HITTER_KNOCKBACK_MULT := 1.20
+# DASH_BOOST (ground & air): dash speed multiplier per stack
+const DASH_BOOST_MULT            := 1.30
+# KNOCKBACK_BOOST: knockback multiplier per stack
+const KNOCKBACK_BOOST_MULT       := 1.60
+# BIG_MELEE: hitbox scale multiplier per stack
+const BIG_MELEE_SCALE_MULT       := 1.20
+# SLOW_ON_HIT: duration (seconds) and movement speed multiplier while slowed
+const SLOW_DURATION              := 1.5
+const SLOW_SPEED_MULT            := 0.80  # -20 % speed
+# LIFESTEAL: hits needed to steal 1 HP at stack 1 (decreases by 1 per extra stack)
+const LIFESTEAL_THRESHOLD_BASE   := 4
+# EXTRA_HEARTS: max hearts added per stack
+const EXTRA_HEARTS_PER_STACK     := 2
+# EXTRA_JUMP: DBJ speed multiplier when you have at least 1 extra jump (penalty)
+const EXTRA_JUMP_DBJ_SPEED_MULT  := .90
+# INVISIBLE: cloak duration in seconds
+const INVISIBLE_DURATION         := 3.0
