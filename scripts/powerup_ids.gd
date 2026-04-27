@@ -60,6 +60,8 @@ const MAX_STACKS: Dictionary = {
 	CONFUSION_RAY:     1,
 }
 
+static var debug_forced_powerup: String = ""
+
 static func get_max_stacks(id: String) -> int:
 	return MAX_STACKS.get(id, DEFAULT_MAX_STACKS)
 
@@ -120,5 +122,7 @@ const SLOW_SPEED_MULT            := 0.80  # -20 % speed
 const LIFESTEAL_THRESHOLD_BASE   := 4
 # EXTRA_HEARTS: max hearts added per stack
 const EXTRA_HEARTS_PER_STACK     := 2
+# EXTRA_JUMP: DBJ speed multiplier when you have at least 1 extra jump (penalty)
+const EXTRA_JUMP_DBJ_SPEED_MULT  := .90
 # INVISIBLE: cloak duration in seconds
 const INVISIBLE_DURATION         := 3.0

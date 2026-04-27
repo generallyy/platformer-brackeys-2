@@ -220,12 +220,11 @@ func record_damage_taken(victim_id: int, amount: int) -> void:
 	_broadcast_kda()
 
 func _compute_kill_points(peer_id: int) -> int:
-	var pts := 0
-	for victim_id in kills.get(peer_id, {}):
-		var i_killed_them: int = kills[peer_id][victim_id]
-		var they_killed_me: int = kills.get(victim_id, {}).get(peer_id, 0)
-		pts += max(0, i_killed_them - they_killed_me) * KILL_POINTS
-	return pts
+	var my_kills: int = total_kills.get(peer_id, 0)
+	var my_deaths := 0
+	for killer_id in kills:
+		my_deaths += kills[killer_id].get(peer_id, 0)
+	return max(my_kills - my_deaths, 0) * KILL_POINTS
 
 func _recompute_scores() -> void:
 	for peer_id in scores:

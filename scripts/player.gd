@@ -101,6 +101,11 @@ var _dbj_frozen         := false
 var _dbj_freeze_timer   := 0.0
 var _dbj_boost_lockout  := 0.0
 var _boost_dbj_lockout  := 0.0
+var _dbj_jump_lockout   := 0.0
+var _jump_buffered      := false
+var _blink_timer        := 0.0
+var _blink_saved_mask   := 0
+var _blink_saved_layer  := 0
 var _boost_timer        := 0.0
 var _dash_timer         := 0.0
 var _dash_cooldown      := 0.0
@@ -255,6 +260,9 @@ func _physics_process(delta: float) -> void:
 		PlayerState.DOUBLE_JUMP:
 			if _dbj_frozen:
 				return
+			if _jump_buffered and _dbj_jump_lockout <= 0.0:
+				_jump_buffered = false
+				_try_dbj_buffered()
 			_handle_input(delta)
 			if _state == PlayerState.DOUBLE_JUMP:
 				_apply_movement(delta)
@@ -282,14 +290,18 @@ func _transition_to(new_state: PlayerState) -> void:
 func _enter_state(state: PlayerState) -> void:
 	match state:
 		PlayerState.GROUNDED:
-			_dbj_frozen = false
+			_dbj_frozen    = false
+			_jump_buffered = false
 		PlayerState.DOUBLE_JUMP:
 			has_dbj            = true
 			_dbj_boost_lockout = stats.dbj_boost_lockout
+			_dbj_jump_lockout  = 0.4
+			_jump_buffered     = false
 			_dbj_frozen        = false
 			_play_visual_animation(&"dbj")
 			animated_sprite.play(&"dbj")
 			animation_player.play("dbj")
+			animation_player.seek(0, true)
 		PlayerState.DASH:
 			_dash_timer    = stats.dash_duration
 			_dash_cooldown = stats.dash_cooldown
@@ -335,6 +347,15 @@ func _tick_timers(delta: float) -> void:
 	_ghost_bomb_cooldown  = max(0.0, _ghost_bomb_cooldown  - delta)
 	_dbj_boost_lockout   = max(0.0, _dbj_boost_lockout   - delta)
 	_boost_dbj_lockout   = max(0.0, _boost_dbj_lockout   - delta)
+	_dbj_jump_lockout = max(0.0, _dbj_jump_lockout - delta)
+	if _blink_timer > 0.0:
+		_blink_timer = max(0.0, _blink_timer - delta)
+		if _blink_timer <= 0.0:
+			_input_locked      = false
+			velocity           = Vector2.ZERO
+			collision_mask     = _blink_saved_mask
+			collision_layer    = _blink_saved_layer
+			_rpc_end_blink.rpc()
 
 	if _speed_surge_active:
 		_speed_surge_timer -= delta
@@ -440,7 +461,7 @@ func _clear_passthrough() -> void:
 	_passthrough_targets.clear()
 
 func _apply_gravity(delta: float) -> void:
-	if is_on_floor() or _state == PlayerState.AIR_BOOST:
+	if is_on_floor() or _state == PlayerState.AIR_BOOST or _blink_timer > 0.0:
 		return
 	var low_grav := PowerupIds.LOW_GRAVITY in passive_powerups
 	var gravity_scale := 0.75 if low_grav else 1.0
@@ -624,7 +645,7 @@ func deactivate_ghost_mode() -> void:
 
 
 func _input(event: InputEvent) -> void:
-	if not is_multiplayer_authority():
+	if multiplayer.has_multiplayer_peer() and not is_multiplayer_authority():
 		return
 	if _finished_at_goal and not is_spectator and _state == PlayerState.UI_LOCKED:
 		if event.is_action_pressed("interact"):
@@ -649,7 +670,9 @@ func _handle_input(_delta: float) -> void:
 			_add_passthrough(_get_overhead_players(), 0.4)
 			_do_jump()
 		elif _boost_dbj_lockout <= 0.0:
-			if not has_dbj:
+			if _dbj_jump_lockout > 0.0:
+				_jump_buffered = true
+			elif not has_dbj:
 				_transition_to(PlayerState.DOUBLE_JUMP)
 			elif _extra_jumps_used < passive_powerups.get(PowerupIds.EXTRA_JUMP, 0):
 				_extra_jumps_used += 1
@@ -697,6 +720,13 @@ func _handle_input(_delta: float) -> void:
 				_active_used_this_round = true
 				var nearest := _find_nearest_player()
 				if nearest != null:
+					_blink_timer = 0.25
+					_input_locked = true
+					velocity = Vector2.ZERO
+					_blink_saved_mask  = collision_mask
+					_blink_saved_layer = collision_layer
+					collision_mask  = 0
+					collision_layer = 0
 					_rpc_teleport_to.rpc(nearest.global_position)
 			PowerupIds.HEART_RESET:
 				_active_used_this_round = true
@@ -806,7 +836,10 @@ func freeze_for_duration(duration: float) -> void:
 
 
 func run_dbj(_delta = null) -> void:
-	velocity.y = stats.dbj_speed
+	var spd := stats.dbj_speed
+	if passive_powerups.get(PowerupIds.EXTRA_JUMP, 0) >= 1:
+		spd *= PowerupIds.EXTRA_JUMP_DBJ_SPEED_MULT
+	velocity.y = spd
 	audio_stream_player.stream = _DBJ_SFX
 	audio_stream_player.play()
 	_effects_anchor.position.y = 10.0
@@ -828,6 +861,14 @@ func _do_jump() -> void:
 	velocity.y = stats.jump_velocity
 	audio_stream_player.stream = _JUMP_SFX
 	audio_stream_player.play()
+
+
+func _try_dbj_buffered() -> void:
+	if is_on_floor() or _boost_dbj_lockout > 0.0 or _is_shielding:
+		return
+	if _extra_jumps_used < passive_powerups.get(PowerupIds.EXTRA_JUMP, 0):
+		_extra_jumps_used += 1
+		_transition_to(PlayerState.DOUBLE_JUMP)
 
 # ============================================================
 # COMBAT — helpers
@@ -1239,6 +1280,8 @@ func clear_powerups() -> void:
 	_speed_surge_active     = false
 	_speed_surge_timer      = 0.0
 	_extra_jumps_used       = 0
+	_dbj_jump_lockout       = 0.0
+	_jump_buffered          = false
 	_lifesteal_hits         = 0
 	_is_slowed              = false
 	_slow_timer             = 0.0
@@ -1264,6 +1307,8 @@ func reset_round_powerup_state() -> void:
 	_speed_surge_active     = false
 	_speed_surge_timer      = 0.0
 	_extra_jumps_used       = 0
+	_dbj_jump_lockout       = 0.0
+	_jump_buffered          = false
 	_lifesteal_hits         = 0
 	_is_slowed              = false
 	_slow_timer             = 0.0
@@ -1357,9 +1402,25 @@ func _rpc_set_invisible(invisible: bool) -> void:
 	modulate.a = (0.4 if has_hunter else 0.0) if invisible else 1.0
 
 
+func _find_safe_teleport_pos(target_pos: Vector2) -> Vector2:
+	var space := get_world_2d().direct_space_state
+	var params := PhysicsPointQueryParameters2D.new()
+	params.exclude        = [get_rid()]
+	params.collision_mask = 1
+	for nudge in [0, -16, -32, -48, -64, -80, 16, 32]:
+		params.position = target_pos + Vector2(0, nudge)
+		if space.intersect_point(params, 1).is_empty():
+			return params.position
+	return target_pos
+
 @rpc("authority", "call_local", "reliable")
 func _rpc_teleport_to(target_pos: Vector2) -> void:
-	global_position = target_pos
+	global_position = _find_safe_teleport_pos(target_pos)
+	modulate.a = 0.5
+
+@rpc("authority", "call_local", "reliable")
+func _rpc_end_blink() -> void:
+	modulate.a = 1.0
 
 
 @rpc("authority", "call_local", "reliable")

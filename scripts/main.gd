@@ -382,28 +382,29 @@ func get_current_spawn_for_peer(peer_id: int) -> Node2D:
 		_respawn_points.erase(peer_id)
 	return _get_spawn()
 
-func activate_checkpoint(checkpoint: Node2D, peer_id: int) -> void:
+func activate_checkpoint(checkpoint: Node2D, peer_id: int, reset_stocks: bool = true) -> void:
 	if NetworkManager.is_online() and not multiplayer.is_server():
-		_req_activate_checkpoint.rpc_id(1, checkpoint.get_path(), peer_id)
+		_req_activate_checkpoint.rpc_id(1, checkpoint.get_path(), peer_id, reset_stocks)
 		return
-	_set_checkpoint(checkpoint, peer_id)
+	_set_checkpoint(checkpoint, peer_id, reset_stocks)
 
 @rpc("any_peer", "reliable")
-func _req_activate_checkpoint(checkpoint_path: NodePath, peer_id: int) -> void:
+func _req_activate_checkpoint(checkpoint_path: NodePath, peer_id: int, reset_stocks: bool) -> void:
 	if multiplayer.get_remote_sender_id() != peer_id:
 		return
 	var checkpoint = get_node_or_null(checkpoint_path)
 	if checkpoint:
-		_set_checkpoint(checkpoint, peer_id)
+		_set_checkpoint(checkpoint, peer_id, reset_stocks)
 
-func _set_checkpoint(checkpoint: Node2D, peer_id: int) -> void:
+func _set_checkpoint(checkpoint: Node2D, peer_id: int, reset_stocks: bool = true) -> void:
 	if peer_id in _respawn_points:
 		var old: Node2D = _respawn_points[peer_id]
 		if is_instance_valid(old) and old != checkpoint:
 			_sync_reset_checkpoint.rpc(peer_id, old.get_path())
 	_respawn_points[peer_id] = checkpoint
 	_sync_checkpoint.rpc(peer_id, checkpoint.get_path())
-	game_mode.reset_stocks_for_peer(peer_id)
+	if reset_stocks:
+		game_mode.reset_stocks_for_peer(peer_id)
 
 @rpc("authority", "call_local", "reliable")
 func _sync_reset_checkpoint(peer_id: int, checkpoint_path: NodePath) -> void:
@@ -656,6 +657,8 @@ func _on_round_started(round_number: int) -> void:
 	close_blackjack()
 	close_eight_ball()
 	powerups_menu.close_menu()
+	for cp in get_tree().get_nodes_in_group("checkpoint"):
+		cp.reset_for_round()
 	_grant_round_powerup_state()
 	var msg: String
 	if game_mode.sudden_death_peers.size() > 0:
