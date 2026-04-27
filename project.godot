@@ -8,6 +8,10 @@
 
 config_version=5
 
+[addons]
+
+ss2d/version="3.3.1"
+
 [animation]
 
 compatibility/default_parent_skeleton_in_mesh_instance_3d=true
@@ -36,7 +40,7 @@ movie_writer/movie_file="C:/Users/AYW/Videos/Screen Recordings/test.ogv"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/parallax2d_preview/plugin.cfg")
+enabled=PackedStringArray("res://addons/parallax2d_preview/plugin.cfg", "res://addons/rmsmartshape/plugin.cfg")
 
 [input]
 
