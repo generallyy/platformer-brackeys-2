@@ -6,3 +6,8 @@
 export_presets.cfg
 addons/*
 !addons/rmsmartshape/
+*.tmp
+launcher/requirements.txt
+launcher/launcher.spec
+launcher/build/
+launcher/dist/
