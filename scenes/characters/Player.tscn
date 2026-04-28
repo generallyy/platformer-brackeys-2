@@ -8,9 +8,6 @@
 [ext_resource type="Theme" uid="uid://2p378flu0i2e" path="res://assets/fonts/labrada.tres" id="6_rpfb3"]
 [ext_resource type="Script" uid="uid://b4sv4e2lh3sqr" path="res://scripts/stick_figure_rig.gd" id="7_stick"]
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_ngcs4"]
-radius = 5.0
-
 [sub_resource type="AtlasTexture" id="AtlasTexture_ic5j4"]
 atlas = ExtResource("2_o2dby")
 region = Rect2(192, 0, 64, 64)
@@ -248,6 +245,9 @@ animations = [{
 "name": &"run",
 "speed": 10.0
 }]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_ngcs4"]
+radius = 5.0
 
 [sub_resource type="Animation" id="Animation_stick_dbj"]
 resource_name = "dbj"
@@ -630,19 +630,18 @@ script = ExtResource("1_wlgh5")
 USE_STICK_RIG = false
 stats = ExtResource("2_gj1sn")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1972804155]
-position = Vector2(0, -5)
-shape = SubResource("CircleShape2D_ngcs4")
-
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1279863303]
+visible = false
 z_index = 1
 texture_filter = 1
 position = Vector2(0, -12)
 sprite_frames = SubResource("SpriteFrames_sqkdx")
-animation = &"die"
+animation = &"idle"
 autoplay = "idle"
-frame = 3
-frame_progress = 1.0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1972804155]
+position = Vector2(0, -5)
+shape = SubResource("CircleShape2D_ngcs4")
 
 [node name="StickRig" type="Node2D" parent="." unique_id=1765512735]
 visible = false
@@ -782,3 +781,11 @@ theme = ExtResource("6_rpfb3")
 theme_override_colors/font_color = Color(0.013917681, 0.8013557, 0.4278283, 1)
 theme_override_font_sizes/font_size = 8
 text = "+1"
+
+[node name="RayCastLeft" type="RayCast2D" parent="." unique_id=1984120513]
+position = Vector2(-3, -2)
+target_position = Vector2(0, 15)
+
+[node name="RayCastRight" type="RayCast2D" parent="." unique_id=157166717]
+position = Vector2(3, -2)
+target_position = Vector2(0, 15)

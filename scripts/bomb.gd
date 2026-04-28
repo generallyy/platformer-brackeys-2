@@ -11,6 +11,9 @@ var _timer       := 0.0
 var _exploded    := false
 var _show_timer  := 0.0
 
+func _ready() -> void:
+	add_to_group(&"projectile")
+
 func _process(delta: float) -> void:
 	if _exploded:
 		_show_timer -= delta

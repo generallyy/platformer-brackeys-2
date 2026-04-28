@@ -375,4 +375,3 @@ single_use = true
 
 [node name="LevelSettings" parent="." unique_id=853737155 instance=ExtResource("5_wcn7t")]
 points_to_win = 40
-debug_forced_powerup = "teleport"

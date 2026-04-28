@@ -311,6 +311,7 @@ func load_level(path: String) -> void:
 
 func _load_level_local(path: String) -> bool:
 	game_mode.stop_game()
+	get_tree().call_group(&"projectile", &"queue_free")
 	_clear_all_player_powerups()
 	close_blackjack()
 	close_eight_ball()

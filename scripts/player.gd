@@ -51,7 +51,8 @@ var _state: PlayerState = PlayerState.GROUNDED
 @onready var _boost_particles:    GPUParticles2D    = $EffectsAnchor/BoostParticles
 @onready var _name_label:         Label             = $Label
 @onready var _kill_indicator:     Label             = $KillIndicator
-#@onready var _collision_shape:    CollisionShape2D  = $CollisionShape2D
+@onready var _raycast_left:       RayCast2D         = $RayCastLeft
+@onready var _raycast_right:      RayCast2D         = $RayCastRight
 
 # ============================================================
 # SIGNALS
@@ -109,6 +110,10 @@ var _blink_saved_layer  := 0
 var _boost_timer        := 0.0
 var _dash_timer         := 0.0
 var _dash_cooldown      := 0.0
+var _visual_tilt        := 0.0
+var _last_floor_normal  := Vector2.UP
+var _coyote_timer       := 0.0
+const _COYOTE_TIME      := 0.1
 
 # --- Team ---
 var team_id: int = 0  # 0 = no team
@@ -204,6 +209,8 @@ func _ready() -> void:
 	animated_sprite.visible = not USE_STICK_RIG
 	if stick_rig != null:
 		stick_rig.visible = USE_STICK_RIG
+	floor_snap_length = 16.0
+
 	_play_visual_animation(&"idle")
 	equip_weapon(DAGGER_SCENE)
 	_shield_node = SHIELD_SCENE.instantiate()
@@ -274,6 +281,7 @@ func _physics_process(delta: float) -> void:
 	_apply_environmental_pushes(delta)
 	_pre_slide_velocity = velocity
 	move_and_slide()
+	_update_slope_tracking(delta)
 	_check_landing()
 	_resolve_body_collisions()
 	_send_state_sync()
@@ -283,15 +291,17 @@ func _physics_process(delta: float) -> void:
 # ============================================================
 
 func _transition_to(new_state: PlayerState) -> void:
+	var prev := _state
 	_exit_state(_state)
 	_state = new_state
-	_enter_state(_state)
+	_enter_state(new_state, prev)
 
-func _enter_state(state: PlayerState) -> void:
+func _enter_state(state: PlayerState, prev: PlayerState = PlayerState.GROUNDED) -> void:
 	match state:
 		PlayerState.GROUNDED:
 			_dbj_frozen    = false
 			_jump_buffered = false
+			_visual_tilt   = Vector2.UP.angle_to(_last_floor_normal)
 		PlayerState.DOUBLE_JUMP:
 			has_dbj            = true
 			_dbj_boost_lockout = stats.dbj_boost_lockout
@@ -325,6 +335,9 @@ func _enter_state(state: PlayerState) -> void:
 				_rpc_effect_boost.rpc(-facing_direction * 10.0, 0.0, Vector3(-facing_direction, 0.0, 0.0))
 		PlayerState.KNOCKED_BACK:
 			_knockback_timer = stats.knockback_duration
+		PlayerState.AIRBORNE:
+			if prev == PlayerState.GROUNDED:
+				_coyote_timer = _COYOTE_TIME
 		PlayerState.UI_LOCKED:
 			velocity = Vector2.ZERO
 
@@ -348,6 +361,7 @@ func _tick_timers(delta: float) -> void:
 	_dbj_boost_lockout   = max(0.0, _dbj_boost_lockout   - delta)
 	_boost_dbj_lockout   = max(0.0, _boost_dbj_lockout   - delta)
 	_dbj_jump_lockout = max(0.0, _dbj_jump_lockout - delta)
+	_coyote_timer     = max(0.0, _coyote_timer     - delta)
 	if _blink_timer > 0.0:
 		_blink_timer = max(0.0, _blink_timer - delta)
 		if _blink_timer <= 0.0:
@@ -483,9 +497,6 @@ func _update_shield(delta: float) -> void:
 	_shield_node.set_active(_is_shielding)
 	_shield_node.update_charge(shield_charge, stats.shield_max)
 
-
-func _local_peer_id_or_1() -> int:
-	return multiplayer.get_unique_id()
 
 
 
@@ -649,11 +660,11 @@ func _input(event: InputEvent) -> void:
 		return
 	if _finished_at_goal and not is_spectator and _state == PlayerState.UI_LOCKED:
 		if event.is_action_pressed("interact"):
-			get_tree().get_root().get_node("Main").request_enter_spectator(_local_peer_id_or_1())
+			get_tree().get_root().get_node("Main").request_enter_spectator(multiplayer.get_unique_id())
 			get_viewport().set_input_as_handled()
 			return
 	if is_spectator and event.is_action_pressed("ui_cancel"):
-		get_tree().get_root().get_node("Main").request_exit_spectator(_local_peer_id_or_1())
+		get_tree().get_root().get_node("Main").request_exit_spectator(multiplayer.get_unique_id())
 		get_viewport().set_input_as_handled()
 
 
@@ -666,7 +677,8 @@ func _handle_input(_delta: float) -> void:
 	if _is_stunned:
 		return
 	if Input.is_action_just_pressed("jump") and not _is_shielding and _input_cooldown <= 0.0:
-		if is_on_floor():
+		if is_on_floor() or _coyote_timer > 0.0:
+			_coyote_timer = 0.0
 			_add_passthrough(_get_overhead_players(), 0.4)
 			_do_jump()
 		elif _boost_dbj_lockout <= 0.0:
@@ -751,18 +763,23 @@ func _apply_movement(delta: float) -> void:
 		effective_speed *= pow(PowerupIds.HEAVY_HITTER_SPEED_MULT, hh_stacks)
 	if _is_slowed:
 		effective_speed *= PowerupIds.SLOW_SPEED_MULT
+	var physics_up := Vector2.UP
+	var tangent := physics_up.rotated(PI / 2)
+	var tangent_speed := velocity.dot(tangent)
 	if _input_direction:
 		_add_passthrough(_get_overhead_players(), 0.12)  # refreshed every frame while walking
-		var turning := _input_direction * velocity.x < 0.0
+		var turning := _input_direction * tangent_speed < 0.0
 		var accel: float
 		if turning:
 			accel = stats.turn_acceleration if is_on_floor() else stats.air_turn_acceleration
 		else:
 			accel = stats.acceleration if is_on_floor() else stats.air_acceleration
-		velocity.x = move_toward(velocity.x, _input_direction * effective_speed, accel * delta)
+		var new_speed := move_toward(tangent_speed, _input_direction * effective_speed, accel * delta)
+		velocity += tangent * (new_speed - tangent_speed)
 	else:
 		var fric := stats.friction if is_on_floor() else stats.air_friction
-		velocity.x = move_toward(velocity.x, 0.0, fric * delta)
+		var new_speed := move_toward(tangent_speed, 0.0, fric * delta)
+		velocity += tangent * (new_speed - tangent_speed)
 
 
 func _check_landing() -> void:
@@ -775,7 +792,10 @@ func _check_landing() -> void:
 		if _state != PlayerState.GROUNDED:
 			_transition_to(PlayerState.GROUNDED)
 	elif _state == PlayerState.GROUNDED:
-		_transition_to(PlayerState.AIRBORNE)
+		var into_slope := velocity.normalized().dot(_last_floor_normal) < sin(deg_to_rad(50.0))
+		var floor_nearby := test_move(global_transform, Vector2.DOWN * (floor_snap_length + 8.0))
+		if not (into_slope and floor_nearby):
+			_transition_to(PlayerState.AIRBORNE)
 
 # ============================================================
 # DIRECTION & ANIMATION
@@ -794,7 +814,7 @@ func update_animation() -> void:
 		return
 	var next_animation: StringName
 	if is_on_floor():
-		if abs(velocity.x) < 1.0:
+		if abs(velocity.dot(up_direction.rotated(PI / 2))) < 1.0:
 			next_animation = &"idle"
 		else:
 			next_animation = &"run"
@@ -819,6 +839,27 @@ func _set_visual_visible(visibility: bool) -> void:
 	else:
 		animated_sprite.visible = visibility
 
+
+func _update_slope_tracking(delta: float) -> void:
+	var target_angle: float
+	if is_on_floor():
+		var floor_normal := get_floor_normal()
+		_last_floor_normal = floor_normal
+		_raycast_left.force_raycast_update()
+		_raycast_right.force_raycast_update()
+		var on_edge: bool = not _raycast_left.is_colliding() or not _raycast_right.is_colliding()
+		target_angle = 0.0 if on_edge else Vector2.UP.angle_to(floor_normal)
+	elif _state not in [PlayerState.GROUNDED, PlayerState.DASH]:
+		up_direction = Vector2.UP
+		target_angle = 0.0
+	else:
+		target_angle = Vector2.UP.angle_to(_last_floor_normal)
+	_visual_tilt = lerp_angle(_visual_tilt, target_angle, minf(12.0 * delta, 1.0)) if _state != PlayerState.GROUNDED else target_angle
+	animated_sprite.rotation = _visual_tilt
+	if stick_rig != null:
+		stick_rig.rotation = _visual_tilt
+
+
 # ============================================================
 # DBJ ANIMATION CALLBACKS  (called by AnimationPlayer tracks)
 # ============================================================
@@ -839,7 +880,8 @@ func run_dbj(_delta = null) -> void:
 	var spd := stats.dbj_speed
 	if passive_powerups.get(PowerupIds.EXTRA_JUMP, 0) >= 1:
 		spd *= PowerupIds.EXTRA_JUMP_DBJ_SPEED_MULT
-	velocity.y = spd
+	velocity -= up_direction * velocity.dot(up_direction)
+	velocity += up_direction * -spd
 	audio_stream_player.stream = _DBJ_SFX
 	audio_stream_player.play()
 	_effects_anchor.position.y = 10.0
@@ -858,7 +900,8 @@ func end_dbj() -> void:
 # ============================================================
 
 func _do_jump() -> void:
-	velocity.y = stats.jump_velocity
+	velocity -= up_direction * velocity.dot(up_direction)
+	velocity += up_direction * -stats.jump_velocity
 	audio_stream_player.stream = _JUMP_SFX
 	audio_stream_player.play()
 
@@ -1103,8 +1146,7 @@ func _update_damage_flash(delta: float) -> void:
 
 
 func warmup_effects() -> void:
-	_boost_particles.restart()
-	_boost_particles.emitting = true
+	_play_boost_particles()
 
 func _play_boost_particles() -> void:
 	_boost_particles.restart()

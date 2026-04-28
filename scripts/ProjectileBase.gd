@@ -17,6 +17,9 @@ var knockback := Vector2(100.0, -150.0)
 var slow_on_hit: bool = false
 
 # Private flight state
+func _ready() -> void:
+	add_to_group(&"projectile")
+
 var _t := 0.0
 var _origin := Vector2.ZERO
 var _origin_captured := false
