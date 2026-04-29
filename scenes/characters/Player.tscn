@@ -259,7 +259,7 @@ length = 0.5
 tracks/0/type = "value"
 tracks/0/imported = false
 tracks/0/enabled = true
-tracks/0/path = NodePath("Root:position")
+tracks/0/path = NodePath("Skeleton2D:position")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
@@ -271,34 +271,10 @@ tracks/0/keys = {
 tracks/1/type = "value"
 tracks/1/imported = false
 tracks/1/enabled = true
-tracks/1/path = NodePath("Root/ArmFrontUpper:rotation")
+tracks/1/path = NodePath("Scarf:rotation")
 tracks/1/interp = 1
 tracks/1/loop_wrap = true
 tracks/1/keys = {
-"times": PackedFloat32Array(0, 0.25, 0.5),
-"transitions": PackedFloat32Array(1, 1, 1),
-"update": 0,
-"values": [-1.4, 1.4, -1.4]
-}
-tracks/2/type = "value"
-tracks/2/imported = false
-tracks/2/enabled = true
-tracks/2/path = NodePath("Root/ArmBackUpper:rotation")
-tracks/2/interp = 1
-tracks/2/loop_wrap = true
-tracks/2/keys = {
-"times": PackedFloat32Array(0, 0.25, 0.5),
-"transitions": PackedFloat32Array(1, 1, 1),
-"update": 0,
-"values": [1.4, -1.4, 1.4]
-}
-tracks/3/type = "value"
-tracks/3/imported = false
-tracks/3/enabled = true
-tracks/3/path = NodePath("Root/Scarf:rotation")
-tracks/3/interp = 1
-tracks/3/loop_wrap = true
-tracks/3/keys = {
 "times": PackedFloat32Array(0, 0.25, 0.5),
 "transitions": PackedFloat32Array(1, 1, 1),
 "update": 0,
@@ -312,7 +288,7 @@ loop_mode = 1
 tracks/0/type = "value"
 tracks/0/imported = false
 tracks/0/enabled = true
-tracks/0/path = NodePath("Root:position")
+tracks/0/path = NodePath("Skeleton2D:position")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
@@ -321,54 +297,6 @@ tracks/0/keys = {
 "update": 0,
 "values": [Vector2(0, 0), Vector2(0, -0.6), Vector2(0, 0)]
 }
-tracks/1/type = "value"
-tracks/1/imported = false
-tracks/1/enabled = true
-tracks/1/path = NodePath("Root/ArmFrontUpper:rotation")
-tracks/1/interp = 1
-tracks/1/loop_wrap = true
-tracks/1/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [-0.2]
-}
-tracks/2/type = "value"
-tracks/2/imported = false
-tracks/2/enabled = true
-tracks/2/path = NodePath("Root/ArmBackUpper:rotation")
-tracks/2/interp = 1
-tracks/2/loop_wrap = true
-tracks/2/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [0.2]
-}
-tracks/3/type = "value"
-tracks/3/imported = false
-tracks/3/enabled = true
-tracks/3/path = NodePath("Root/LegFrontUpper:rotation")
-tracks/3/interp = 1
-tracks/3/loop_wrap = true
-tracks/3/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [-0.12]
-}
-tracks/4/type = "value"
-tracks/4/imported = false
-tracks/4/enabled = true
-tracks/4/path = NodePath("Root/LegBackUpper:rotation")
-tracks/4/interp = 1
-tracks/4/loop_wrap = true
-tracks/4/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [0.12]
-}
 
 [sub_resource type="Animation" id="Animation_stick_jump"]
 resource_name = "jump"
@@ -376,7 +304,7 @@ length = 0.4
 tracks/0/type = "value"
 tracks/0/imported = false
 tracks/0/enabled = true
-tracks/0/path = NodePath("Root:position")
+tracks/0/path = NodePath("Skeleton2D:position")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
@@ -384,54 +312,6 @@ tracks/0/keys = {
 "transitions": PackedFloat32Array(1),
 "update": 0,
 "values": [Vector2(0, -1)]
-}
-tracks/1/type = "value"
-tracks/1/imported = false
-tracks/1/enabled = true
-tracks/1/path = NodePath("Root/ArmFrontUpper:rotation")
-tracks/1/interp = 1
-tracks/1/loop_wrap = true
-tracks/1/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [-1.35]
-}
-tracks/2/type = "value"
-tracks/2/imported = false
-tracks/2/enabled = true
-tracks/2/path = NodePath("Root/ArmBackUpper:rotation")
-tracks/2/interp = 1
-tracks/2/loop_wrap = true
-tracks/2/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [1.35]
-}
-tracks/3/type = "value"
-tracks/3/imported = false
-tracks/3/enabled = true
-tracks/3/path = NodePath("Root/LegFrontUpper:rotation")
-tracks/3/interp = 1
-tracks/3/loop_wrap = true
-tracks/3/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [-0.45]
-}
-tracks/4/type = "value"
-tracks/4/imported = false
-tracks/4/enabled = true
-tracks/4/path = NodePath("Root/LegBackUpper:rotation")
-tracks/4/interp = 1
-tracks/4/loop_wrap = true
-tracks/4/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [0.45]
 }
 
 [sub_resource type="Animation" id="Animation_stick_run"]
@@ -441,7 +321,7 @@ loop_mode = 1
 tracks/0/type = "value"
 tracks/0/imported = false
 tracks/0/enabled = true
-tracks/0/path = NodePath("Root:position")
+tracks/0/path = NodePath("Skeleton2D:position")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
@@ -453,106 +333,10 @@ tracks/0/keys = {
 tracks/1/type = "value"
 tracks/1/imported = false
 tracks/1/enabled = true
-tracks/1/path = NodePath("Root/ArmFrontUpper:rotation")
+tracks/1/path = NodePath("Scarf:rotation")
 tracks/1/interp = 1
 tracks/1/loop_wrap = true
 tracks/1/keys = {
-"times": PackedFloat32Array(0, 0.225, 0.45),
-"transitions": PackedFloat32Array(1, 1, 1),
-"update": 0,
-"values": [0.75, -0.75, 0.75]
-}
-tracks/2/type = "value"
-tracks/2/imported = false
-tracks/2/enabled = true
-tracks/2/path = NodePath("Root/ArmBackUpper:rotation")
-tracks/2/interp = 1
-tracks/2/loop_wrap = true
-tracks/2/keys = {
-"times": PackedFloat32Array(0, 0.225, 0.45),
-"transitions": PackedFloat32Array(1, 1, 1),
-"update": 0,
-"values": [-0.75, 0.75, -0.75]
-}
-tracks/3/type = "value"
-tracks/3/imported = false
-tracks/3/enabled = true
-tracks/3/path = NodePath("Root/LegFrontUpper:rotation")
-tracks/3/interp = 1
-tracks/3/loop_wrap = true
-tracks/3/keys = {
-"times": PackedFloat32Array(0, 0.225, 0.45),
-"transitions": PackedFloat32Array(1, 1, 1),
-"update": 0,
-"values": [-0.8, 0.8, -0.8]
-}
-tracks/4/type = "value"
-tracks/4/imported = false
-tracks/4/enabled = true
-tracks/4/path = NodePath("Root/LegBackUpper:rotation")
-tracks/4/interp = 1
-tracks/4/loop_wrap = true
-tracks/4/keys = {
-"times": PackedFloat32Array(0, 0.225, 0.45),
-"transitions": PackedFloat32Array(1, 1, 1),
-"update": 0,
-"values": [0.8, -0.8, 0.8]
-}
-tracks/5/type = "value"
-tracks/5/imported = false
-tracks/5/enabled = true
-tracks/5/path = NodePath("Root/ArmFrontUpper/ArmFrontLower:rotation")
-tracks/5/interp = 1
-tracks/5/loop_wrap = true
-tracks/5/keys = {
-"times": PackedFloat32Array(0, 0.225, 0.45),
-"transitions": PackedFloat32Array(1, 1, 1),
-"update": 0,
-"values": [0.35, 0.75, 0.35]
-}
-tracks/6/type = "value"
-tracks/6/imported = false
-tracks/6/enabled = true
-tracks/6/path = NodePath("Root/ArmBackUpper/ArmBackLower:rotation")
-tracks/6/interp = 1
-tracks/6/loop_wrap = true
-tracks/6/keys = {
-"times": PackedFloat32Array(0, 0.225, 0.45),
-"transitions": PackedFloat32Array(1, 1, 1),
-"update": 0,
-"values": [0.75, 0.35, 0.75]
-}
-tracks/7/type = "value"
-tracks/7/imported = false
-tracks/7/enabled = true
-tracks/7/path = NodePath("Root/LegFrontUpper/LegFrontLower:rotation")
-tracks/7/interp = 1
-tracks/7/loop_wrap = true
-tracks/7/keys = {
-"times": PackedFloat32Array(0, 0.225, 0.45),
-"transitions": PackedFloat32Array(1, 1, 1),
-"update": 0,
-"values": [0.75, 0.15, 0.75]
-}
-tracks/8/type = "value"
-tracks/8/imported = false
-tracks/8/enabled = true
-tracks/8/path = NodePath("Root/LegBackUpper/LegBackLower:rotation")
-tracks/8/interp = 1
-tracks/8/loop_wrap = true
-tracks/8/keys = {
-"times": PackedFloat32Array(0, 0.225, 0.45),
-"transitions": PackedFloat32Array(1, 1, 1),
-"update": 0,
-"values": [0.15, 0.75, 0.15]
-}
-tracks/9/type = "value"
-tracks/9/imported = false
-tracks/9/enabled = true
-tracks/9/path = NodePath("Root/Scarf:rotation")
-tracks/9/interp = 1
-tracks/9/loop_wrap = true
-tracks/9/keys = {
 "times": PackedFloat32Array(0, 0.225, 0.45),
 "transitions": PackedFloat32Array(1, 1, 1),
 "update": 0,
@@ -630,6 +414,7 @@ bg_color = Color(0.04434038, 0.04434038, 0.04434038, 0.33333334)
 
 [node name="Player" type="CharacterBody2D" unique_id=1990097403]
 z_index = 5
+rotation = 0.0018949287
 script = ExtResource("1_wlgh5")
 USE_STICK_RIG = false
 stats = ExtResource("2_gj1sn")
@@ -644,109 +429,140 @@ animation = &"idle"
 autoplay = "idle"
 
 [node name="Hitbox" type="CollisionShape2D" parent="." unique_id=1972804155]
+visible = false
 z_index = 1
 position = Vector2(0, -5)
 shape = SubResource("CircleShape2D_ngcs4")
 
 [node name="MovementCollision" type="CollisionShape2D" parent="." unique_id=1239734096]
+visible = false
 z_index = 1
 position = Vector2(0, -7)
 shape = SubResource("CapsuleShape2D_miirx")
 
 [node name="StickRig" type="Node2D" parent="." unique_id=1765512735]
-visible = false
 z_index = 2
+scale = Vector2(2, 2)
 script = ExtResource("7_stick")
+
+[node name="Scarf" type="Line2D" parent="StickRig" unique_id=2048518827]
+visible = false
+position = Vector2(-0.0037898554, -1.9999964)
+rotation = -0.35
+scale = Vector2(1.0048628, 0.9974702)
+skew = -0.0062196255
+points = PackedVector2Array(-2, -20, -7, -19)
+width = 2.0
+default_color = Color(0.1, 0.48, 0.95, 1)
 
 [node name="RigAnimationPlayer" type="AnimationPlayer" parent="StickRig" unique_id=1854967117]
 libraries/ = SubResource("AnimationLibrary_stick")
 
-[node name="Root" type="Node2D" parent="StickRig" unique_id=1667525452]
-
-[node name="ArmBackUpper" type="Node2D" parent="StickRig/Root" unique_id=645780420]
-position = Vector2(0, -18)
-rotation = 0.2
-
-[node name="Line" type="Line2D" parent="StickRig/Root/ArmBackUpper" unique_id=1072965159]
-points = PackedVector2Array(0, 0, 0, 6)
-width = 2.0
-default_color = Color(0.04, 0.04, 0.04, 1)
-
-[node name="ArmBackLower" type="Node2D" parent="StickRig/Root/ArmBackUpper" unique_id=168547088]
-position = Vector2(0, 6)
-
-[node name="Line" type="Line2D" parent="StickRig/Root/ArmBackUpper/ArmBackLower" unique_id=893894336]
-points = PackedVector2Array(0, 0, 0, 5)
-width = 2.0
-default_color = Color(0.04, 0.04, 0.04, 1)
-
-[node name="LegBackUpper" type="Node2D" parent="StickRig/Root" unique_id=1119789380]
-position = Vector2(0, -10)
-rotation = 0.12
-
-[node name="Line" type="Line2D" parent="StickRig/Root/LegBackUpper" unique_id=524831142]
-points = PackedVector2Array(0, 0, 0, 5)
-width = 2.0
-default_color = Color(0.04, 0.04, 0.04, 1)
-
-[node name="LegBackLower" type="Node2D" parent="StickRig/Root/LegBackUpper" unique_id=438037452]
-position = Vector2(0, 5)
-
-[node name="Line" type="Line2D" parent="StickRig/Root/LegBackUpper/LegBackLower" unique_id=1830179475]
-points = PackedVector2Array(0, 0, 0, 5)
-width = 2.0
-default_color = Color(0.04, 0.04, 0.04, 1)
-
-[node name="Body" type="Line2D" parent="StickRig/Root" unique_id=1589026311]
-points = PackedVector2Array(0, -21, 0, -18, 0, -10)
-width = 2.0
-default_color = Color(0.04, 0.04, 0.04, 1)
-
-[node name="Head" type="Line2D" parent="StickRig/Root" unique_id=743812302]
-position = Vector2(0, -24)
+[node name="Head" type="Line2D" parent="StickRig" unique_id=743812302]
+visible = false
+position = Vector2(-3.7252903e-09, -25.911894)
+scale = Vector2(1.0059943, 0.99632883)
 points = PackedVector2Array(4, 0, 2.82843, 2.82843, 0, 4, -2.82843, 2.82843, -4, 0, -2.82843, -2.82843, 0, -4, 2.82843, -2.82843)
 closed = true
 width = 2.0
 default_color = Color(0.04, 0.04, 0.04, 1)
 
-[node name="ArmFrontUpper" type="Node2D" parent="StickRig/Root" unique_id=1387042490]
-position = Vector2(0, -18)
-rotation = -0.2
+[node name="Polygons" type="Node2D" parent="StickRig" unique_id=968571411]
 
-[node name="Line" type="Line2D" parent="StickRig/Root/ArmFrontUpper" unique_id=2090273637]
-points = PackedVector2Array(0, 0, 0, 6)
-width = 2.0
-default_color = Color(0.04, 0.04, 0.04, 1)
+[node name="Head" type="Polygon2D" parent="StickRig/Polygons" unique_id=1172150719]
+skeleton = NodePath("../../Skeleton2D")
+polygon = PackedVector2Array(-0.03979348, -20.999962, 2.460202, -21.0047, 3.9583044, -22.00754, 5.455459, -23.51038, 5.9507213, -26.011324, 5.945984, -28.511318, 4.4421964, -30.508472, 2.4403052, -31.50468, -0.060637683, -31.999943, -2.5596857, -31.495205, -4.5577874, -30.491417, -5.5539956, -28.489527, -6.0492578, -25.988585, -5.544521, -23.489536, -4.0416813, -21.99238, -2.03979, -20.996172)
+uv = PackedVector2Array(-0.03979348, -20.999962, 3.9583044, -22.00754, 5.9507213, -26.011324, 3.943145, -30.007526, -0.060637683, -31.999943, -4.056841, -29.992367, -6.0492578, -25.988585, -4.0416813, -21.99238)
 
-[node name="ArmFrontLower" type="Node2D" parent="StickRig/Root/ArmFrontUpper" unique_id=2036784142]
-position = Vector2(0, 6)
+[node name="Torso" type="Polygon2D" parent="StickRig/Polygons" unique_id=604790099]
+position = Vector2(0, -2)
+scale = Vector2(1.0059943, 0.99632883)
+skeleton = NodePath("../../Skeleton2D")
+polygon = PackedVector2Array(-1.012876, -8.027559, 0.9752033, -8.031363, 0.9544833, -19.071875, -1.033596, -19.068071)
 
-[node name="Line" type="Line2D" parent="StickRig/Root/ArmFrontUpper/ArmFrontLower" unique_id=1517345641]
-points = PackedVector2Array(0, 0, 0, 5)
-width = 2.0
-default_color = Color(0.04, 0.04, 0.04, 1)
+[node name="LeftArm" type="Polygon2D" parent="StickRig/Polygons" unique_id=39021587]
+skeleton = NodePath("../../Skeleton2D")
+polygon = PackedVector2Array(-0.03979348, -20.999962, -0.036003623, -18.999966, -11.032194, -16.979126, -11.535983, -18.978174, -6.4083414, -19.87493, -6.0769186, -17.864292)
+uv = PackedVector2Array(-0.03979348, -20.999962, -0.036003623, -18.999966, -11.032194, -16.979126, -11.556456, -18.946943, -6.2536774, -19.852835, -6.0769186, -17.864292)
+polygons = [PackedInt32Array(4, 5, 2, 3), PackedInt32Array(0, 1, 5, 4)]
+bones = ["LeftLeg", PackedFloat32Array(0, 0, 0, 0, 0, 0), "LeftLeg/LeftShin", PackedFloat32Array(0, 0, 0, 0, 0, 0), "RightLeg", PackedFloat32Array(0, 0, 0, 0, 0, 0), "RightLeg/RightShin", PackedFloat32Array(0, 0, 0, 0, 0, 0), "Torso", PackedFloat32Array(0, 0, 0, 0, 0, 0), "Torso/Head", PackedFloat32Array(0, 0, 0, 0, 0, 0), "Torso/RightArm", PackedFloat32Array(0, 0, 0, 0, 0, 0), "Torso/RightArm/RightForearm", PackedFloat32Array(0, 0, 0, 0, 0, 0), "Torso/LeftArm", PackedFloat32Array(1, 1, 0, 0, 0.5, 0.5), "Torso/LeftArm/LeftForearm", PackedFloat32Array(0, 0, 1, 1, 0.5, 0.5)]
+internal_vertex_count = 2
 
-[node name="LegFrontUpper" type="Node2D" parent="StickRig/Root" unique_id=1597730718]
-position = Vector2(0, -10)
-rotation = -0.12
+[node name="RightArm" type="Polygon2D" parent="StickRig/Polygons" unique_id=1213184799]
+polygon = PackedVector2Array(-0.00574835, -21.089123, 11.192838, -19.07493, 10.804937, -17.214926, -0.07976853, -18.838285)
 
-[node name="Line" type="Line2D" parent="StickRig/Root/LegFrontUpper" unique_id=2092606320]
-points = PackedVector2Array(0, 0, 0, 5)
-width = 2.0
-default_color = Color(0.04, 0.04, 0.04, 1)
+[node name="LeftLeg" type="Polygon2D" parent="StickRig/Polygons" unique_id=1425672810]
+skeleton = NodePath("../../Skeleton2D")
+polygon = PackedVector2Array(-1.0743167, 0.32726502, -3.0026538, -0.03377234, -0.7330734, -12.046833, 1.1168199, -11.841945, -1.998661, -6.2328415, 0.18000984, -5.664492)
+uv = PackedVector2Array(-1.0743167, 0.32726502, -3.0026538, -0.03377234, -0.7330734, -12.046833, 1.1168199, -11.841945, -1.8541799, -6.106172, 0.01384449, -5.7245326)
+polygons = [PackedInt32Array(4, 5, 0, 1), PackedInt32Array(4, 2, 3, 5)]
+bones = ["LeftLeg", PackedFloat32Array(0, 0, 0.5, 0.5, 0.5, 0.5), "LeftLeg/LeftShin", PackedFloat32Array(0.5, 0.5, 0, 0, 0.5, 0.5), "RightLeg", PackedFloat32Array(0, 0, 0, 0, 0, 0), "RightLeg/RightShin", PackedFloat32Array(0, 0, 0, 0, 0, 0), "Torso", PackedFloat32Array(0, 0, 0, 0, 0, 0), "Torso/Head", PackedFloat32Array(0, 0, 0, 0, 0, 0), "Torso/RightArm", PackedFloat32Array(0, 0, 0, 0, 0, 0), "Torso/RightArm/RightForearm", PackedFloat32Array(0, 0, 0, 0, 0, 0), "Torso/LeftArm", PackedFloat32Array(0, 0, 0, 0, 0, 0), "Torso/LeftArm/LeftForearm", PackedFloat32Array(0, 0, 0, 0, 0, 0)]
+internal_vertex_count = 2
 
-[node name="LegFrontLower" type="Node2D" parent="StickRig/Root/LegFrontUpper" unique_id=1827919272]
-position = Vector2(0, 5)
+[node name="RightLeg" type="Polygon2D" parent="StickRig/Polygons" unique_id=435388959]
+skeleton = NodePath("../../Skeleton2D")
+polygon = PackedVector2Array(1.1920202, 0.3490192, 2.988927, 0.085120425, 0.8817349, -12.1801405, -1.0452201, -11.811798, 0.2003479, -5.371235, 2.1279984, -5.788025)
+uv = PackedVector2Array(1.1920202, 0.3490192, 2.988927, 0.085120425, 0.8817349, -12.1801405, -1.0452201, -11.811798, 0.35664368, -4.172966, 2.232195, -4.4334593)
+polygons = [PackedInt32Array(4, 5, 2, 3), PackedInt32Array(4, 0, 1, 5)]
+bones = ["LeftLeg", PackedFloat32Array(0, 0, 0, 0, 0, 0), "LeftLeg/LeftShin", PackedFloat32Array(0, 0, 0, 0, 0, 0), "RightLeg", PackedFloat32Array(0, 0, 0.5, 0.5, 0.5, 0.5), "RightLeg/RightShin", PackedFloat32Array(0.5, 0.5, 0, 0, 0.5, 0.5), "Torso", PackedFloat32Array(0, 0, 0, 0, 0, 0), "Torso/Head", PackedFloat32Array(0, 0, 0, 0, 0, 0), "Torso/RightArm", PackedFloat32Array(0, 0, 0, 0, 0, 0), "Torso/RightArm/RightForearm", PackedFloat32Array(0, 0, 0, 0, 0, 0), "Torso/LeftArm", PackedFloat32Array(0, 0, 0, 0, 0, 0), "Torso/LeftArm/LeftForearm", PackedFloat32Array(0, 0, 0, 0, 0, 0)]
+internal_vertex_count = 2
 
-[node name="Line" type="Line2D" parent="StickRig/Root/LegFrontUpper/LegFrontLower" unique_id=1003254670]
-points = PackedVector2Array(0, 0, 0, 5)
-width = 2.0
-default_color = Color(0.04, 0.04, 0.04, 1)
+[node name="Skeleton2D" type="Skeleton2D" parent="StickRig" unique_id=530456134]
+position = Vector2(0, -2)
 
-[node name="Scarf" type="Line2D" parent="StickRig/Root" unique_id=2048518827]
-points = PackedVector2Array(-2, -20, -7, -19)
-width = 2.0
-default_color = Color(0.1, 0.48, 0.95, 1)
+[node name="LeftLeg" type="Bone2D" parent="StickRig/Skeleton2D" unique_id=204253104]
+position = Vector2(-0.01695273, -9.033147)
+rotation = 1.7697845
+scale = Vector2(0.38376662, 1)
+rest = Transform2D(-0.075862035, 0.3761938, -0.9802671, -0.19767752, -0.01695273, -9.033147)
+
+[node name="LeftShin" type="Bone2D" parent="StickRig/Skeleton2D/LeftLeg" unique_id=1300617500]
+position = Vector2(15.893498, -0.22746381)
+scale = Vector2(0.6879282, 0.47125673)
+rest = Transform2D(0.5369704, 0, 0, 0.25243276, 15.893498, -0.22746381)
+
+[node name="RightLeg" type="Bone2D" parent="StickRig/Skeleton2D" unique_id=1866073638]
+position = Vector2(-0.01695273, -9.033148)
+rotation = 1.3766507
+scale = Vector2(1.0746772, 1.6898351)
+rest = Transform2D(0.20733565, 1.0544871, -1.6580878, 0.326017, -0.01695273, -9.033148)
+
+[node name="RightShin" type="Bone2D" parent="StickRig/Skeleton2D/RightLeg" unique_id=869714752]
+position = Vector2(5.6771035, 0.10356766)
+scale = Vector2(0.24690819, 1.778045)
+rest = Transform2D(0.20111425, 0, 0, 1.1163102, 5.6771035, 0.10356766)
+
+[node name="Torso" type="Bone2D" parent="StickRig/Skeleton2D" unique_id=1538257006]
+position = Vector2(-0.016952729, -9.033146)
+rest = Transform2D(1, 0, 0, 1, -0.016952729, -9.033146)
+
+[node name="Head" type="Bone2D" parent="StickRig/Skeleton2D/Torso" unique_id=2029993458]
+position = Vector2(-0.018836364, -10.03683)
+rotation = -1.5707941
+scale = Vector2(0.14358436, 1.5414096)
+rest = Transform2D(3.189389e-07, -0.14358436, 1.5414096, 3.4238792e-06, -0.018836364, -10.03683)
+
+[node name="RightArm" type="Bone2D" parent="StickRig/Skeleton2D/Torso" unique_id=303602892]
+position = Vector2(-0.016952727, -9.033147)
+scale = Vector2(1.0000001, 1.0000001)
+rest = Transform2D(1.0000001, -1.1641532e-10, 1.1641532e-10, 1.0000001, -0.016952727, -9.033147)
+
+[node name="RightForearm" type="Bone2D" parent="StickRig/Skeleton2D/Torso/RightArm" unique_id=2115437178]
+position = Vector2(5.96612, 0.9922716)
+rotation = 0.17823233
+scale = Vector2(0.25946122, 1.4420508)
+rest = Transform2D(0.255351, 0.04599993, -0.25566146, 1.4192067, 5.96612, 0.9922716)
+
+[node name="LeftArm" type="Bone2D" parent="StickRig/Skeleton2D/Torso" unique_id=1723687322]
+position = Vector2(-0.016954422, -9.033147)
+rotation = 2.9529219
+scale = Vector2(0.9999999, 0.9999999)
+rest = Transform2D(-0.9822543, 0.18755342, -0.18755342, -0.9822543, -0.016954422, -9.033147)
+
+[node name="LeftForearm" type="Bone2D" parent="StickRig/Skeleton2D/Torso/LeftArm" unique_id=2081335778]
+position = Vector2(6.046931, 0.12117869)
+scale = Vector2(0.2824757, -8.342606)
+rest = Transform2D(0.2824757, 0, 0, -8.342606, 6.046931, 0.12117869)
 
 [node name="EffectsAnchor" type="Node2D" parent="." unique_id=1762507634]
 
@@ -766,10 +582,12 @@ libraries/ = SubResource("AnimationLibrary_y5ki7")
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="." unique_id=1552145014]
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1346791460]
+visible = false
 zoom = Vector2(3, 3)
 position_smoothing_enabled = true
 
 [node name="Label" type="Label" parent="." unique_id=2000590278]
+visible = false
 offset_left = -31.0
 offset_top = -38.0
 offset_right = 31.0
@@ -783,6 +601,7 @@ text = "dummy"
 horizontal_alignment = 1
 
 [node name="KillIndicator" type="Label" parent="." unique_id=415679306]
+visible = false
 offset_left = 4.0
 offset_top = -28.0
 offset_right = 22.0
@@ -793,9 +612,11 @@ theme_override_font_sizes/font_size = 8
 text = "+1"
 
 [node name="RayCastLeft" type="RayCast2D" parent="." unique_id=1984120513]
+visible = false
 position = Vector2(-3, -2)
 target_position = Vector2(0, 10)
 
 [node name="RayCastRight" type="RayCast2D" parent="." unique_id=157166717]
+visible = false
 position = Vector2(3, -2)
 target_position = Vector2(0, 10)
