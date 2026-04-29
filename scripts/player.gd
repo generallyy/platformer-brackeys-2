@@ -279,7 +279,12 @@ func _physics_process(delta: float) -> void:
 				_apply_movement(delta)
 
 	_apply_environmental_pushes(delta)
+	if is_on_wall():
+		var wall_normal := get_wall_normal()
+		if (velocity.x < 0.0 and wall_normal.x > 0.0) or (velocity.x > 0.0 and wall_normal.x < 0.0):
+			velocity.x = 0.0
 	_pre_slide_velocity = velocity
+
 	move_and_slide()
 	_update_slope_tracking(delta)
 	_check_landing()
@@ -677,7 +682,7 @@ func _handle_input(_delta: float) -> void:
 	if _is_stunned:
 		return
 	if Input.is_action_just_pressed("jump") and not _is_shielding and _input_cooldown <= 0.0:
-		if is_on_floor() or _coyote_timer > 0.0:
+		if _state == PlayerState.GROUNDED or _coyote_timer > 0.0:
 			_coyote_timer = 0.0
 			_add_passthrough(_get_overhead_players(), 0.4)
 			_do_jump()
@@ -790,20 +795,13 @@ func _check_landing() -> void:
 		if _state != PlayerState.GROUNDED:
 			_transition_to(PlayerState.GROUNDED)
 	elif _state == PlayerState.GROUNDED:
+		if is_on_wall():
+			return
 		var floor_nearby := false
 		var collision := KinematicCollision2D.new()
-		
-		# Shift the sweep slightly away from the wall to prevent snagging
-		var test_transform := global_transform
-		if is_on_wall():
-			test_transform.origin += get_wall_normal() * 2.0
-
-		# Perform the test move and save the collision data
-		if test_move(test_transform, Vector2.DOWN * (floor_snap_length + 8.0), collision):
-			# Ensure the surface we hit is actually a floor, not a vertical wall
+		if test_move(global_transform, Vector2.DOWN * (floor_snap_length + 8.0), collision):
 			if acos(collision.get_normal().dot(up_direction)) <= floor_max_angle:
 				floor_nearby = true
-
 		if not floor_nearby or velocity.y < -50.0:
 			_transition_to(PlayerState.AIRBORNE)
 
@@ -823,7 +821,7 @@ func update_animation() -> void:
 	if _state == PlayerState.UI_LOCKED or _is_dying:
 		return
 	var next_animation: StringName
-	if is_on_floor():
+	if _state == PlayerState.GROUNDED:
 		if abs(velocity.dot(up_direction.rotated(PI / 2))) < 1.0:
 			next_animation = &"idle"
 		else:
