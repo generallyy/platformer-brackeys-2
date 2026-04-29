@@ -11,6 +11,7 @@
 [ext_resource type="Script" uid="uid://dvcw37gjvs81r" path="res://scripts/HUD.gd" id="8_hudsc"]
 [ext_resource type="Script" uid="uid://b8u5llodnp4b0" path="res://scripts/game_mode.gd" id="9_gamemd"]
 [ext_resource type="Script" uid="uid://d0ngr678ycifw" path="res://scripts/PowerupsMenu.gd" id="10_powerups"]
+[ext_resource type="Script" uid="uid://dq4864pt5njsq" path="res://scripts/TouchControls.gd" id="11_touch"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tefeu"]
 bg_color = Color(0.99025565, 0.34329996, 0.36159417, 0.7411765)
@@ -373,6 +374,98 @@ layout_mode = 2
 theme = ExtResource("5_tipki")
 theme_override_font_sizes/font_size = 80
 text = "Loading..."
+
+[node name="TouchControls" type="CanvasLayer" parent="." unique_id=206766827]
+script = ExtResource("11_touch")
+
+[node name="TouchControls" type="Control" parent="TouchControls" unique_id=624634838]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("5_tipki")
+
+[node name="Right" type="Button" parent="TouchControls/TouchControls" unique_id=947283366]
+layout_mode = 0
+offset_left = 392.0
+offset_top = 620.0
+offset_right = 672.0
+offset_bottom = 800.0
+text = "-->"
+
+[node name="Left" type="Button" parent="TouchControls/TouchControls" unique_id=1748106378]
+layout_mode = 0
+offset_left = 54.0
+offset_top = 620.0
+offset_right = 334.0
+offset_bottom = 800.0
+text = "<--"
+
+[node name="Jump" type="Button" parent="TouchControls/TouchControls" unique_id=1160142901]
+layout_mode = 0
+offset_left = 1330.0
+offset_top = 701.0
+offset_right = 1519.0
+offset_bottom = 836.0
+text = "Jump"
+
+[node name="Dash" type="Button" parent="TouchControls/TouchControls" unique_id=893007591]
+layout_mode = 0
+offset_left = 1467.0
+offset_top = 539.0
+offset_right = 1639.0
+offset_bottom = 663.0
+text = "Dash"
+
+[node name="Shield" type="Button" parent="TouchControls/TouchControls" unique_id=442880136]
+layout_mode = 0
+offset_left = 167.0
+offset_top = 458.0
+offset_right = 388.0
+offset_bottom = 577.0
+text = "Shield"
+
+[node name="Projectile" type="Button" parent="TouchControls/TouchControls" unique_id=73709251]
+layout_mode = 0
+offset_left = 1595.0
+offset_top = 699.0
+offset_right = 1846.0
+offset_bottom = 841.0
+text = "Projectile"
+
+[node name="Melee" type="Button" parent="TouchControls/TouchControls" unique_id=1239609124]
+layout_mode = 0
+offset_left = 1595.0
+offset_top = 864.0
+offset_right = 1847.0
+offset_bottom = 986.0
+text = "Melee"
+
+[node name="Powerup" type="Button" parent="TouchControls/TouchControls" unique_id=1272356305]
+layout_mode = 0
+offset_left = 164.0
+offset_top = 843.0
+offset_right = 444.0
+offset_bottom = 962.0
+text = "Powerup"
+
+[node name="Interact" type="Button" parent="TouchControls/TouchControls" unique_id=1551239892]
+layout_mode = 0
+offset_left = 1329.0
+offset_top = 871.0
+offset_right = 1543.0
+offset_bottom = 987.0
+text = "Interact"
+
+[node name="Settings" type="Button" parent="TouchControls/TouchControls" unique_id=2092854955]
+layout_mode = 0
+offset_left = 1725.0
+offset_top = 24.0
+offset_right = 1893.0
+offset_bottom = 180.0
+text = "..."
 
 [connection signal="pressed" from="PauseMenu/PauseMenu/PanelContainer/VBoxContainer/Resume" to="PauseMenu" method="_on_resume_pressed"]
 [connection signal="pressed" from="PauseMenu/PauseMenu/PanelContainer/VBoxContainer/Restart" to="PauseMenu" method="_on_restart_pressed"]

@@ -53,6 +53,8 @@ var _state: PlayerState = PlayerState.GROUNDED
 @onready var _kill_indicator:     Label             = $KillIndicator
 @onready var _raycast_left:       RayCast2D         = $RayCastLeft
 @onready var _raycast_right:      RayCast2D         = $RayCastRight
+@onready var _hitbox:             CollisionShape2D  = $Hitbox
+@onready var _movement_collision: CollisionShape2D  = $MovementCollision
 
 # ============================================================
 # SIGNALS
@@ -105,8 +107,6 @@ var _boost_dbj_lockout  := 0.0
 var _dbj_jump_lockout   := 0.0
 var _jump_buffered      := false
 var _blink_timer        := 0.0
-var _blink_saved_mask   := 0
-var _blink_saved_layer  := 0
 var _boost_timer        := 0.0
 var _dash_timer         := 0.0
 var _dash_cooldown      := 0.0
@@ -209,7 +209,7 @@ func _ready() -> void:
 	animated_sprite.visible = not USE_STICK_RIG
 	if stick_rig != null:
 		stick_rig.visible = USE_STICK_RIG
-	floor_snap_length = 16.0
+	floor_snap_length = 10.0
 
 	_play_visual_animation(&"idle")
 	equip_weapon(DAGGER_SCENE)
@@ -367,8 +367,8 @@ func _tick_timers(delta: float) -> void:
 		if _blink_timer <= 0.0:
 			_input_locked      = false
 			velocity           = Vector2.ZERO
-			collision_mask     = _blink_saved_mask
-			collision_layer    = _blink_saved_layer
+			_hitbox.disabled = false
+			_movement_collision.disabled = false
 			_rpc_end_blink.rpc()
 
 	if _speed_surge_active:
@@ -735,10 +735,8 @@ func _handle_input(_delta: float) -> void:
 					_blink_timer = 0.25
 					_input_locked = true
 					velocity = Vector2.ZERO
-					_blink_saved_mask  = collision_mask
-					_blink_saved_layer = collision_layer
-					collision_mask  = 0
-					collision_layer = 0
+					_hitbox.disabled = true
+					_movement_collision.disabled = true
 					_rpc_teleport_to.rpc(nearest.global_position)
 			PowerupIds.HEART_RESET:
 				_active_used_this_round = true
@@ -792,9 +790,21 @@ func _check_landing() -> void:
 		if _state != PlayerState.GROUNDED:
 			_transition_to(PlayerState.GROUNDED)
 	elif _state == PlayerState.GROUNDED:
-		var into_slope := velocity.normalized().dot(_last_floor_normal) < sin(deg_to_rad(50.0))
-		var floor_nearby := test_move(global_transform, Vector2.DOWN * (floor_snap_length + 8.0))
-		if not (into_slope and floor_nearby):
+		var floor_nearby := false
+		var collision := KinematicCollision2D.new()
+		
+		# Shift the sweep slightly away from the wall to prevent snagging
+		var test_transform := global_transform
+		if is_on_wall():
+			test_transform.origin += get_wall_normal() * 2.0
+
+		# Perform the test move and save the collision data
+		if test_move(test_transform, Vector2.DOWN * (floor_snap_length + 8.0), collision):
+			# Ensure the surface we hit is actually a floor, not a vertical wall
+			if acos(collision.get_normal().dot(up_direction)) <= floor_max_angle:
+				floor_nearby = true
+
+		if not floor_nearby or velocity.y < -50.0:
 			_transition_to(PlayerState.AIRBORNE)
 
 # ============================================================
@@ -844,11 +854,14 @@ func _update_slope_tracking(delta: float) -> void:
 	var target_angle: float
 	if is_on_floor():
 		var floor_normal := get_floor_normal()
-		_last_floor_normal = floor_normal
 		_raycast_left.force_raycast_update()
 		_raycast_right.force_raycast_update()
 		var on_edge: bool = not _raycast_left.is_colliding() or not _raycast_right.is_colliding()
-		target_angle = 0.0 if on_edge else Vector2.UP.angle_to(floor_normal)
+		if on_edge or is_on_wall():
+			target_angle = 0.0
+		else:
+			_last_floor_normal = floor_normal
+			target_angle = Vector2.UP.angle_to(floor_normal)
 	elif _state not in [PlayerState.GROUNDED, PlayerState.DASH]:
 		up_direction = Vector2.UP
 		target_angle = 0.0

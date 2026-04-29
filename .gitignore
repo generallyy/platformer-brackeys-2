@@ -7,7 +7,9 @@ export_presets.cfg
 addons/*
 !addons/rmsmartshape/
 *.tmp
+*.apk
 launcher/requirements.txt
 launcher/launcher.spec
 launcher/build/
 launcher/dist/
+lucasyandroid.apk.idsig

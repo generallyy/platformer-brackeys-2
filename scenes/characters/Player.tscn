@@ -249,6 +249,10 @@ animations = [{
 [sub_resource type="CircleShape2D" id="CircleShape2D_ngcs4"]
 radius = 5.0
 
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_miirx"]
+radius = 5.0
+height = 14.0
+
 [sub_resource type="Animation" id="Animation_stick_dbj"]
 resource_name = "dbj"
 length = 0.5
@@ -639,9 +643,15 @@ sprite_frames = SubResource("SpriteFrames_sqkdx")
 animation = &"idle"
 autoplay = "idle"
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1972804155]
+[node name="Hitbox" type="CollisionShape2D" parent="." unique_id=1972804155]
+z_index = 1
 position = Vector2(0, -5)
 shape = SubResource("CircleShape2D_ngcs4")
+
+[node name="MovementCollision" type="CollisionShape2D" parent="." unique_id=1239734096]
+z_index = 1
+position = Vector2(0, -7)
+shape = SubResource("CapsuleShape2D_miirx")
 
 [node name="StickRig" type="Node2D" parent="." unique_id=1765512735]
 visible = false
@@ -784,8 +794,8 @@ text = "+1"
 
 [node name="RayCastLeft" type="RayCast2D" parent="." unique_id=1984120513]
 position = Vector2(-3, -2)
-target_position = Vector2(0, 15)
+target_position = Vector2(0, 10)
 
 [node name="RayCastRight" type="RayCast2D" parent="." unique_id=157166717]
 position = Vector2(3, -2)
-target_position = Vector2(0, 15)
+target_position = Vector2(0, 10)
