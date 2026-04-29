@@ -9,7 +9,7 @@ var current_animation: StringName = &"idle"
 var facing_direction := 1
 
 @onready var _animator: AnimationPlayer = $RigAnimationPlayer
-@onready var _scarf: Line2D = $Root/Scarf
+@onready var _scarf: Line2D = $Scarf
 
 
 func _ready() -> void:
