@@ -12,7 +12,7 @@ var _landed := false
 
 func _init() -> void:
 	WEAPON_NAME = "Dagger"
-	WEAPON_COOLDOWN = 0.0
+	WEAPON_COOLDOWN = 0.5
 
 func _ready() -> void:
 	_gravity = ProjectSettings.get_setting("physics/2d/default_gravity")

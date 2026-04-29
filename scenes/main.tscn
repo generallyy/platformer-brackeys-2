@@ -376,6 +376,7 @@ theme_override_font_sizes/font_size = 80
 text = "Loading..."
 
 [node name="TouchControls" type="CanvasLayer" parent="." unique_id=206766827]
+visible = false
 script = ExtResource("11_touch")
 
 [node name="TouchControls" type="Control" parent="TouchControls" unique_id=624634838]

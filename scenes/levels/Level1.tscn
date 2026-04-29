@@ -24,11 +24,8 @@
 [ext_resource type="PackedScene" uid="uid://dghf2fi812ufr" path="res://scenes/world/CollisionToggle.tscn" id="22_usw5k"]
 [ext_resource type="PackedScene" uid="uid://ci71fpxtxsgj7" path="res://scenes/world/hazards/Spikes.tscn" id="23_jsker"]
 [ext_resource type="PackedScene" uid="uid://cqv3v4ijcgxo4" path="res://scenes/world/TeamPedestal.tscn" id="24_6ex7q"]
-[ext_resource type="PackedScene" path="res://scenes/world/hazards/AcidShowerhead.tscn" id="26_86um8"]
 [ext_resource type="PackedScene" path="res://scenes/world/hazards/Wind.tscn" id="27_hnhv5"]
 [ext_resource type="PackedScene" path="res://scenes/world/hazards/ArrowTrap.tscn" id="27_hpass"]
-[ext_resource type="PackedScene" path="res://scenes/world/hazards/Lava.tscn" id="28_srkvl"]
-[ext_resource type="PackedScene" path="res://scenes/world/hazards/PoisonCloud.tscn" id="29_pgakm"]
 [ext_resource type="PackedScene" path="res://scenes/world/hazards/Saw.tscn" id="30_s7ois"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_bspq0"]
@@ -547,10 +544,6 @@ scale = Vector2(0.99999994, 0.99999994)
 push_force = 1000.0
 max_speed = 800.0
 
-[node name="AcidShowerhead" parent="Hazards" unique_id=1276830137 instance=ExtResource("26_86um8")]
-position = Vector2(-97, 23)
-rotation = -3.1415925
-
 [node name="ArrowTrap2" parent="Hazards" unique_id=954707408 instance=ExtResource("27_hpass")]
 position = Vector2(21, -65.99997)
 rotation = 1.5825723
@@ -560,17 +553,5 @@ position = Vector2(-22, -64)
 rotation = 1.5978425
 scale = Vector2(0.99999994, 0.99999994)
 
-[node name="Lava" parent="Hazards" unique_id=2117888400 instance=ExtResource("28_srkvl")]
-position = Vector2(397, 83)
-rotation = -0.09632871
-
-[node name="PoisonCloud" parent="Hazards" unique_id=1797223888 instance=ExtResource("29_pgakm")]
-position = Vector2(264, 58)
-
 [node name="Saw" parent="Hazards" unique_id=1951577726 instance=ExtResource("30_s7ois")]
 position = Vector2(200, -17)
-
-[node name="Wind2" parent="Hazards" unique_id=1311987384 instance=ExtResource("27_hnhv5")]
-position = Vector2(31, 97)
-push_force = 2000.0
-max_speed = 1000.0

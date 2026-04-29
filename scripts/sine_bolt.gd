@@ -9,7 +9,7 @@ const MAX_LIFETIME := 8
 
 func _init() -> void:
 	WEAPON_NAME = "Sine Bolt"
-	WEAPON_COOLDOWN = 0.0
+	WEAPON_COOLDOWN = 0.2
 
 
 func _get_offset(t: float) -> Vector2:

@@ -5,6 +5,7 @@ var _touch_map: Dictionary = {}       # touch index -> Button
 
 func _ready() -> void:
 	var tc := $TouchControls
+	#visible = OS.has_feature("mobile")
 	_button_actions = {
 		tc.get_node("Left"):       {action = "move_left",  held = true},
 		tc.get_node("Right"):      {action = "move_right", held = true},
