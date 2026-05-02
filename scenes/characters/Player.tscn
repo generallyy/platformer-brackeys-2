@@ -704,6 +704,7 @@ bg_color = Color(0.04434038, 0.04434038, 0.04434038, 0.33333334)
 z_index = 5
 rotation = 0.0018949287
 script = ExtResource("1_wlgh5")
+USE_STICK_RIG = false
 stats = ExtResource("2_gj1sn")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1279863303]
@@ -876,12 +877,10 @@ libraries/ = SubResource("AnimationLibrary_y5ki7")
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="." unique_id=1552145014]
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1346791460]
-visible = false
 zoom = Vector2(3, 3)
 position_smoothing_enabled = true
 
 [node name="Label" type="Label" parent="." unique_id=2000590278]
-visible = false
 offset_left = -31.0
 offset_top = -38.0
 offset_right = 31.0
@@ -895,7 +894,6 @@ text = "dummy"
 horizontal_alignment = 1
 
 [node name="KillIndicator" type="Label" parent="." unique_id=415679306]
-visible = false
 offset_left = 4.0
 offset_top = -28.0
 offset_right = 22.0
@@ -906,11 +904,9 @@ theme_override_font_sizes/font_size = 8
 text = "+1"
 
 [node name="RayCastLeft" type="RayCast2D" parent="." unique_id=1984120513]
-visible = false
 position = Vector2(-3, -2)
 target_position = Vector2(0, 10)
 
 [node name="RayCastRight" type="RayCast2D" parent="." unique_id=157166717]
-visible = false
 position = Vector2(3, -2)
 target_position = Vector2(0, 10)
