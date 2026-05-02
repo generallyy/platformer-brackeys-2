@@ -57,21 +57,6 @@ func _reset_pose_defaults() -> void:
 	var root := get_node_or_null("Root") as Node2D
 	if root != null:
 		root.position = Vector2.ZERO
-	var default_rotations := {
-		"Root/ArmFrontUpper": -0.2,
-		"Root/ArmFrontUpper/ArmFrontLower": 0.0,
-		"Root/ArmBackUpper": 0.2,
-		"Root/ArmBackUpper/ArmBackLower": 0.0,
-		"Root/LegFrontUpper": -0.12,
-		"Root/LegFrontUpper/LegFrontLower": 0.0,
-		"Root/LegBackUpper": 0.12,
-		"Root/LegBackUpper/LegBackLower": 0.0,
-		"Root/Scarf": 0.0,
-	}
-	for path in default_rotations:
-		var part := get_node_or_null(path) as Node2D
-		if part != null:
-			part.rotation = default_rotations[path]
 
 
 func _collect_lines(node: Node) -> Array:

@@ -832,12 +832,12 @@ rest = Transform2D(1, 0, 0, 1, -0.016952729, -9.033146)
 
 [node name="Head" type="Bone2D" parent="StickRig/Skeleton2D/Torso" unique_id=2029993458]
 position = Vector2(-0.055125564, -10.471307)
+rotation = -1.5707941
 scale = Vector2(0.11099689, 0.14845343)
 rest = Transform2D(0.11099689, 0, 0, 0.14845343, -0.055125564, -10.471307)
 
 [node name="RightArm" type="Bone2D" parent="StickRig/Skeleton2D/Torso" unique_id=303602892]
 position = Vector2(-0.016952727, -9.033147)
-rotation = 0.029351024
 scale = Vector2(1.0000001, 1.0000001)
 rest = Transform2D(0.9995694, 0.029346814, -0.029346814, 0.9995694, -0.016952727, -9.033147)
 

@@ -44,7 +44,7 @@ var _state: PlayerState = PlayerState.GROUNDED
 @export var stats: PlayerStats
 
 @onready var animated_sprite:     AnimatedSprite2D  = $AnimatedSprite2D
-@onready var stick_rig:           StickFigureRig    = $StickRig
+@onready var stick_rig:           StickFigureRig    = get_node_or_null("StickRig")
 @onready var animation_player:    AnimationPlayer   = $AnimationPlayer
 @onready var audio_stream_player: AudioStreamPlayer = $AudioStreamPlayer
 @onready var _effects_anchor:     Node2D            = $EffectsAnchor
@@ -194,6 +194,13 @@ var _outfit: PlayerOutfit
 # ============================================================
 # LIFECYCLE
 # ============================================================
+
+func _enter_tree() -> void:
+	if not USE_STICK_RIG:
+		var rig := get_node_or_null("StickRig")
+		if rig:
+			rig.free()
+
 
 func _ready() -> void:
 	if stats == null:

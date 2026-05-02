@@ -304,12 +304,17 @@ func request_load_level(path: String) -> void:
 func _req_load_level(path: String) -> void:
 	load_level.rpc(path)
 
-@rpc("authority", "call_local", "reliable")
+@rpc("any_peer", "call_local", "reliable")
 func load_level(path: String) -> void:
+	if NetworkManager.is_online():
+		var sender := multiplayer.get_remote_sender_id()
+		if not (multiplayer.is_server() or sender == 1):
+			return
 	if await _load_level_local(path):
 		current_level_path = path
 
 func _load_level_local(path: String) -> bool:
+	print("hi", multiplayer.get_unique_id())
 	game_mode.stop_game()
 	get_tree().call_group(&"projectile", &"queue_free")
 	_clear_all_player_powerups()
