@@ -325,6 +325,8 @@ func _load_level_local(path: String) -> bool:
 	close_wardrobe()
 	powerups_menu.close_menu()
 	await get_tree().process_frame
+	if path.begins_with("uid://"):
+		path = ResourceUID.get_id_path(ResourceUID.text_to_id(path))
 	var level_scene: PackedScene = load(path) as PackedScene
 	if level_scene == null:
 		push_error("Failed to load level scene: %s" % path)
