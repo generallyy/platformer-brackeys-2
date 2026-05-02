@@ -296,25 +296,36 @@ func request_load_level(path: String) -> void:
 		_req_load_level.rpc_id(1, path)
 		return
 	if NetworkManager.is_online():
-		load_level.rpc(path)
+		_broadcast_load_level(path)
 	else:
-		await load_level(path)
+		await _load_level_local(path)
 
-@rpc("any_peer", "reliable")
+# Channel 1 is dedicated to important reliable gameplay RPCs (level transitions, damage, etc.)
+# so they don't compete with the 30Hz position sync flood on channel 0.
+@rpc("any_peer", "call_remote", "reliable", 1)
 func _req_load_level(path: String) -> void:
-	load_level.rpc(path)
+	if not multiplayer.is_server():
+		return
+	_broadcast_load_level(path)
 
-@rpc("any_peer", "call_local", "reliable")
+# Server-only. Resolves UIDs, then sends the level path to every client and runs locally.
+func _broadcast_load_level(path: String) -> void:
+	if path.begins_with("uid://"):
+		path = ResourceUID.get_id_path(ResourceUID.text_to_id(path))
+	for peer_id in multiplayer.get_peers():
+		load_level.rpc_id(peer_id, path)
+	_do_load_level(path)
+	current_level_path = path
+
+@rpc("any_peer", "call_local", "reliable", 1)
 func load_level(path: String) -> void:
-	if NetworkManager.is_online():
-		var sender := multiplayer.get_remote_sender_id()
-		if not (multiplayer.is_server() or sender == 1):
-			return
-	if await _load_level_local(path):
-		current_level_path = path
+	_do_load_level(path)
+	current_level_path = path
+
+func _do_load_level(path: String) -> void:
+	await _load_level_local(path)
 
 func _load_level_local(path: String) -> bool:
-	print("hi", multiplayer.get_unique_id())
 	game_mode.stop_game()
 	get_tree().call_group(&"projectile", &"queue_free")
 	_clear_all_player_powerups()

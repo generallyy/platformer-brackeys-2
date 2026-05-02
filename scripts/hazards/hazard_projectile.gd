@@ -1,7 +1,5 @@
 extends Area2D
 
-const HazardUtils = preload("res://scripts/hazards/hazard_utils.gd")
-
 @export var damage: int = 1
 @export var local_velocity := Vector2(320.0, 0.0)
 @export var world_acceleration := Vector2.ZERO

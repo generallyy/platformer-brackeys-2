@@ -1,7 +1,5 @@
 extends Area2D
 
-const HazardUtils = preload("res://scripts/hazards/hazard_utils.gd")
-
 @export var push_force: float = 360.0
 @export var max_speed: float = 1000.0
 @export var upward_lift_multiplier: float = 1.15

@@ -15,7 +15,7 @@ func _on_body_entered(body) -> void:
 	var main = get_tree().get_root().get_node("Main")
 	if NetworkManager.is_online():
 		if multiplayer.is_server():
-			main.load_level.rpc(target_level_path)
+			main._broadcast_load_level(target_level_path)
 		else:
 			main._req_load_level.rpc_id(1, target_level_path)
 	else:

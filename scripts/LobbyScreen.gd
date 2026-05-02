@@ -30,9 +30,9 @@ func _on_join_button_pressed():
 	NetworkManager.local_name = name_input.text.strip_edges()
 	var address = address_input.text.strip_edges()
 	if address.is_empty():
-		status_label.text = "Enter the 5-digit tunnel number."
-		return
-	if address.is_valid_int():
+		# TEMP: empty address connects to localhost for fast multiplayer testing
+		address = "127.0.0.1"
+	elif address.is_valid_int():
 		address = "%s:%s" % [NetworkManager.PLAYIT_HOST, address]
 	var err = NetworkManager.join_game(address)
 	if err != OK:
