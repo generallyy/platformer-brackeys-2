@@ -8,14 +8,15 @@ func _on_body_entered(body) -> void:
 		return
 	if not (body is CharacterBody2D and body.has_method("die")):
 		return
-	if NetworkManager.is_online() and not multiplayer.is_server():
-		return
 	if target_level_path == "":
-			print("No level path set!")
-			return
+		print("No level path set!")
+		return
 	_triggered = true
 	var main = get_tree().get_root().get_node("Main")
 	if NetworkManager.is_online():
-		main.load_level.rpc(target_level_path)
+		if multiplayer.is_server():
+			main.load_level.rpc(target_level_path)
+		else:
+			main._req_load_level.rpc_id(1, target_level_path)
 	else:
 		await main.load_level(target_level_path)
