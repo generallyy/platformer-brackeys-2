@@ -1,5 +1,7 @@
 extends Area2D
 
+const HazardUtils = preload("res://scripts/hazards/hazard_utils.gd")
+
 @export var damage: int = 1
 @export var hit_interval: float = 0.0
 @export var local_knockback := Vector2.ZERO
