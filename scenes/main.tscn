@@ -11,7 +11,7 @@
 [ext_resource type="Script" uid="uid://dvcw37gjvs81r" path="res://scripts/HUD.gd" id="8_hudsc"]
 [ext_resource type="Script" uid="uid://b8u5llodnp4b0" path="res://scripts/game_mode.gd" id="9_gamemd"]
 [ext_resource type="Script" uid="uid://d0ngr678ycifw" path="res://scripts/PowerupsMenu.gd" id="10_powerups"]
-[ext_resource type="Script" path="res://scripts/TouchControls.gd" id="11_touch"]
+[ext_resource type="Script" uid="uid://dq4864pt5njsq" path="res://scripts/TouchControls.gd" id="11_touch"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tefeu"]
 bg_color = Color(0.99025565, 0.34329996, 0.36159417, 0.7411765)
@@ -257,6 +257,7 @@ text = "hi guys this is just some dummy text"
 horizontal_alignment = 1
 
 [node name="Debug" type="Label" parent="HUD" unique_id=1474143974]
+visible = false
 offset_left = 334.0
 offset_top = 38.0
 offset_right = 579.0

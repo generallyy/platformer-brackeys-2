@@ -353,7 +353,6 @@ func load_level(path: String) -> void:
 	current_level_path = path
 
 func _load_level_local(path: String) -> bool:
-	print("hi", multiplayer.get_unique_id())
 	game_mode.stop_game()
 	get_tree().call_group(&"projectile", &"queue_free")
 	_clear_all_player_powerups()
