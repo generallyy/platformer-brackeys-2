@@ -29,6 +29,11 @@ func _on_join_button_pressed():
 	UiAudio.play_click()
 	NetworkManager.local_name = name_input.text.strip_edges()
 	var address = address_input.text.strip_edges()
+	
+	# TEMP: empty address connects to localhost for fast multiplayer testing
+	#address = "127.0.0.1"
+
+
 	if address.is_empty():
 		status_label.text = "Enter the 5-digit tunnel number."
 		return

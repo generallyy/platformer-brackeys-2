@@ -38,6 +38,9 @@ var _window_focused := true
 @onready var eight_ball_menu = $EightBallMenu
 @onready var game_mode = $GameMode
 @onready var powerups_menu = $HUD/PowerupsMenu
+@onready var _debug_label: Label = $HUD/Debug
+
+var _debug_timer := 0.0
 
 func _ready() -> void:
 	get_window().focus_entered.connect(func(): _window_focused = true)
@@ -86,6 +89,33 @@ func _process(delta: float) -> void:
 	_mouse_idle += delta
 	if _mouse_idle >= _MOUSE_HIDE_DELAY:
 		Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
+	_debug_timer += delta
+	if _debug_timer >= 0.25:
+		_debug_timer = 0.0
+		_update_debug_label()
+
+func _update_debug_label() -> void:
+	if not NetworkManager.is_online():
+		_debug_label.text = ""
+		return
+	var enet := multiplayer.multiplayer_peer as ENetMultiplayerPeer
+	if not enet:
+		_debug_label.text = ""
+		return
+	var host := enet.host
+	# pop_statistic resets the counter, so the return value is bytes since last pop
+	var sent := host.pop_statistic(ENetConnection.HOST_TOTAL_SENT_DATA)
+	var recv := host.pop_statistic(ENetConnection.HOST_TOTAL_RECEIVED_DATA)
+	var sent_kbps := sent * 4 / 1024.0  # *4 because we poll every 0.25s → per-second rate
+	var recv_kbps := recv * 4 / 1024.0
+	var lines := ["NET DEBUG"]
+	if not multiplayer.is_server():
+		var peer := enet.get_peer(1)
+		lines.append("RTT: %d ms" % peer.get_statistic(ENetPacketPeer.PEER_ROUND_TRIP_TIME))
+		lines.append("Loss: %.1f%%" % (peer.get_statistic(ENetPacketPeer.PEER_PACKET_LOSS) / 4096.0 * 100.0))
+	lines.append("TX: %.1f KB/s" % sent_kbps)
+	lines.append("RX: %.1f KB/s" % recv_kbps)
+	_debug_label.text = "\n".join(lines)
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion:
@@ -209,7 +239,7 @@ func _push_eight_ball_state_local(auto_open: bool = false) -> void:
 func _set_eight_ball_session(session: Dictionary) -> void:
 	_sync_eight_ball_session.rpc(session)
 
-@rpc("authority", "call_local", "reliable")
+@rpc("authority", "call_local", "reliable", 2)
 func _sync_eight_ball_session(session: Dictionary) -> void:
 	var previous_phase := String(_eight_ball_session.get("phase", "idle"))
 	_eight_ball_session = session.duplicate(true)
@@ -296,22 +326,31 @@ func request_load_level(path: String) -> void:
 		_req_load_level.rpc_id(1, path)
 		return
 	if NetworkManager.is_online():
-		load_level.rpc(path)
+		_broadcast_load_level(path)
 	else:
-		await load_level(path)
-
-@rpc("any_peer", "reliable")
-func _req_load_level(path: String) -> void:
-	load_level.rpc(path)
-
-@rpc("any_peer", "call_local", "reliable")
-func load_level(path: String) -> void:
-	if NetworkManager.is_online():
-		var sender := multiplayer.get_remote_sender_id()
-		if not (multiplayer.is_server() or sender == 1):
-			return
-	if await _load_level_local(path):
+		await _load_level_local(path)
 		current_level_path = path
+
+# Channel 1: important reliable RPCs so they don't queue behind 30Hz position sync on channel 0.
+@rpc("any_peer", "call_remote", "reliable", 1)
+func _req_load_level(path: String) -> void:
+	if not multiplayer.is_server():
+		return
+	_broadcast_load_level(path)
+
+func _broadcast_load_level(path: String) -> void:
+	for peer_id in multiplayer.get_peers():
+		load_level.rpc_id(peer_id, path)
+	await _load_level_local(path)
+	current_level_path = path
+
+@rpc("any_peer", "call_remote", "reliable", 1)
+func load_level(path: String) -> void:
+	var sender := multiplayer.get_remote_sender_id()
+	if sender != 1:
+		return
+	await _load_level_local(path)
+	current_level_path = path
 
 func _load_level_local(path: String) -> bool:
 	print("hi", multiplayer.get_unique_id())

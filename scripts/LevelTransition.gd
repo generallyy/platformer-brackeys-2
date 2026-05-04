@@ -12,11 +12,4 @@ func _on_body_entered(body) -> void:
 		print("No level path set!")
 		return
 	_triggered = true
-	var main = get_tree().get_root().get_node("Main")
-	if NetworkManager.is_online():
-		if multiplayer.is_server():
-			main.load_level.rpc(target_level_path)
-		else:
-			main._req_load_level.rpc_id(1, target_level_path)
-	else:
-		await main.load_level(target_level_path)
+	get_tree().get_root().get_node("Main").request_load_level(target_level_path)

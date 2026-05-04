@@ -48,8 +48,9 @@ func _input(event: InputEvent) -> void:
 
 func _button_at(pos: Vector2) -> Button:
 	for btn in _button_actions:
-		if (btn as Button).get_global_rect().has_point(pos):
-			return btn
+		var b := btn as Button
+		if b.is_visible_in_tree() and b.get_global_rect().has_point(pos):
+			return b
 	return null
 
 func _press_button(btn: Button) -> void:
