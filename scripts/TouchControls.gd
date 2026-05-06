@@ -12,7 +12,7 @@ func _ready() -> void:
 		tc.get_node("Shield"):     {action = "shield",     held = true},
 		tc.get_node("Jump"):       {action = "jump",       held = false},
 		tc.get_node("Dash"):       {action = "f",          held = false},
-		tc.get_node("Projectile"): {action = "attack",     held = false},
+		tc.get_node("Projectile"): {action = "projectile",  held = false},
 		tc.get_node("Melee"):      {action = "melee",      held = false},
 		tc.get_node("Powerup"):    {action = "use_active", held = false},
 		tc.get_node("Interact"):   {action = "interact",   held = false},

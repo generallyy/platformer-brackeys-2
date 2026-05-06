@@ -13,6 +13,7 @@ const BOMB_SCENE          = preload("res://scenes/weapons/Bomb.tscn")
 const CONFUSION_RAY_SCENE = preload("res://scenes/weapons/ConfusionRay.tscn")
 
 const GHOST_BOMB_COOLDOWN := 3.0
+const ZAP_SPAWN_OFFSET    := Vector2(0.0, -7.0)
 
 ## Set to true to use the StickFigureRig, false to use AnimatedSprite2D.
 @export var USE_STICK_RIG := true
@@ -102,8 +103,8 @@ var has_dbj         := false
 var has_air_boosted := false
 var _dbj_frozen         := false
 var _dbj_freeze_timer   := 0.0
-var _dbj_boost_lockout  := 0.0
-var _boost_dbj_lockout  := 0.0
+var _dbj_boost_lockout  := 0.0  # prevents air-boost immediately after a DBJ
+var _boost_dbj_lockout  := 0.0  # prevents DBJ immediately after an air-boost
 var _dbj_jump_lockout   := 0.0
 var _jump_buffered      := false
 var _blink_timer        := 0.0
@@ -263,14 +264,14 @@ func _physics_process(delta: float) -> void:
 		PlayerState.DASH:
 			velocity.x = facing_direction * stats.dash_speed * pow(PowerupIds.DASH_BOOST_MULT, passive_powerups.get(PowerupIds.DASH_BOOST_GROUND, 0))
 			if is_multiplayer_authority():
-				for t in _passthrough_targets:
-					if is_instance_valid(t) and t.is_in_group("player"):
-						if global_position.distance_to(t.global_position) < 12.0:
+				for target in _passthrough_targets:
+					if is_instance_valid(target) and target.is_in_group("player"):
+						if global_position.distance_to(target.global_position) < 12.0:
 							var push_x := -facing_direction * stats.dash_speed
 							if NetworkManager.is_online():
-								t._rpc_receive_dash_push.rpc_id(t.get_multiplayer_authority(), push_x)
+								target._rpc_receive_dash_push.rpc_id(target.get_multiplayer_authority(), push_x)
 							else:
-								t.velocity.x = push_x
+								target.velocity.x = push_x
 		PlayerState.DOUBLE_JUMP:
 			if _dbj_frozen:
 				return
@@ -370,10 +371,10 @@ func _tick_timers(delta: float) -> void:
 	_melee_cooldown       = max(0.0, _melee_cooldown       - delta)
 	_projectile_cooldown  = max(0.0, _projectile_cooldown  - delta)
 	_ghost_bomb_cooldown  = max(0.0, _ghost_bomb_cooldown  - delta)
-	_dbj_boost_lockout   = max(0.0, _dbj_boost_lockout   - delta)
-	_boost_dbj_lockout   = max(0.0, _boost_dbj_lockout   - delta)
-	_dbj_jump_lockout = max(0.0, _dbj_jump_lockout - delta)
-	_coyote_timer     = max(0.0, _coyote_timer     - delta)
+	_dbj_boost_lockout    = max(0.0, _dbj_boost_lockout    - delta)
+	_boost_dbj_lockout    = max(0.0, _boost_dbj_lockout    - delta)
+	_dbj_jump_lockout     = max(0.0, _dbj_jump_lockout     - delta)
+	_coyote_timer         = max(0.0, _coyote_timer         - delta)
 	if _blink_timer > 0.0:
 		_blink_timer = max(0.0, _blink_timer - delta)
 		if _blink_timer <= 0.0:
@@ -447,10 +448,10 @@ func _tick_timers(delta: float) -> void:
 		if _passthrough_timer <= 0.0:
 			# Don't drop the exception while still overlapping — sudden depenetration causes floating
 			var still_overlapping := false
-			for t in _passthrough_targets:
-				if is_instance_valid(t):
-					# Circle center is offset (0, -5) from origin, radius 5 each → overlap < 10
-					var dist := (global_position + Vector2(0, -5)).distance_to(t.global_position + Vector2(0, -5))
+			for target in _passthrough_targets:
+				if is_instance_valid(target):
+					# Circle center is offset (0, -5) from origin, radius 5 each → overlap < 11 px (1 px buffer to prevent pop-through)
+					var dist := (global_position + Vector2(0, -5)).distance_to(target.global_position + Vector2(0, -5))
 					if dist < 11.0:
 						still_overlapping = true
 						break
@@ -462,36 +463,36 @@ func _tick_timers(delta: float) -> void:
 
 func _get_overhead_players() -> Array:
 	var result := []
-	for p in get_tree().get_nodes_in_group("player"):
-		if p == self or not is_instance_valid(p):
+	for player in get_tree().get_nodes_in_group("player"):
+		if player == self or not is_instance_valid(player):
 			continue
-		var diff: Vector2 = p.global_position - global_position
+		var diff: Vector2 = player.global_position - global_position
 		# Circle radius 5, center offset -5 → another player standing on our head
 		# puts their origin roughly 10 px above ours.  Use a generous window.
 		if diff.y < 0.0 and diff.y > -28.0 and abs(diff.x) < 14.0:
-			result.append(p)
+			result.append(player)
 	return result
 
 func _add_passthrough(targets: Array, duration: float) -> void:
-	for t in targets:
-		if is_instance_valid(t) and t not in _passthrough_targets:
-			add_collision_exception_with(t)
-			_passthrough_targets.append(t)
+	for target in targets:
+		if is_instance_valid(target) and target not in _passthrough_targets:
+			add_collision_exception_with(target)
+			_passthrough_targets.append(target)
 	if targets.size() > 0:
 		_passthrough_timer = max(_passthrough_timer, duration)
 
 func _clear_passthrough() -> void:
-	for t in _passthrough_targets:
-		if is_instance_valid(t):
-			remove_collision_exception_with(t)
+	for target in _passthrough_targets:
+		if is_instance_valid(target):
+			remove_collision_exception_with(target)
 	_passthrough_targets.clear()
 
 func _apply_gravity(delta: float) -> void:
 	if is_on_floor() or _state == PlayerState.AIR_BOOST or _blink_timer > 0.0:
 		return
-	var low_grav := PowerupIds.LOW_GRAVITY in passive_powerups
-	var gravity_scale := 0.75 if low_grav else 1.0
-	var fall_cap      := stats.max_fall_speed * (0.6 if low_grav else 1.0)
+	var featherweight := PowerupIds.LOW_GRAVITY in passive_powerups
+	var gravity_scale := .8 if featherweight else 1.0
+	var fall_cap      := stats.max_fall_speed * (.8 if featherweight else 1.0)
 	velocity.y = min(velocity.y + gravity * gravity_scale * delta, fall_cap)
 
 
@@ -561,9 +562,9 @@ func _exit_camera_lock_mode() -> void:
 func _advance_spectate_target(delta: int) -> void:
 	var main := get_tree().get_root().get_node("Main")
 	var targets: Array = []
-	for p in main.spawned_players.values():
-		if p != self and not p.is_spectator and not p.is_ghost:
-			targets.append(p)
+	for player in main.spawned_players.values():
+		if player != self and not player.is_spectator and not player.is_ghost:
+			targets.append(player)
 	if targets.is_empty():
 		_exit_camera_lock_mode()
 		return
@@ -576,8 +577,8 @@ func _handle_ghost_input() -> void:
 		if _spectator_mode == 1:  # camera lock
 			var main := get_tree().get_root().get_node("Main")
 			var has_valid := false
-			for p in main.spawned_players.values():
-				if p != self and not p.is_spectator and not p.is_ghost:
+			for player in main.spawned_players.values():
+				if player != self and not player.is_spectator and not player.is_ghost:
 					has_valid = true
 					break
 			if not has_valid:
@@ -610,7 +611,7 @@ func _handle_ghost_input() -> void:
 	# Bomb placement
 	if not _ghost_can_bomb:
 		return
-	if Input.is_action_just_pressed("attack") and _ghost_bomb_cooldown <= 0.0 and not in_safe_zone:
+	if Input.is_action_just_pressed("projectile") and _ghost_bomb_cooldown <= 0.0 and not in_safe_zone:
 		_ghost_bomb_cooldown = GHOST_BOMB_COOLDOWN
 		_rpc_place_bomb.rpc(global_position, multiplayer.get_unique_id())
 
@@ -639,11 +640,11 @@ func activate_ghost_mode(can_bomb: bool = true, spawn_pos: Vector2 = Vector2.ZER
 	if _state == PlayerState.UI_LOCKED or _state == PlayerState.KNOCKED_BACK:
 		_transition_to(PlayerState.AIRBORNE if not is_on_floor() else PlayerState.GROUNDED)
 	if can_bomb and not is_spectator:
-		nudge_changed.emit("You are dead! Press [%s] to drop a bomb." % InputUtils.get_action_key("attack"))
-	for p in get_tree().get_nodes_in_group("player"):
-		if p != self:
-			add_collision_exception_with(p)
-			p.add_collision_exception_with(self)
+		nudge_changed.emit("You are dead! Press [%s] to drop a bomb." % InputUtils.get_action_key("projectile"))
+	for player in get_tree().get_nodes_in_group("player"):
+		if player != self:
+			add_collision_exception_with(player)
+			player.add_collision_exception_with(self)
 
 
 func deactivate_ghost_mode() -> void:
@@ -661,10 +662,10 @@ func deactivate_ghost_mode() -> void:
 	nudge_changed.emit("")
 	is_ghost   = false
 	modulate.a = 1.0
-	for p in get_tree().get_nodes_in_group("player"):
-		if p != self:
-			remove_collision_exception_with(p)
-			p.remove_collision_exception_with(self)
+	for player in get_tree().get_nodes_in_group("player"):
+		if player != self:
+			remove_collision_exception_with(player)
+			player.remove_collision_exception_with(self)
 
 
 func _input(event: InputEvent) -> void:
@@ -710,7 +711,7 @@ func _handle_input(_delta: float) -> void:
 
 	var can_throw := _projectile_cooldown <= 0.0 \
 			and (not _equipped_returns or _active_projectile_count < _equipped_max_simultaneous)
-	if Input.is_action_just_pressed("attack") and can_throw and not _is_shielding and not in_safe_zone:
+	if Input.is_action_just_pressed("projectile") and can_throw and not _is_shielding and not in_safe_zone:
 		_throw_weapon(equipped_projectile_scene, facing_direction)
 		if _equipped_returns:
 			_active_projectile_count += 1
@@ -966,9 +967,9 @@ func _throw_weapon(scene: PackedScene, dir: int, extra_offset: Vector2 = Vector2
 	if scene == null:
 		push_error("%s tried to throw a null weapon scene" % name)
 		return
-	var spawn_pos := global_position + stats.weapon_spawn_offset * Vector2(dir, 1) + extra_offset
-	var soh := PowerupIds.SLOW_ON_HIT in passive_powerups
-	_rpc_throw_weapon.rpc(scene.resource_path, dir, spawn_pos, multiplayer.get_unique_id(), _effective_damage(), _effective_knockback_scale(), soh)
+	var spawn_pos   := global_position + stats.weapon_spawn_offset * Vector2(dir, 1) + extra_offset
+	var slow_on_hit := PowerupIds.SLOW_ON_HIT in passive_powerups
+	_rpc_throw_weapon.rpc(scene.resource_path, dir, spawn_pos, multiplayer.get_unique_id(), _effective_damage(), _effective_knockback_scale(), slow_on_hit)
 
 
 @rpc("authority", "call_local", "reliable")
@@ -984,19 +985,19 @@ func _do_spawn_weapon(scene: PackedScene, dir: int, pos: Vector2, thrower_id: in
 	if scene == null:
 		push_error("%s tried to spawn a null weapon scene" % name)
 		return
-	var p := scene.instantiate()
-	p.direction       = dir
-	p.scale.x         = dir
-	p.thrower_peer_id = thrower_id
-	p.damage          = dmg
-	p.knockback       = p.knockback * kbs
-	p.slow_on_hit     = slow_on_hit
+	var projectile := scene.instantiate()
+	projectile.direction       = dir
+	projectile.scale.x         = dir
+	projectile.thrower_peer_id = thrower_id
+	projectile.damage          = dmg
+	projectile.knockback       = projectile.knockback * kbs
+	projectile.slow_on_hit     = slow_on_hit
 	if not NetworkManager.is_online():
-		p.owner_node = self
-	get_parent().add_child(p)
-	p.global_position = pos
+		projectile.owner_node = self
+	get_parent().add_child(projectile)
+	projectile.global_position = pos
 	if _equipped_returns and is_multiplayer_authority():
-		p.tree_exiting.connect(_on_projectile_returned)
+		projectile.tree_exiting.connect(_on_projectile_returned)
 
 
 func _on_projectile_returned() -> void:
@@ -1009,12 +1010,12 @@ func _on_projectile_returned() -> void:
 
 func _do_melee() -> void:
 	_melee_cooldown = stats.melee_cooldown
-	var bm : int = passive_powerups.get(PowerupIds.BIG_MELEE, 0)
-	var soh := PowerupIds.SLOW_ON_HIT in passive_powerups
-	var ss: int = passive_powerups.get(PowerupIds.SHIELD_SPIKE, 0)
-	var ps  := PowerupIds.PARRY_STUN in passive_powerups
-	var cgh := PowerupIds.GHOST_HUNTER in passive_powerups
-	_rpc_throw_melee.rpc(facing_direction, multiplayer.get_unique_id(), _effective_damage(), _effective_knockback_scale(), bm, soh, ss, ps, cgh)
+	var big_melee_stacks: int = passive_powerups.get(PowerupIds.BIG_MELEE, 0)
+	var slow_on_hit       := PowerupIds.SLOW_ON_HIT in passive_powerups
+	var shield_spike_dmg: int = passive_powerups.get(PowerupIds.SHIELD_SPIKE, 0)
+	var parry_stun        := PowerupIds.PARRY_STUN in passive_powerups
+	var can_hit_ghosts    := PowerupIds.GHOST_HUNTER in passive_powerups
+	_rpc_throw_melee.rpc(facing_direction, multiplayer.get_unique_id(), _effective_damage(), _effective_knockback_scale(), big_melee_stacks, slow_on_hit, shield_spike_dmg, parry_stun, can_hit_ghosts)
 
 
 @rpc("authority", "call_local", "reliable")
@@ -1023,29 +1024,29 @@ func _rpc_throw_melee(dir: int, thrower_id: int, dmg: int = 1, kbs: float = 1.0,
 
 
 func _do_spawn_melee(dir: int, thrower_id: int, dmg: int = 1, kbs: float = 1.0, big_melee_stacks: int = 0, slow_on_hit: bool = false, shield_spike_dmg: int = 0, parry_stun: bool = false, can_hit_ghosts: bool = false) -> void:
-	var m := MELEE_SCENE.instantiate()
-	m.direction       = dir
-	m.thrower_peer_id = thrower_id
-	m.damage          = dmg
-	m.knockback_scale = kbs
-	m.slow_on_hit     = slow_on_hit
-	m.shield_spike_dmg = shield_spike_dmg
-	m.parry_stun      = parry_stun
-	m.can_hit_ghosts  = can_hit_ghosts
+	var melee := MELEE_SCENE.instantiate()
+	melee.direction        = dir
+	melee.thrower_peer_id  = thrower_id
+	melee.damage           = dmg
+	melee.knockback_scale  = kbs
+	melee.slow_on_hit      = slow_on_hit
+	melee.shield_spike_dmg = shield_spike_dmg
+	melee.parry_stun       = parry_stun
+	melee.can_hit_ghosts   = can_hit_ghosts
 	if big_melee_stacks > 0:
-		var s := pow(PowerupIds.BIG_MELEE_SCALE_MULT, big_melee_stacks)
-		m.scale = Vector2(dir * s, s)
+		var scale_factor := pow(PowerupIds.BIG_MELEE_SCALE_MULT, big_melee_stacks)
+		melee.scale = Vector2(dir * scale_factor, scale_factor)
 	else:
-		m.scale.x = dir
-	m.hit_landed.connect(_on_melee_hit_landed)
-	add_child(m)
-	m.position = stats.weapon_spawn_offset * Vector2(dir, 1)
+		melee.scale.x = dir
+	melee.hit_landed.connect(_on_melee_hit_landed)
+	add_child(melee)
+	melee.position = stats.weapon_spawn_offset * Vector2(dir, 1)
 
 
 func _do_zap() -> void:
 	_melee_cooldown = stats.melee_cooldown
-	var soh := PowerupIds.SLOW_ON_HIT in passive_powerups
-	_rpc_throw_zap.rpc(facing_direction, multiplayer.get_unique_id(), _effective_damage(), _effective_knockback_scale(), soh)
+	var slow_on_hit := PowerupIds.SLOW_ON_HIT in passive_powerups
+	_rpc_throw_zap.rpc(facing_direction, multiplayer.get_unique_id(), _effective_damage(), _effective_knockback_scale(), slow_on_hit)
 
 
 @rpc("authority", "call_local", "reliable")
@@ -1054,14 +1055,14 @@ func _rpc_throw_zap(dir: int, thrower_id: int, dmg: int = 1, kbs: float = 1.0, s
 
 
 func _do_spawn_zap(dir: int, thrower_id: int, dmg: int = 1, kbs: float = 1.0, slow_on_hit: bool = false) -> void:
-	var z := ZAP_SCENE.instantiate()
-	z.direction       = dir
-	z.thrower_peer_id = thrower_id
-	z.damage          = dmg
-	z.knockback_scale = kbs
-	z.slow_on_hit     = slow_on_hit
-	add_child(z)
-	z.position = Vector2(0.0, -7.0)
+	var zap := ZAP_SCENE.instantiate()
+	zap.direction       = dir
+	zap.thrower_peer_id = thrower_id
+	zap.damage          = dmg
+	zap.knockback_scale = kbs
+	zap.slow_on_hit     = slow_on_hit
+	add_child(zap)
+	zap.position = ZAP_SPAWN_OFFSET
 
 # ============================================================
 # DAMAGE & DEATH
@@ -1335,34 +1336,18 @@ func _rpc_sync_scale(s: Vector2) -> void:
 
 func clear_powerups() -> void:
 	passive_powerups.clear()
-	active_powerup          = ""
-	_active_used_this_round = false
-	_speed_surge_active     = false
-	_speed_surge_timer      = 0.0
-	_extra_jumps_used       = 0
-	_dbj_jump_lockout       = 0.0
-	_jump_buffered          = false
-	_lifesteal_hits         = 0
-	_is_slowed              = false
-	_slow_timer             = 0.0
-	_is_stunned             = false
-	_stun_timer             = 0.0
-	_input_locked           = false
-	_is_dying               = false
-	_external_input_locks.clear()
-	_is_confused            = false
-	_confusion_timer        = 0.0
-	_is_invisible           = false
-	_invisible_timer        = 0.0
-	scale                   = Vector2(1.0, 1.0)
-	if NetworkManager.is_online() and is_multiplayer_authority():
-		_rpc_set_invisible.rpc(false)
-	else:
-		modulate.a = 1.0
+	active_powerup = ""
+	_is_dying      = false
+	scale          = Vector2(1.0, 1.0)
+	_reset_powerup_state()
 	powerups_changed.emit(passive_powerups, active_powerup)
 
 
 func reset_round_powerup_state() -> void:
+	_reset_powerup_state()
+
+
+func _reset_powerup_state() -> void:
 	_active_used_this_round = false
 	_speed_surge_active     = false
 	_speed_surge_timer      = 0.0
@@ -1427,27 +1412,27 @@ func apply_confusion(duration: float) -> void:
 func _find_nearest_player() -> Node2D:
 	var nearest: Node2D = null
 	var nearest_dist   := INF
-	for p in get_tree().get_nodes_in_group("player"):
-		if p == self or p.is_ghost:
+	for player in get_tree().get_nodes_in_group("player"):
+		if player == self or player.is_ghost:
 			continue
-		var d := global_position.distance_to(p.global_position)
+		var d := global_position.distance_to(player.global_position)
 		if d < nearest_dist:
 			nearest_dist = d
-			nearest      = p
+			nearest      = player
 	return nearest
 
 
 func _find_player_by_peer_id(peer_id: int) -> Node2D:
-	for p in get_tree().get_nodes_in_group("player"):
-		if p.get_multiplayer_authority() == peer_id:
-			return p
+	for player in get_tree().get_nodes_in_group("player"):
+		if player.get_multiplayer_authority() == peer_id:
+			return player
 	return null
 
 
 func _find_local_player() -> Node:
-	for p in get_tree().get_nodes_in_group("player"):
-		if p.is_multiplayer_authority():
-			return p
+	for player in get_tree().get_nodes_in_group("player"):
+		if player.is_multiplayer_authority():
+			return player
 	return null
 
 
@@ -1486,10 +1471,10 @@ func _rpc_end_blink() -> void:
 @rpc("authority", "call_local", "reliable")
 func _rpc_heart_reset() -> void:
 	# Each peer sets health on the player they control
-	for p in get_tree().get_nodes_in_group("player"):
-		if p.is_multiplayer_authority() and not p.is_ghost:
-			p.health = 1
-			p.health_changed.emit(1, p.get_effective_max_health())
+	for player in get_tree().get_nodes_in_group("player"):
+		if player.is_multiplayer_authority() and not player.is_ghost:
+			player.health = 1
+			player.health_changed.emit(1, player.get_effective_max_health())
 
 # ============================================================
 # OUTFIT / VISUALS
@@ -1553,14 +1538,14 @@ func _send_state_sync() -> void:
 	if multiplayer.is_server():
 		for pid in _sync_peers:
 			_sync_state.rpc_id(pid, global_position, animated_sprite.flip_h,
-					visual_animation, visible, visual_visible, shield_visible)
+					visual_animation, visible, visual_visible, shield_visible, _visual_tilt)
 	else:
 		_sync_state.rpc_id(1, global_position, animated_sprite.flip_h,
-				visual_animation, visible, visual_visible, shield_visible)
+				visual_animation, visible, visual_visible, shield_visible, _visual_tilt)
 
 
 @rpc("any_peer", "unreliable_ordered")
-func _sync_state(pos: Vector2, flip: bool, anim: String, body_visible: bool, visual_visible: bool, shield_visible: bool) -> void:
+func _sync_state(pos: Vector2, flip: bool, anim: String, body_visible: bool, visual_visible: bool, shield_visible: bool, tilt: float = 0.0) -> void:
 	if is_multiplayer_authority():
 		return
 	global_position         = pos
@@ -1573,8 +1558,12 @@ func _sync_state(pos: Vector2, flip: bool, anim: String, body_visible: bool, vis
 	_play_visual_animation(StringName(anim))
 	_set_visual_visible(visual_visible)
 	_shield_node.set_active(shield_visible)
+	_visual_tilt            = tilt
+	animated_sprite.rotation = tilt
+	if stick_rig != null:
+		stick_rig.rotation = tilt
 	if multiplayer.is_server():
 		var sender := multiplayer.get_remote_sender_id()
 		for pid in _sync_peers:
 			if pid != sender:
-				_sync_state.rpc_id(pid, pos, flip, anim, body_visible, visual_visible, shield_visible)
+				_sync_state.rpc_id(pid, pos, flip, anim, body_visible, visual_visible, shield_visible, tilt)

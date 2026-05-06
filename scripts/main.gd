@@ -75,6 +75,10 @@ func _ready() -> void:
 	if NetworkManager.is_online():
 		multiplayer.peer_connected.connect(_on_peer_connected)
 		multiplayer.peer_disconnected.connect(_on_peer_disconnected)
+		if not NetworkManager.is_host:
+			NetworkManager.reconnecting.connect(_on_reconnecting)
+			NetworkManager.reconnected.connect(_on_reconnected)
+			NetworkManager.reconnect_failed.connect(_on_reconnect_failed)
 
 	if multiplayer.is_server():
 		_spawn_player(multiplayer.get_unique_id())
@@ -152,6 +156,24 @@ func _on_peer_disconnected(id: int):
 		if EightBallLogic.is_participant(_eight_ball_session, id):
 			_set_eight_ball_session(EightBallLogic.create_idle_session("%s left the table." % get_player_display_name(id)))
 		_rpc_despawn.rpc(id)
+
+func _on_reconnecting(attempt: int, max_attempts: int) -> void:
+	_debug_label.text = "Reconnecting... (%d/%d)" % [attempt, max_attempts]
+
+func _on_reconnected() -> void:
+	_debug_label.text = ""
+	for player in spawned_players.values():
+		player.queue_free()
+	spawned_players.clear()
+	_player_numbers.clear()
+	player_names.clear()
+	player_teams.clear()
+	team_colors.clear()
+	_request_state.rpc_id(1, NetworkManager.local_name)
+
+func _on_reconnect_failed() -> void:
+	NetworkManager.close()
+	get_tree().change_scene_to_file("res://scenes/ui/LobbyScreen.tscn")
 
 # Client asks server for current state on join
 @rpc("any_peer", "reliable")
