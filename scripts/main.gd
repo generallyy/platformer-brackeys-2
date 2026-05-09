@@ -28,6 +28,7 @@ var _eight_ball_ai_turn_serial := 0
 const _MOUSE_HIDE_DELAY := 2.0
 var _mouse_idle := 0.0
 var _window_focused := true
+var _debug_visible := false
 
 @onready var pause_menu = $PauseMenu
 @onready var level_container = $LevelContainer
@@ -76,6 +77,9 @@ func _ready() -> void:
 		multiplayer.peer_connected.connect(_on_peer_connected)
 		multiplayer.peer_disconnected.connect(_on_peer_disconnected)
 		if not NetworkManager.is_host:
+			NetworkManager.server_disconnected.connect(func():
+				_debug_label.text = "You have disconnected."
+				_debug_label.visible = true)
 			NetworkManager.reconnecting.connect(_on_reconnecting)
 			NetworkManager.reconnected.connect(_on_reconnected)
 			NetworkManager.reconnect_failed.connect(_on_reconnect_failed)
@@ -99,12 +103,8 @@ func _process(delta: float) -> void:
 		_update_debug_label()
 
 func _update_debug_label() -> void:
-	if not NetworkManager.is_online():
-		_debug_label.text = ""
-		return
 	var enet := multiplayer.multiplayer_peer as ENetMultiplayerPeer
 	if not enet:
-		_debug_label.text = ""
 		return
 	var host := enet.host
 	# pop_statistic resets the counter, so the return value is bytes since last pop
@@ -120,12 +120,18 @@ func _update_debug_label() -> void:
 	lines.append("TX: %.1f KB/s" % sent_kbps)
 	lines.append("RX: %.1f KB/s" % recv_kbps)
 	_debug_label.text = "\n".join(lines)
+	_debug_label.visible = _debug_visible
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion:
 		_mouse_idle = 0.0
 		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 	if event is InputEventKey and event.echo:
+		return
+	if event is InputEventKey and event.pressed and event.keycode == KEY_F3:
+		_debug_visible = not _debug_visible
+		_debug_label.visible = _debug_visible
+		get_viewport().set_input_as_handled()
 		return
 	if event.is_action_pressed("blackjack"):
 		if blackjack_menu.visible:
@@ -134,10 +140,10 @@ func _input(event: InputEvent) -> void:
 			open_blackjack()
 		get_viewport().set_input_as_handled()
 		return
-	if event.is_action_pressed("eight_ball"):
+	if event.is_action_pressed("eight_ball") or (event.is_action_pressed("ui_cancel") and eight_ball_menu.visible):
 		if eight_ball_menu.visible:
 			close_eight_ball()
-		elif not pause_menu.visible and not loading_screen.visible and not powerups_menu.visible and not blackjack_menu.visible:
+		elif event.is_action_pressed("eight_ball") and not pause_menu.visible and not loading_screen.visible and not powerups_menu.visible and not blackjack_menu.visible:
 			open_eight_ball()
 		get_viewport().set_input_as_handled()
 		return
@@ -158,10 +164,15 @@ func _on_peer_disconnected(id: int):
 		_rpc_despawn.rpc(id)
 
 func _on_reconnecting(attempt: int, max_attempts: int) -> void:
-	_debug_label.text = "Reconnecting... (%d/%d)" % [attempt, max_attempts]
+	if attempt == 1:
+		_debug_label.text = "You have disconnected.\nReconnecting... (1/%d)" % max_attempts
+	else:
+		_debug_label.text = "Reconnecting... (%d/%d)" % [attempt, max_attempts]
+	_debug_label.visible = true
 
 func _on_reconnected() -> void:
 	_debug_label.text = ""
+	_debug_label.visible = _debug_visible
 	for player in spawned_players.values():
 		player.queue_free()
 	spawned_players.clear()
@@ -259,19 +270,44 @@ func _push_eight_ball_state_local(auto_open: bool = false) -> void:
 		open_eight_ball()
 
 func _set_eight_ball_session(session: Dictionary) -> void:
-	_sync_eight_ball_session.rpc(session)
+	# Process locally with full frames (keeps local animation + AI timing correct)
+	_sync_eight_ball_session(session)
+	# Broadcast stripped session (no frames) to remote peers — keeps packets small
+	var broadcast := session.duplicate(false)
+	broadcast["animation_frames"] = []
+	for peer in multiplayer.get_peers():
+		_sync_eight_ball_session.rpc_id(peer, broadcast)
+	# Clear frames from stored session so _request_state late-joiner syncs are also small
+	_eight_ball_session["animation_frames"] = []
 
 @rpc("authority", "call_local", "reliable", 2)
 func _sync_eight_ball_session(session: Dictionary) -> void:
+	#var sender := multiplayer.get_remote_sender_id()
+	var new_phase := String(session.get("phase", "idle"))
 	var previous_phase := String(_eight_ball_session.get("phase", "idle"))
 	_eight_ball_session = session.duplicate(true)
 	var local_peer := _local_peer_id()
-	var new_phase := String(_eight_ball_session.get("phase", "idle"))
 	var auto_open := (new_phase == "invite" and int(_eight_ball_session.get("opponent_id", 0)) == local_peer and previous_phase != "invite") \
 			or (new_phase == "active" and EightBallLogic.is_participant(_eight_ball_session, local_peer) and previous_phase != "active")
 	_push_eight_ball_state_local(auto_open)
 	if multiplayer.is_server():
 		_schedule_eight_ball_ai_turn()
+
+@rpc("authority", "call_remote", "reliable", 2)
+func _sync_eight_ball_shot_anim(pre_shot_balls: Array, shooter_id: int, angle: float, power: float, animation_id: int) -> void:
+	var cur_anim_id := int(_eight_ball_session.get("animation_id", 0))
+	if cur_anim_id != animation_id:
+		return
+	var temp := {
+		"phase": "active",
+		"current_turn": shooter_id,
+		"balls": pre_shot_balls,
+		"assignments": _eight_ball_session.get("assignments", {}),
+	}
+	var animated := EightBallLogic.apply_shot(temp, shooter_id, angle, power, animation_id)
+	_eight_ball_session["animation_frames"] = animated.get("animation_frames", [])
+	_push_eight_ball_state_local()
+	_eight_ball_session["animation_frames"] = []
 
 func _schedule_eight_ball_ai_turn() -> void:
 	_eight_ball_ai_turn_serial += 1
@@ -556,12 +592,14 @@ func request_eight_ball_challenge(opponent_id: int) -> void:
 
 @rpc("any_peer", "reliable")
 func _req_eight_ball_challenge(peer_id: int, opponent_id: int) -> void:
-	if multiplayer.get_remote_sender_id() != peer_id:
+	var sender := multiplayer.get_remote_sender_id()
+	if sender != peer_id:
 		return
 	_do_eight_ball_challenge(peer_id, opponent_id)
 
 func _do_eight_ball_challenge(peer_id: int, opponent_id: int) -> void:
-	if String(_eight_ball_session.get("phase", "idle")) != "idle":
+	var phase := String(_eight_ball_session.get("phase", "idle"))
+	if phase != "idle":
 		return
 	if peer_id not in spawned_players:
 		return
@@ -581,7 +619,8 @@ func request_accept_eight_ball() -> void:
 
 @rpc("any_peer", "reliable")
 func _req_accept_eight_ball(peer_id: int) -> void:
-	if multiplayer.get_remote_sender_id() != peer_id:
+	var sender := multiplayer.get_remote_sender_id()
+	if sender != peer_id:
 		return
 	_do_accept_eight_ball(peer_id)
 
@@ -621,7 +660,8 @@ func request_leave_eight_ball() -> void:
 
 @rpc("any_peer", "reliable")
 func _req_leave_eight_ball(peer_id: int) -> void:
-	if multiplayer.get_remote_sender_id() != peer_id:
+	var sender := multiplayer.get_remote_sender_id()
+	if sender != peer_id:
 		return
 	_do_leave_eight_ball(peer_id)
 
@@ -646,7 +686,8 @@ func request_eight_ball_shot(angle: float, power: float) -> void:
 
 @rpc("any_peer", "reliable")
 func _req_eight_ball_shot(peer_id: int, angle: float, power: float) -> void:
-	if multiplayer.get_remote_sender_id() != peer_id:
+	var sender := multiplayer.get_remote_sender_id()
+	if sender != peer_id:
 		return
 	_do_eight_ball_shot(peer_id, angle, power)
 
@@ -654,7 +695,10 @@ func _do_eight_ball_shot(peer_id: int, angle: float, power: float) -> void:
 	if not EightBallLogic.is_shot_allowed(_eight_ball_session, peer_id):
 		return
 	var animation_id := int(_eight_ball_session.get("animation_id", 0)) + 1
+	var pre_shot_balls: Array = Array(_eight_ball_session.get("balls", [])).duplicate(true)
 	_set_eight_ball_session(EightBallLogic.apply_shot(_eight_ball_session, peer_id, angle, power, animation_id))
+	if NetworkManager.is_online() and not multiplayer.get_peers().is_empty():
+		_sync_eight_ball_shot_anim.rpc(pre_shot_balls, peer_id, angle, power, animation_id)
 
 func request_player_outfit_change(peer_id: int, outfit_id: int) -> void:
 	if NetworkManager.is_online() and not multiplayer.is_server():

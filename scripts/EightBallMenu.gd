@@ -20,6 +20,7 @@ const _ANIMATION_FRAME_TIME := EightBallLogic.STEP_DELTA * EightBallLogic.SAMPLE
 @onready var accept_button: Button = $Root/Panel/Content/Body/Sidebar/PrimaryActions/Accept
 @onready var decline_button: Button = $Root/Panel/Content/Body/Sidebar/PrimaryActions/Decline
 @onready var leave_button: Button = $Root/Panel/Content/Body/Sidebar/SecondaryActions/Leave
+@onready var skip_button: Button = $Root/Panel/Content/Body/Sidebar/SecondaryActions/SkipAnimation
 @onready var close_button: Button = $Root/Panel/Content/Body/Sidebar/SecondaryActions/Close
 @onready var hint_label: Label = $Root/Panel/Content/Body/Sidebar/Hint
 
@@ -43,6 +44,7 @@ func _ready() -> void:
 	accept_button.pressed.connect(func() -> void: accept_requested.emit())
 	decline_button.pressed.connect(func() -> void: decline_requested.emit())
 	leave_button.pressed.connect(func() -> void: leave_requested.emit())
+	skip_button.pressed.connect(_stop_animation)
 	close_button.pressed.connect(func() -> void: close_requested.emit())
 	table.shot_requested.connect(_on_table_shot_requested)
 	opponent_select.item_selected.connect(func(_index: int) -> void: _refresh_ui())
@@ -53,6 +55,8 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
+	if visible and Input.is_action_just_pressed("ui_cancel"):
+		close_requested.emit()
 	if _animation_frames.is_empty():
 		return
 	_animation_time += delta
@@ -99,10 +103,13 @@ func apply_state(session: Dictionary, player_names: Dictionary, available_peer_i
 		_seen_animation_id = next_animation_id
 		_start_animation(Array(_session.get("animation_frames", [])))
 	else:
-		if next_animation_id == 0:
-			_seen_animation_id = 0
-		_display_balls = Array(_session.get("balls", [])).duplicate(true)
-		_stop_animation(false)
+		# Don't interrupt an animation already playing for this same animation_id
+		var already_playing := not _animation_frames.is_empty() and _seen_animation_id == next_animation_id
+		if not already_playing:
+			if next_animation_id == 0:
+				_seen_animation_id = 0
+			_display_balls = Array(_session.get("balls", [])).duplicate(true)
+			_stop_animation(false)
 
 	_refresh_ui()
 
@@ -261,6 +268,7 @@ func _start_animation(frames: Array) -> void:
 	_animation_time = 0.0
 	if not _animation_frames.is_empty():
 		_display_balls = Array(_animation_frames[0]).duplicate(true)
+	skip_button.visible = true
 	_refresh_table()
 
 
@@ -270,7 +278,8 @@ func _stop_animation(reset_display: bool = true) -> void:
 	_animation_time = 0.0
 	if reset_display:
 		_display_balls = Array(_session.get("balls", [])).duplicate(true)
-	_refresh_table()
+	skip_button.visible = false
+	_refresh_ui()
 
 
 func _on_challenge_pressed() -> void:

@@ -46,6 +46,8 @@ func join_game(address: String) -> Error:
 	var err = peer.create_client(host, port)
 	if err != OK:
 		return err
+	# Loosen timeout for tunnelled connections (playit.gg can spike 1-2s)
+	peer.get_peer(1).set_timeout(0, 6000, 15000)
 	multiplayer.multiplayer_peer = peer
 	_on_mp_connection_failed = _handle_connection_failed
 	_on_mp_server_disconnected = _handle_server_disconnected

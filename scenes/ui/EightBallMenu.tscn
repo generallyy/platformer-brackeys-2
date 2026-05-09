@@ -148,6 +148,12 @@ custom_minimum_size = Vector2(0, 54)
 layout_mode = 2
 text = "Leave Match"
 
+[node name="SkipAnimation" type="Button" parent="Root/Panel/Content/Body/Sidebar/SecondaryActions" unique_id=3012847193]
+custom_minimum_size = Vector2(0, 54)
+layout_mode = 2
+text = "Skip Animation"
+visible = false
+
 [node name="Close" type="Button" parent="Root/Panel/Content/Body/Sidebar/SecondaryActions" unique_id=1894258646]
 custom_minimum_size = Vector2(0, 54)
 layout_mode = 2

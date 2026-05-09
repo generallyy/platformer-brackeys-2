@@ -1544,7 +1544,7 @@ func _send_state_sync() -> void:
 				visual_animation, visible, visual_visible, shield_visible, _visual_tilt)
 
 
-@rpc("any_peer", "unreliable_ordered")
+@rpc("any_peer", "unreliable")
 func _sync_state(pos: Vector2, flip: bool, anim: String, body_visible: bool, visual_visible: bool, shield_visible: bool, tilt: float = 0.0) -> void:
 	if is_multiplayer_authority():
 		return

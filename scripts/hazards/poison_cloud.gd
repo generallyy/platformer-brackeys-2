@@ -1,6 +1,5 @@
 extends Area2D
 
-const HazardUtils = preload("res://scripts/hazards/hazard_utils.gd")
 
 @export var damage: int = 1
 @export var delay_before_damage: float = 1.4

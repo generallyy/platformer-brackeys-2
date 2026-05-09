@@ -36,21 +36,24 @@ func set_view(session: Dictionary, display_balls: Array, interactive: bool) -> v
 	queue_redraw()
 
 
-func _gui_input(event: InputEvent) -> void:
+func _input(event: InputEvent) -> void:
+	if not _interactive:
+		return
+
 	if event is InputEventMouseMotion:
-		_mouse_table_position = _to_table_space(event.position)
+		_mouse_table_position = _to_table_space(get_local_mouse_position())
 		queue_redraw()
 		return
 
 	if event is not InputEventMouseButton or event.button_index != MOUSE_BUTTON_LEFT:
 		return
 
-	_mouse_table_position = _to_table_space(event.position)
 	if event.pressed:
-		if _interactive and _has_cue_ball():
+		var local_pos := get_local_mouse_position()
+		if Rect2(Vector2.ZERO, size).has_point(local_pos) and _has_cue_ball():
+			_mouse_table_position = _to_table_space(local_pos)
 			_dragging_shot = true
 			queue_redraw()
-			accept_event()
 	else:
 		if not _dragging_shot:
 			return
@@ -58,8 +61,8 @@ func _gui_input(event: InputEvent) -> void:
 		var shot := _shot_vector()
 		if shot.length() >= 12.0:
 			shot_requested.emit(shot.angle(), clampf(shot.length() / 190.0, 0.0, 1.0))
+			get_viewport().set_input_as_handled()
 		queue_redraw()
-		accept_event()
 
 
 func _draw() -> void:
@@ -177,13 +180,18 @@ func _draw_cue_preview(scale_factor: float) -> void:
 	var direction := shot.normalized()
 	var power := clampf(shot.length() / 190.0, 0.0, 1.0)
 	var screen_cue := _to_screen(cue_position)
-	var guide: Dictionary = _cue_guide(cue_position, direction)
-	var guide_start := _to_screen(Vector2(guide.get("start", cue_position)))
-	var guide_end := _to_screen(Vector2(guide.get("end", cue_position)))
-	var impact_point := _to_screen(Vector2(guide.get("impact", cue_position)))
-	draw_dashed_line(guide_start, guide_end, _GUIDE_COLOR, 3.0 * scale_factor, 12.0 * scale_factor)
-	draw_circle(impact_point, 4.5 * scale_factor, _GUIDE_IMPACT_COLOR)
-	draw_arc(impact_point, 8.5 * scale_factor, 0.0, TAU, 20, Color(1.0, 1.0, 1.0, 0.30), 1.5 * scale_factor, true)
+	var segments := _cue_guide(cue_position, direction, power)
+
+	for i in segments.size():
+		var seg: Dictionary = segments[i]
+		var seg_from := _to_screen(Vector2(seg["from"]))
+		var seg_to := _to_screen(Vector2(seg["to"]))
+		draw_dashed_line(seg_from, seg_to, Color(1.0, 1.0, 1.0, _GUIDE_COLOR.a * pow(0.5, i)), 3.0 * scale_factor, 12.0 * scale_factor)
+
+	if segments.size() > 0 and bool(segments[0].get("contact", false)):
+		var impact_point := _to_screen(Vector2(segments[0]["to"]))
+		draw_circle(impact_point, 4.5 * scale_factor, _GUIDE_IMPACT_COLOR)
+		draw_arc(impact_point, 8.5 * scale_factor, 0.0, TAU, 20, Color(1.0, 1.0, 1.0, 0.30), 1.5 * scale_factor, true)
 
 	var back_pull := 24.0 + shot.length() * 0.45
 	var stick_start := _to_screen(cue_position - direction * back_pull)
@@ -218,14 +226,14 @@ func _update_roll_states(display_balls: Array) -> void:
 		if bool(ball.get("pocketed", false)):
 			_roll_states.erase(ball_id)
 			continue
-		var position := Vector2(ball.get("pos", Vector2.ZERO))
-		next_positions[ball_id] = position
+		var ball_pos := Vector2(ball.get("pos", Vector2.ZERO))
+		next_positions[ball_id] = ball_pos
 		var state: Dictionary = _roll_states.get(ball_id, {
 			"axis": Vector2.RIGHT,
 			"phase": 0.0,
 		})
-		var previous_position := Vector2(_last_ball_positions.get(ball_id, position))
-		var delta := position - previous_position
+		var previous_position := Vector2(_last_ball_positions.get(ball_id, ball_pos))
+		var delta := ball_pos - previous_position
 		var travel := delta.length()
 		if travel >= _ROLL_TELEPORT_DISTANCE:
 			state["axis"] = Vector2.RIGHT
@@ -242,14 +250,57 @@ func _update_roll_states(display_balls: Array) -> void:
 	_last_ball_positions = next_positions
 
 
-func _cue_guide(cue_position: Vector2, direction: Vector2) -> Dictionary:
-	var center_distance := _distance_to_first_contact(cue_position, direction)
-	var radius := EightBallLogic.BALL_RADIUS
-	return {
-		"start": cue_position + direction * radius,
-		"impact": cue_position + direction * (center_distance + radius),
-		"end": cue_position + direction * (center_distance + radius),
-	}
+func _cue_guide(cue_position: Vector2, direction: Vector2, power: float) -> Array:
+	#var radius := EightBallLogic.BALL_RADIUS
+	var v0 := lerpf(EightBallLogic.MIN_SHOT_SPEED, EightBallLogic.MAX_SHOT_SPEED, power)
+	var stopping_dist := EightBallLogic.STEP_DELTA / (1.0 - EightBallLogic.FRICTION) * (v0 - EightBallLogic.STOP_SPEED)
+
+	var segments: Array = []
+	var pos := cue_position
+	var dir := direction
+	var remaining := stopping_dist
+	var seg_from := cue_position
+
+	while remaining > 0.5 and segments.size() < 2:
+		var rail_dist := _distance_to_rail(pos, dir)
+		var contact_dist := rail_dist
+		var hit_ball := false
+		var hit_ball_pos := Vector2.ZERO
+
+		if segments.is_empty():
+			for ball in _display_balls:
+				if bool(ball.get("pocketed", false)) or int(ball.get("id", -1)) == 0:
+					continue
+				var d := _distance_to_ball(pos, dir, Vector2(ball.get("pos", Vector2.ZERO)))
+				if d >= 0.0 and d < contact_dist:
+					contact_dist = d
+					hit_ball_pos = Vector2(ball.get("pos", Vector2.ZERO))
+					hit_ball = true
+
+		if remaining <= contact_dist:
+			segments.append({"from": seg_from, "to": pos + dir * remaining, "contact": false})
+			break
+
+		var impact_center := pos + dir * contact_dist
+		segments.append({"from": seg_from, "to": impact_center, "contact": true})
+		remaining -= contact_dist
+		seg_from = impact_center
+
+		if hit_ball:
+			var contact_normal := (hit_ball_pos - impact_center).normalized()
+			var deflected := dir - dir.dot(contact_normal) * contact_normal
+			if deflected.length_squared() < 0.0001:
+				break
+			dir = deflected.normalized()
+		else:
+			var normal := _rail_impact_normal(pos, dir)
+			var dir_new := (dir - 2.0 * dir.dot(normal) * normal).normalized()
+			#print("[traj] wall bounce at (%.1f, %.1f)  in=(%.3f, %.3f)  normal=(%.3f, %.3f)  out=(%.3f, %.3f)" % [impact_center.x, impact_center.y, dir.x, dir.y, normal.x, normal.y, dir_new.x, dir_new.y])
+			dir = dir_new
+
+		pos = impact_center + dir * 1.0
+
+	return segments
 
 
 func _distance_to_first_contact(cue_position: Vector2, direction: Vector2) -> float:
@@ -280,6 +331,36 @@ func _distance_to_rail(cue_position: Vector2, direction: Vector2) -> float:
 	elif direction.y < -0.0001:
 		distance = minf(distance, (min_y - cue_position.y) / direction.y)
 	return maxf(distance, 0.0)
+
+
+func _rail_impact_normal(cue_position: Vector2, direction: Vector2) -> Vector2:
+	var min_x := EightBallLogic.PLAYFIELD_RECT.position.x + EightBallLogic.BALL_RADIUS
+	var max_x := EightBallLogic.PLAYFIELD_RECT.end.x - EightBallLogic.BALL_RADIUS
+	var min_y := EightBallLogic.PLAYFIELD_RECT.position.y + EightBallLogic.BALL_RADIUS
+	var max_y := EightBallLogic.PLAYFIELD_RECT.end.y - EightBallLogic.BALL_RADIUS
+	var best_dist := INF
+	var normal := Vector2.ZERO
+	if direction.x > 0.0001:
+		var d := (max_x - cue_position.x) / direction.x
+		if d < best_dist:
+			best_dist = d
+			normal = Vector2(-1.0, 0.0)
+	elif direction.x < -0.0001:
+		var d := (min_x - cue_position.x) / direction.x
+		if d < best_dist:
+			best_dist = d
+			normal = Vector2(1.0, 0.0)
+	if direction.y > 0.0001:
+		var d := (max_y - cue_position.y) / direction.y
+		if d < best_dist:
+			best_dist = d
+			normal = Vector2(0.0, -1.0)
+	elif direction.y < -0.0001:
+		var d := (min_y - cue_position.y) / direction.y
+		if d < best_dist:
+			best_dist = d
+			normal = Vector2(0.0, 1.0)
+	return normal
 
 
 func _distance_to_ball(cue_position: Vector2, direction: Vector2, target_position: Vector2) -> float:
