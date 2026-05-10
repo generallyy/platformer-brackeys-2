@@ -13,7 +13,7 @@ var facing_direction := 1
 
 
 func _ready() -> void:
-	_apply_line_style()
+	#_apply_line_style()
 	play(current_animation)
 
 
@@ -22,7 +22,7 @@ func play(animation_name: StringName) -> void:
 	if _animator == null or not _animator.has_animation(animation_name):
 		return
 	if _animator.current_animation != animation_name:
-		_reset_pose_defaults()
+		#_reset_pose_defaults()
 		_animator.play(animation_name)
 
 
@@ -30,7 +30,7 @@ func set_facing(direction: int) -> void:
 	if direction == 0:
 		return
 	facing_direction = 1 if direction > 0 else -1
-	scale.x = float(facing_direction)
+	scale.x = abs(scale.x) * float(facing_direction)
 
 
 func set_accent_color(color: Color) -> void:
