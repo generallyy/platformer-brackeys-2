@@ -932,55 +932,62 @@ polygon = PackedVector2Array(663.5733, 203.97768, 663.5733, 427.2656, 930.5209, 
 uv = PackedVector2Array(663.5733, 203.97768, 663.5733, 427.2656, 930.5209, 439.73975, 925.5311, 192.7509)
 
 [node name="Skeleton2D" type="Skeleton2D" parent="StickRig" unique_id=1360640985]
-visible = false
 rotation = 0.00041219837
 
-[node name="LeftLeg" type="Bone2D" parent="StickRig/Skeleton2D" unique_id=1546391934]
-position = Vector2(11.276954, -78.02152)
-rotation = 1.7697845
-scale = Vector2(5.8106375, 1.4058877)
-rest = Transform2D(-1.1486324, 5.6959767, -1.3781455, -0.2779124, 11.276954, -78.02152)
+[node name="LeftThigh" type="Bone2D" parent="StickRig/Skeleton2D" unique_id=1546391934]
+position = Vector2(27.630783, -160.06416)
+rest = Transform2D(1, 0, 0, 1, 27.630783, -160.06416)
 
-[node name="RightLeg" type="Bone2D" parent="StickRig/Skeleton2D" unique_id=1786033199]
-position = Vector2(56.991154, -78.10813)
-rotation = 1.3766507
-scale = Vector2(15.622692, 23.55868)
-rest = Transform2D(3.0140593, 15.329186, -23.11608, 4.545136, 56.991154, -78.10813)
+[node name="LeftShin" type="Bone2D" parent="StickRig/Skeleton2D/LeftThigh" unique_id=1368560353]
+position = Vector2(0.22148587, 95.999725)
+rotation = 1.5699733
+scale = Vector2(7.052981, 1.1897898)
+rest = Transform2D(0.005804442, 7.0529785, -1.1897894, 0.0009791699, 0.22148587, 95.999725)
+
+[node name="RightThigh" type="Bone2D" parent="StickRig/Skeleton2D" unique_id=2059949400]
+position = Vector2(27.630783, -160.06416)
+rest = Transform2D(1, 0, 0, 1, 27.630783, -160.06416)
+
+[node name="RightShin" type="Bone2D" parent="StickRig/Skeleton2D/RightThigh" unique_id=380167677]
+position = Vector2(0.22148587, 95.999725)
+rotation = 1.5699733
+scale = Vector2(7.052981, 1.1897897)
+rest = Transform2D(0.005804442, 7.0529785, -1.1897893, 0.0009791697, 0.22148587, 95.999725)
 
 [node name="Torso" type="Bone2D" parent="StickRig/Skeleton2D" unique_id=1468860272]
-position = Vector2(34.14489, -72.350555)
-rest = Transform2D(1, 0, 0, 1, 34.14489, -72.350555)
+position = Vector2(27.630783, -160.06416)
+rest = Transform2D(1, 0, 0, 1, 27.630783, -160.06416)
 
 [node name="Head" type="Bone2D" parent="StickRig/Skeleton2D/Torso" unique_id=1087815954]
-position = Vector2(233.7344, 19.732407)
-rotation = -0.007410765
-scale = Vector2(0.14246283, 1.6488996)
-rest = Transform2D(0.14245892, -0.0010557489, 0.012219495, 1.6488543, -0.22739601, -119.99979)
+position = Vector2(-0.47987992, -207.99945)
+rotation = -1.5658967
+scale = Vector2(5.0258646, 0.7936493)
+rest = Transform2D(0.024624512, -5.025804, 0.7936398, 0.0038885307, -0.47987992, -207.99945)
 
 [node name="RightArm" type="Bone2D" parent="StickRig/Skeleton2D/Torso" unique_id=1460386132]
-visible = false
-position = Vector2(22.683847, -91.47173)
+position = Vector2(-0.47988015, -207.99945)
+rotation = 0.31112796
 scale = Vector2(1.0000001, 1.0000001)
-rest = Transform2D(1.0000001, 0, 0, 1.0000001, 22.683847, -91.47173)
+rest = Transform2D(0.951989, 0.30613267, -0.30613267, 0.951989, -0.47988015, -207.99945)
 
 [node name="RightForearm" type="Bone2D" parent="StickRig/Skeleton2D/Torso/RightArm" unique_id=42319703]
-position = Vector2(34.372276, 45.649246)
-rotation = -2.8350036
-scale = Vector2(1.949254, 2.984277)
+position = Vector2(28.366192, 87.51776)
+rotation = -1.8980594
+scale = Vector2(7.3869596, 0.7889072)
 skew = 0.023405313
-rest = Transform2D(-1.8583574, -0.5883014, 0.96701825, -2.823258, 34.372276, 45.649246)
+rest = Transform2D(-2.3745568, -6.9949017, 0.75276685, -0.23604372, 28.366192, 87.51776)
 
 [node name="LeftArm" type="Bone2D" parent="StickRig/Skeleton2D/Torso" unique_id=284639682]
-position = Vector2(-40.184013, -97.066895)
-rotation = 2.9529219
-scale = Vector2(0.9999996, 0.9999996)
-rest = Transform2D(-0.98225397, 0.18755336, -0.18755336, -0.98225397, -40.184013, -97.066895)
+position = Vector2(-0.47988155, -207.99947)
+rotation = 2.6334453
+scale = Vector2(0.9999995, 0.9999995)
+rest = Transform2D(-0.87364703, 0.48655936, -0.48655936, -0.87364703, -0.47988155, -207.99947)
 
 [node name="LeftForearm" type="Bone2D" parent="StickRig/Skeleton2D/Torso/LeftArm" unique_id=1797633340]
-position = Vector2(53.408016, -36.430473)
-rotation = -1.9205611
-scale = Vector2(4.225871, -77.86382)
-rest = Transform2D(-1.4481081, -3.9700089, -73.14943, 26.682127, 53.408016, -36.430473)
+position = Vector2(44.57794, -80.47865)
+rotation = -1.0671433
+scale = Vector2(7.3740783, 0.5250298)
+rest = Transform2D(3.5589375, -6.4584045, 0.4598344, 0.25339416, 44.57794, -80.47865)
 
 [node name="EffectsAnchor" type="Node2D" parent="." unique_id=1762507634]
 
