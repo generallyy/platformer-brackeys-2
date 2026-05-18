@@ -67,6 +67,7 @@ func _sync_scores(new_scores: Dictionary) -> void:
 func stop_game() -> void:
 	_round_active = false
 	state = State.INACTIVE
+	sudden_death_peers = []
 	kda_kills.clear()
 	kda_deaths.clear()
 	kda_damage.clear()

@@ -416,8 +416,6 @@ func _load_level_local(path: String) -> bool:
 	_clear_all_player_powerups()
 	close_blackjack()
 	close_eight_ball()
-	if multiplayer.is_server():
-		_set_eight_ball_session(EightBallLogic.create_idle_session("Rack cleared for the new level."))
 	for p in spawned_players.values():
 		p.is_frozen = false
 		p.health = p.get_effective_max_health()

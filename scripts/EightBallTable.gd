@@ -189,7 +189,7 @@ func _draw_cue_preview(scale_factor: float) -> void:
 		draw_dashed_line(seg_from, seg_to, Color(1.0, 1.0, 1.0, _GUIDE_COLOR.a * pow(0.5, i)), 3.0 * scale_factor, 12.0 * scale_factor)
 
 	if segments.size() > 0 and bool(segments[0].get("contact", false)):
-		var impact_point := _to_screen(Vector2(segments[0]["to"]))
+		var impact_point := _to_screen(Vector2(segments[0].get("contact_point", segments[0]["to"])))
 		draw_circle(impact_point, 4.5 * scale_factor, _GUIDE_IMPACT_COLOR)
 		draw_arc(impact_point, 8.5 * scale_factor, 0.0, TAU, 20, Color(1.0, 1.0, 1.0, 0.30), 1.5 * scale_factor, true)
 
@@ -282,7 +282,11 @@ func _cue_guide(cue_position: Vector2, direction: Vector2, power: float) -> Arra
 			break
 
 		var impact_center := pos + dir * contact_dist
-		segments.append({"from": seg_from, "to": impact_center, "contact": true})
+		var seg: Dictionary = {"from": seg_from, "to": impact_center, "contact": true}
+		if hit_ball:
+			var cn := (hit_ball_pos - impact_center).normalized()
+			seg["contact_point"] = impact_center + cn * EightBallLogic.BALL_RADIUS
+		segments.append(seg)
 		remaining -= contact_dist
 		seg_from = impact_center
 
