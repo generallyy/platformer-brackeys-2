@@ -7,6 +7,7 @@
 [ext_resource type="Texture2D" uid="uid://da6r0ki7buguf" path="res://assets/sprites/white_circle.png" id="3_a8hje"]
 [ext_resource type="Texture2D" uid="uid://df03hxn6ikjf1" path="res://assets/sprites/darkboy.png" id="5_m6phi"]
 [ext_resource type="Texture2D" uid="uid://c44wdtvog1din" path="res://assets/sprites/sticky-man.webp" id="6_m6phi"]
+[ext_resource type="Script" uid="uid://b4sv4e2lh3sqr" path="res://scripts/stick_figure_rig.gd" id="6_oihyf"]
 [ext_resource type="Theme" uid="uid://2p378flu0i2e" path="res://assets/fonts/labrada.tres" id="6_rpfb3"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_ic5j4"]
@@ -830,6 +831,7 @@ rest = Transform2D(-1.4481081, -3.9700089, -73.14943, 26.682127, 53.408016, -36.
 z_index = 2
 position = Vector2(-7.003777, -1.9867315)
 scale = Vector2(0.25, 0.25)
+script = ExtResource("6_oihyf")
 
 [node name="StickyMan" type="Sprite2D" parent="StickRig" unique_id=1911147933]
 visible = false
@@ -950,8 +952,8 @@ rest = Transform2D(1, 0, 0, 1, 27.630783, -160.06416)
 
 [node name="RightShin" type="Bone2D" parent="StickRig/Skeleton2D/RightThigh" unique_id=380167677]
 position = Vector2(0.22148587, 95.999725)
-rotation = 1.5699733
-scale = Vector2(7.052981, 1.1897897)
+rotation = -0.00072659017
+scale = Vector2(8.455959, 7.0788274)
 rest = Transform2D(0.005804442, 7.0529785, -1.1897893, 0.0009791697, 0.22148587, 95.999725)
 
 [node name="Torso" type="Bone2D" parent="StickRig/Skeleton2D" unique_id=1468860272]
