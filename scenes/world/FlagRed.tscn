@@ -1,0 +1,37 @@
+[gd_scene format=3 uid="uid://wn3iw5dkr2af"]
+
+[ext_resource type="Script" uid="uid://cx5q2viin4p8c" path="res://scripts/FlagRed.gd" id="1_ohls2"]
+[ext_resource type="Theme" uid="uid://2p378flu0i2e" path="res://assets/fonts/labrada.tres" id="2_bjaru"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_7v0tc"]
+size = Vector2(24, 48)
+
+[node name="FlagRed" type="Area2D" unique_id=1971584435]
+script = ExtResource("1_ohls2")
+
+[node name="Pole" type="Polygon2D" parent="." unique_id=1215146494]
+color = Color(0.4, 0.35, 0.3, 1)
+polygon = PackedVector2Array(-2, 0, 2, 0, 2, -34, -2, -34)
+
+[node name="Flag" type="Polygon2D" parent="." unique_id=1564351866]
+position = Vector2(2, -32)
+color = Color(0.35, 0.6, 1, 1)
+polygon = PackedVector2Array(0, 0, 16, 4, 0, 10)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=317778162]
+position = Vector2(0, -20)
+shape = SubResource("RectangleShape2D_7v0tc")
+
+[node name="Label" type="Label" parent="." unique_id=216439437]
+texture_filter = 2
+offset_left = -48.0
+offset_top = -66.0
+offset_right = 48.0
+offset_bottom = -43.0
+theme = ExtResource("2_bjaru")
+theme_override_font_sizes/font_size = 20
+text = "GOAL"
+horizontal_alignment = 1
+metadata/_edit_use_anchors_ = true
+
+[connection signal="body_entered" from="." to="." method="_on_body_entered"]
