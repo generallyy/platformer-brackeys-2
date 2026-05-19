@@ -3,7 +3,7 @@ extends Node2D
 
 @export var line_color := Color(0.04, 0.04, 0.04, 1.0)
 @export var accent_color := Color(0.1, 0.48, 0.95, 1.0)
-@export var line_width := 2.0
+@export var line_width := 60
 
 var current_animation: StringName = &"idle"
 var facing_direction := 1

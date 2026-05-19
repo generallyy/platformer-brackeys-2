@@ -1088,13 +1088,12 @@ scale = Vector2(0.05, 0.05)
 script = ExtResource("6_oihyf")
 
 [node name="Scarf" type="Line2D" parent="StickRig" unique_id=1360584124]
-visible = false
-position = Vector2(-0.0037898554, -1.9999964)
+position = Vector2(-95.45841, -365.33252)
 rotation = 0.15
 scale = Vector2(1.0048628, 0.9974702)
 skew = -0.0062196255
-points = PackedVector2Array(-2, -20, -7, -19)
-width = 2.0
+points = PackedVector2Array(-2, -19.055, -175.95691, -49.122498)
+width = 60.0
 default_color = Color(0.1, 0.48, 0.95, 1)
 
 [node name="Polygons" type="Node2D" parent="StickRig" unique_id=1698235803]
