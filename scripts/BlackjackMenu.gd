@@ -55,7 +55,6 @@ func _ready() -> void:
 
 	hit_button.pressed.connect(_on_hit_pressed)
 	stand_button.pressed.connect(_on_stand_pressed)
-	deal_button.pressed.connect(_on_deal_pressed)
 	close_button.pressed.connect(func(): close_requested.emit())
 
 	_refresh_shortcuts()
@@ -71,23 +70,13 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode == KEY_I:
-			if _round_over:
-				_start_round()
-			else:
-				_on_hit_pressed()
+			_on_hit_pressed()
 			get_viewport().set_input_as_handled()
 			return
 		if event.keycode == KEY_O:
-			if not _round_over:
-				_on_stand_pressed()
+			_on_stand_pressed()
 			get_viewport().set_input_as_handled()
 			return
-	if event.is_action_pressed("ui_accept"):
-		if not _round_over:
-			_on_hit_pressed()
-		elif _round_over:
-			_on_deal_pressed()
-		get_viewport().set_input_as_handled()
 
 
 func open_menu() -> void:
@@ -106,6 +95,7 @@ func close_menu() -> void:
 
 func _on_hit_pressed() -> void:
 	if _round_over:
+		_start_round()
 		return
 	_player_hand.append(_draw_card())
 	if _hand_value(_player_hand) > 21:
@@ -120,10 +110,6 @@ func _on_stand_pressed() -> void:
 	if _round_over:
 		return
 	_dealer_turn()
-
-
-func _on_deal_pressed() -> void:
-	_start_round()
 
 
 func _start_round() -> void:

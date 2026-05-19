@@ -8,6 +8,8 @@ var _announcement_timer := 0.0
 var _time_label: Label
 var _game_mode: Node = null
 var _objective_label: Label
+@onready var _powerups_label: Label = $PowerupsLabel
+@onready var _nudge_label: Label = $Nudge
 
 func _ready() -> void:
 	#$Hearts/Label.text = "♥♥♥"
@@ -51,9 +53,6 @@ func _process(delta: float) -> void:
 func set_game_mode(gm: Node) -> void:
 	_game_mode = gm
 
-
-@onready var _powerups_label: Label = $PowerupsLabel
-@onready var _nudge_label:    Label = $Nudge
 
 func set_nudge(text: String) -> void:
 	_nudge_label.text    = text
@@ -155,6 +154,5 @@ func update_kda(kda_kills: Dictionary, kda_deaths: Dictionary, player_numbers: D
 
 func show_announcement(text: String, duration: float = ANNOUNCEMENT_DURATION) -> void:
 	_announcement_label.text = text
-	#_announcement_label.visible = true
 	$Announcement/PanelContainer.visible = true
 	_announcement_timer = duration

@@ -13,17 +13,27 @@ const ACTIONS := {
 	"use_active": "Use Active Powerup",
 	"blackjack": "Blackjack",
 	"eight_ball": "8-Ball",
+	"ui_accept": "Confirm",
+	"ui_cancel": "Back / Cancel",
 }
+
+const PAGES := [
+	{ "title": "Keybinds - Combat", "actions": ["move_left", "move_right", "jump", "f", "projectile", "melee", "shield", "interact", "use_active"] },
+	{ "title": "Keybinds - Misc",   "actions": ["blackjack", "eight_ball", "ui_accept", "ui_cancel"] },
+]
 
 const SLOTS := 3
 
 var _keybinds_panel: Control
 var _action_buttons := {}  # action -> Array of Button, size SLOTS
+var _action_rows    := {}  # action -> HBoxContainer
 var _bindings       := {}  # action -> Array of InputEvent or null, size SLOTS
 var _rebinding_action := ""
 var _rebinding_slot   := -1
 var _rebinding_button: Button = null
 var _allow_left_click := false
+var _current_page := 0
+var _title_label: Label
 
 @export var row_template: PackedScene
 @export var keybind_button: PackedScene
@@ -82,7 +92,8 @@ func _build_keybinds_panel() -> void:
 	_keybinds_panel = $KeybindsMenu
 	_keybinds_panel.visible = false
 
-	var vbox := _keybinds_panel.get_node("PanelContainer/VBoxContainer")
+	var vbox := _keybinds_panel.get_node("PanelContainer/HBoxContainer/VBoxContainer")
+	_title_label = vbox.get_node("Title")
 
 	# Column headers
 	var header := HBoxContainer.new()
@@ -91,21 +102,20 @@ func _build_keybinds_panel() -> void:
 	var header_spacer := Label.new()
 	header_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(header_spacer)
-	
+
 	var kb_header := keybind_header.instantiate()
 	kb_header.text = "Keyboard"
 	kb_header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	kb_header.custom_minimum_size = Vector2(408, 0)  # two 110px buttons + 8px gap
-	#kb_header.add_theme_font_size_override("font_size", 30)
+	kb_header.custom_minimum_size = Vector2(408, 0)
 	header.add_child(kb_header)
-	
+
 	var ctrl_header := keybind_header.instantiate()
 	ctrl_header.text = "Controller"
 	ctrl_header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	ctrl_header.custom_minimum_size = Vector2(200, 0)
-	#ctrl_header.add_theme_font_size_override("font_size", 30)
 	header.add_child(ctrl_header)
 
+	# Build all action rows (all pages), show/hide via _show_page
 	for action in ACTIONS:
 		var hbox := HBoxContainer.new()
 		hbox.add_theme_constant_override("separation", 8)
@@ -120,11 +130,11 @@ func _build_keybinds_panel() -> void:
 		var btns := []
 		for slot in SLOTS:
 			var btn := keybind_button.instantiate()
-			#btn.custom_minimum_size = Vector2(110, 0)
 			btn.pressed.connect(_start_rebind.bind(action, slot, btn))
 			hbox.add_child(btn)
 			btns.append(btn)
 		_action_buttons[action] = btns
+		_action_rows[action] = hbox
 
 	var lmb_row := HBoxContainer.new()
 	lmb_row.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
@@ -158,6 +168,16 @@ func _build_keybinds_panel() -> void:
 	vbox.add_child(back)
 
 	_refresh_all_buttons()
+	_show_page(0)
+
+func _show_page(page: int) -> void:
+	_current_page = page
+	var page_actions: Array = PAGES[page]["actions"]
+	for action in ACTIONS:
+		if action in _action_rows:
+			_action_rows[action].visible = action in page_actions
+	if _title_label:
+		_title_label.text = PAGES[page]["title"]
 
 func _refresh_all_buttons() -> void:
 	for action in _action_buttons:
@@ -176,6 +196,8 @@ func _event_display_name(event: InputEvent) -> String:
 	if event is InputEventJoypadMotion:
 		return _joy_axis_name(event.axis, event.axis_value)
 	return "???"
+
+
 
 func _mouse_button_name(index: int) -> String:
 	match index:
@@ -256,6 +278,15 @@ func _input(event: InputEvent) -> void:
 				resume_game()
 		else:
 			pause_game()
+		get_viewport().set_input_as_handled()
+		return
+
+	# ui_cancel closes keybinds or resumes when pause menu is open
+	if event.is_action_pressed("ui_cancel") and visible and _rebinding_action == "":
+		if _keybinds_panel != null and _keybinds_panel.visible:
+			_close_keybinds()
+		else:
+			resume_game()
 		get_viewport().set_input_as_handled()
 		return
 
@@ -435,6 +466,7 @@ func _on_title_pressed():
 func _on_keybinds_pressed():
 	$PauseMenu.visible = false
 	_keybinds_panel.visible = true
+	_show_page(0)
 
 func _on_quit_pressed():
 	get_tree().quit()
@@ -444,3 +476,9 @@ func _on_h_slider_value_changed(value):
 		AudioServer.set_bus_volume_db(0, -90)
 	else:
 		AudioServer.set_bus_volume_db(0, value)
+		
+func _on_arrow_left_pressed() -> void:
+	_show_page((_current_page - 1 + PAGES.size()) % PAGES.size())
+
+func _on_arrow_right_pressed() -> void:
+	_show_page((_current_page + 1) % PAGES.size())

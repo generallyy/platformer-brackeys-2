@@ -10,6 +10,7 @@
 [ext_resource type="PackedScene" uid="uid://c5atg8aw0o11q" path="res://scenes/ui/KeybindButton.tscn" id="8_85g3d"]
 [ext_resource type="Script" uid="uid://dvcw37gjvs81r" path="res://scripts/HUD.gd" id="8_hudsc"]
 [ext_resource type="Script" uid="uid://b8u5llodnp4b0" path="res://scripts/game_mode.gd" id="9_gamemd"]
+[ext_resource type="Texture2D" uid="uid://nkwt7n8a488r" path="res://assets/sprites/grayarrow2.png" id="10_a8y0u"]
 [ext_resource type="Script" uid="uid://d0ngr678ycifw" path="res://scripts/PowerupsMenu.gd" id="10_powerups"]
 [ext_resource type="Script" uid="uid://dq4864pt5njsq" path="res://scripts/TouchControls.gd" id="11_touch"]
 [ext_resource type="Script" uid="uid://cieo6hi3jjdye" path="res://scripts/bridge_wars_mode.gd" id="12_bwmode"]
@@ -285,7 +286,6 @@ horizontal_alignment = 1
 [node name="PauseMenu" type="CanvasLayer" parent="." unique_id=1678797512]
 process_mode = 3
 layer = 2
-visible = false
 script = ExtResource("3_7frdm")
 row_template = ExtResource("7_tipki")
 keybind_button = ExtResource("8_85g3d")
@@ -352,7 +352,6 @@ max_value = 0.0
 value = -40.0
 
 [node name="KeybindsMenu" type="CenterContainer" parent="PauseMenu" unique_id=1038993971]
-visible = false
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -364,14 +363,30 @@ theme = ExtResource("5_tipki")
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_85g3d")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="PauseMenu/KeybindsMenu/PanelContainer" unique_id=493555564]
+[node name="HBoxContainer" type="HBoxContainer" parent="PauseMenu/KeybindsMenu/PanelContainer" unique_id=494879587]
+layout_mode = 2
+theme_override_constants/separation = 30
+
+[node name="ArrowLeft" type="TextureButton" parent="PauseMenu/KeybindsMenu/PanelContainer/HBoxContainer" unique_id=458040570]
+layout_mode = 2
+size_flags_vertical = 4
+texture_normal = ExtResource("10_a8y0u")
+stretch_mode = 6
+flip_h = true
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PauseMenu/KeybindsMenu/PanelContainer/HBoxContainer" unique_id=493555564]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="Title" type="Label" parent="PauseMenu/KeybindsMenu/PanelContainer/VBoxContainer" unique_id=855624226]
+[node name="Title" type="Label" parent="PauseMenu/KeybindsMenu/PanelContainer/HBoxContainer/VBoxContainer" unique_id=855624226]
 layout_mode = 2
 text = "KEYBINDS"
 horizontal_alignment = 1
+
+[node name="ArrowRight" type="TextureButton" parent="PauseMenu/KeybindsMenu/PanelContainer/HBoxContainer" unique_id=304703387]
+layout_mode = 2
+size_flags_vertical = 4
+texture_normal = ExtResource("10_a8y0u")
 
 [node name="WardrobeMenu" parent="." unique_id=2125863574 instance=ExtResource("2_wardrobe")]
 
@@ -503,3 +518,5 @@ text = "..."
 [connection signal="pressed" from="PauseMenu/PauseMenu/PanelContainer/VBoxContainer/Keybinds" to="PauseMenu" method="_on_keybinds_pressed"]
 [connection signal="pressed" from="PauseMenu/PauseMenu/PanelContainer/VBoxContainer/Quit" to="PauseMenu" method="_on_quit_pressed"]
 [connection signal="value_changed" from="PauseMenu/PauseMenu/PanelContainer/VBoxContainer/HBoxContainer/HSlider" to="PauseMenu" method="_on_h_slider_value_changed"]
+[connection signal="pressed" from="PauseMenu/KeybindsMenu/PanelContainer/HBoxContainer/ArrowLeft" to="PauseMenu" method="_on_arrow_left_pressed"]
+[connection signal="pressed" from="PauseMenu/KeybindsMenu/PanelContainer/HBoxContainer/ArrowRight" to="PauseMenu" method="_on_arrow_right_pressed"]
