@@ -250,7 +250,10 @@ func _input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 			return
 		if visible:
-			resume_game()
+			if _keybinds_panel != null and _keybinds_panel.visible:
+				_close_keybinds()
+			else:
+				resume_game()
 		else:
 			pause_game()
 		get_viewport().set_input_as_handled()

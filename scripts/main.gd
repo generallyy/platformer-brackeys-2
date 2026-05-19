@@ -424,6 +424,7 @@ func load_level(path: String) -> void:
 func _load_level_local(path: String) -> bool:
 	gm_rush.stop_game()
 	gm_bridge.stop_game()
+	hud.set_objective("")
 	get_tree().call_group(&"projectile", &"queue_free")
 	_clear_all_player_powerups()
 	close_blackjack()
@@ -486,11 +487,13 @@ func _load_level_local(path: String) -> bool:
 			hud.set_game_mode(gm_bridge)
 			if multiplayer.is_server():
 				gm_bridge.start_game(settings.round_time_limit, settings.points_to_win)
+			hud.set_objective("FT%d" % settings.points_to_win)
 		else:
 			_active_mode = gm_rush
 			hud.set_game_mode(gm_rush)
 			if multiplayer.is_server():
 				gm_rush.start_game(settings.round_time_limit, settings.points_to_win)
+			hud.set_objective("FT%d" % settings.points_to_win)
 		hud.get_node("Scores").visible = true
 	else:
 		_active_mode = gm_rush
@@ -818,19 +821,27 @@ func _on_round_started(round_number: int) -> void:
 		cp.reset_for_round()
 	_grant_round_powerup_state()
 	var msg: String
+	var duration := float(hud.ANNOUNCEMENT_DURATION)
 	if _active_mode == gm_rush and gm_rush.sudden_death_peers.size() > 0:
 		msg = "SUDDEN DEATH!"
+	elif round_number == 1 and _active_mode == gm_bridge:
+		msg = "First to %d — GO!" % gm_bridge.points_to_win
+		# matches gamemode round start delay
+		duration = 1.0
+	elif round_number == 1 and _active_mode == gm_rush:
+		msg = "First to %d — GO!" % gm_rush.points_to_win
+		duration = 1.0
 	elif round_number == 1:
 		msg = "GO!"
 	else:
 		msg = "Round %d — GO!" % round_number
-	hud.show_announcement(msg)
+	hud.show_announcement(msg, duration)
 	if _active_mode == gm_bridge:
 		hud.update_team_scores(gm_bridge.team_scores)
 	else:
 		hud.update_scores(gm_rush.scores, _player_numbers, gm_rush.stocks, player_names)
 	hud.update_kda(_active_mode.kda_kills, _active_mode.kda_deaths, _active_player_numbers(), player_names, _active_mode.kda_damage, _local_peer_id(), team_colors, _active_mode.kda_damage_taken)
-	_freeze_for_all_players(hud.ANNOUNCEMENT_DURATION)
+	_freeze_for_all_players(duration)
 
 func _on_round_ended(finishers: Array, scores: Dictionary) -> void:
 	close_blackjack()
@@ -852,6 +863,7 @@ func _on_rush_game_over(winner_peer_id: int, scores: Dictionary) -> void:
 	close_blackjack()
 	close_eight_ball()
 	hud.update_scores(scores, _player_numbers, {}, player_names)
+	hud.set_objective("")
 	hud.show_announcement("%s wins!" % get_player_display_name(winner_peer_id), 3.0)
 	respawn_all_at_spawn()
 
@@ -1159,6 +1171,7 @@ func _on_bw_game_over(winner_team_id: int) -> void:
 	close_blackjack()
 	close_eight_ball()
 	hud.update_team_scores(gm_bridge.team_scores)
+	hud.set_objective("")
 	var team_name := get_team_name(winner_team_id) if winner_team_id != -1 else "Nobody"
 	hud.show_announcement("%s wins!" % team_name, 3.0)
 	respawn_all_at_spawn()

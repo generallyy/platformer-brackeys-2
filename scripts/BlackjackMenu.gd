@@ -69,8 +69,21 @@ func _unhandled_input(event: InputEvent) -> void:
 		close_requested.emit()
 		get_viewport().set_input_as_handled()
 		return
+	if event is InputEventKey and event.pressed and not event.echo:
+		if event.keycode == KEY_I:
+			if _round_over:
+				_start_round()
+			else:
+				_on_hit_pressed()
+			get_viewport().set_input_as_handled()
+			return
+		if event.keycode == KEY_O:
+			if not _round_over:
+				_on_stand_pressed()
+			get_viewport().set_input_as_handled()
+			return
 	if event.is_action_pressed("ui_accept"):
-		if not _round_over and not hit_button.disabled:
+		if not _round_over:
 			_on_hit_pressed()
 		elif _round_over:
 			_on_deal_pressed()
@@ -208,11 +221,13 @@ func _refresh_ui() -> void:
 	if _player_hand.is_empty():
 		status_label.text = "Deal a hand to begin."
 	elif not _round_over:
-		status_label.text = "Hit or stand."
+		status_label.text = "Hit [I] or Stand [O]."
 
-	hit_button.disabled = _round_over
+	hit_button.text = "New Hand [I]" if _round_over else "Hit [I]"
+	hit_button.disabled = false
+	stand_button.text = "Stand [O]"
 	stand_button.disabled = _round_over
-	deal_button.text = "New Hand" if _round_over else "Restart Hand"
+	deal_button.visible = false
 	_focus_primary_button()
 
 

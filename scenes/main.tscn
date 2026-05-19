@@ -270,6 +270,18 @@ theme = ExtResource("5_tipki")
 theme_override_styles/normal = SubResource("StyleBoxFlat_trceg")
 text = "hi everyone"
 
+[node name="ObjectiveLabel" type="Label" parent="HUD" unique_id=1313085968]
+visible = false
+offset_left = -3.0
+offset_top = 26.0
+offset_right = 1917.0
+offset_bottom = 49.0
+theme = ExtResource("5_tipki")
+theme_override_colors/font_color = Color(1, 1, 1, 0.65)
+theme_override_font_sizes/font_size = 25
+text = "FTurMom"
+horizontal_alignment = 1
+
 [node name="PauseMenu" type="CanvasLayer" parent="." unique_id=1678797512]
 process_mode = 3
 layer = 2

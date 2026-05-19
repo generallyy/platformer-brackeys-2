@@ -41,6 +41,7 @@ target_level_path = "uid://dedncck66f1ak"
 
 [node name="LevelSettings" parent="." unique_id=853737155 instance=ExtResource("5_xov7y")]
 game_mode_type = "bridge_wars"
+round_time_limit = 180.0
 points_to_win = 50
 
 [node name="StaticBody2D" type="StaticBody2D" parent="." unique_id=1645632305]

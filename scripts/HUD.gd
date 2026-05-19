@@ -7,6 +7,7 @@ var _announcement_label: Label
 var _announcement_timer := 0.0
 var _time_label: Label
 var _game_mode: Node = null
+var _objective_label: Label
 
 func _ready() -> void:
 	#$Hearts/Label.text = "♥♥♥"
@@ -17,6 +18,12 @@ func _ready() -> void:
 	$Time.visible = false
 	$KDA.visible = false
 	_powerups_label.visible = false
+	_objective_label = $ObjectiveLabel
+
+
+func set_objective(text: String) -> void:
+	_objective_label.text = text
+	_objective_label.visible = not text.is_empty()
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_focus_next") or event.is_action_released("ui_focus_next"):  # Tab
