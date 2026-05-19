@@ -24,6 +24,12 @@ position = Vector2(415.98074, -42.41945)
 point_in = Vector2(-155.19998, 84.80002)
 point_out = Vector2(155.19998, -84.80002)
 
+[sub_resource type="Resource" id="Resource_cl7ol"]
+script = ExtResource("4_3v8ae")
+position = Vector2(676.9692, 60.264496)
+point_in = Vector2(212.04727, -50.521507)
+point_out = Vector2(-212.04727, 50.521507)
+
 [sub_resource type="Resource" id="Resource_fw0cc"]
 script = ExtResource("4_3v8ae")
 position = Vector2(176.96387, 71.95732)
@@ -39,12 +45,6 @@ point_out = Vector2(13.494003, -18.891617)
 [sub_resource type="Resource" id="Resource_f2yet"]
 script = ExtResource("4_3v8ae")
 position = Vector2(607.0292, -286.71472)
-
-[sub_resource type="Resource" id="Resource_cl7ol"]
-script = ExtResource("4_3v8ae")
-position = Vector2(676.9692, 60.264496)
-point_in = Vector2(212.04727, -50.521507)
-point_out = Vector2(-212.04727, 50.521507)
 
 [sub_resource type="Resource" id="Resource_1geq5"]
 script = ExtResource("5_hj5s3")
@@ -184,15 +184,15 @@ z_index = -10
 
 [node name="TestLevel1" type="Node2D" unique_id=541766278]
 
-[node name="PlayerSpawn" type="Marker2D" parent="." unique_id=1029514938]
-position = Vector2(0, -40)
+[node name="Killzone" parent="." unique_id=1994689299 instance=ExtResource("1_lldn3")]
+position = Vector2(1, 82)
 
-[node name="Killzone" parent="PlayerSpawn" unique_id=1994689299 instance=ExtResource("1_lldn3")]
-position = Vector2(1, 122)
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PlayerSpawn/Killzone" unique_id=1630515843]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Killzone" unique_id=1630515843]
 position = Vector2(-1, -44)
 shape = SubResource("WorldBoundaryShape2D_ohmb0")
+
+[node name="PlayerSpawn" type="Marker2D" parent="." unique_id=1029514938]
+position = Vector2(0, -40)
 
 [node name="Door" parent="." unique_id=45088523 instance=ExtResource("2_3wo6w")]
 position = Vector2(-34, 0)

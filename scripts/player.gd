@@ -358,19 +358,26 @@ func _enter_state(state: PlayerState, prev: PlayerState = PlayerState.GROUNDED) 
 			velocity = Vector2.ZERO
 		PlayerState.MELEE_ATTACK:
 			_play_visual_animation(&"melee")
-			animated_sprite.play(&"melee")
-			animation_player.play("melee")
-			animation_player.seek(0, true)
+			if animated_sprite.sprite_frames != null and animated_sprite.sprite_frames.has_animation(&"melee"):
+				animated_sprite.play(&"melee")
+
+			if animation_player.has_animation("zap"):
+				animation_player.play("melee")
+				animation_player.seek(0, true)
 		PlayerState.ZAP_ATTACK:
 			_play_visual_animation(&"zap")
-			animated_sprite.play(&"zap")
-			animation_player.play("zap")
-			animation_player.seek(0, true)
+			if animated_sprite.sprite_frames != null and animated_sprite.sprite_frames.has_animation(&"zap"):
+				animated_sprite.play(&"zap")
+			if animation_player.has_animation("zap"):
+				animation_player.play("zap")
+				animation_player.seek(0, true)
 		PlayerState.PROJECTILE_ATTACK:
 			_play_visual_animation(&"projectile")
-			animated_sprite.play(&"projectile")
-			animation_player.play("projectile")
-			animation_player.seek(0, true)
+			if animated_sprite.sprite_frames != null and animated_sprite.sprite_frames.has_animation(&"projectile"):
+				animated_sprite.play(&"projectile")
+			if animation_player.has_animation("projectile"):
+				animation_player.play("projectile")
+				animation_player.seek(0, true)
 
 func _exit_state(_exiting_state: PlayerState) -> void:
 	pass
@@ -1056,15 +1063,15 @@ func _do_melee() -> void:
 	var shield_spike_dmg: int = passive_powerups.get(PowerupIds.SHIELD_SPIKE, 0)
 	var parry_stun        := PowerupIds.PARRY_STUN in passive_powerups
 	var can_hit_ghosts    := PowerupIds.GHOST_HUNTER in passive_powerups
-	_rpc_throw_melee.rpc(facing_direction, multiplayer.get_unique_id(), _effective_damage(), _effective_knockback_scale(), big_melee_stacks, slow_on_hit, shield_spike_dmg, parry_stun, can_hit_ghosts)
+	_rpc_throw_melee.rpc(facing_direction, multiplayer.get_unique_id(), _effective_damage(), _effective_knockback_scale(), big_melee_stacks, slow_on_hit, shield_spike_dmg, parry_stun, can_hit_ghosts, _visual_tilt)
 
 
 @rpc("authority", "call_local", "reliable")
-func _rpc_throw_melee(dir: int, thrower_id: int, dmg: int = 1, kbs: float = 1.0, big_melee_stacks: int = 0, slow_on_hit: bool = false, shield_spike_dmg: int = 0, parry_stun: bool = false, can_hit_ghosts: bool = false) -> void:
-	_do_spawn_melee(dir, thrower_id, dmg, kbs, big_melee_stacks, slow_on_hit, shield_spike_dmg, parry_stun, can_hit_ghosts)
+func _rpc_throw_melee(dir: int, thrower_id: int, dmg: int = 1, kbs: float = 1.0, big_melee_stacks: int = 0, slow_on_hit: bool = false, shield_spike_dmg: int = 0, parry_stun: bool = false, can_hit_ghosts: bool = false, floor_tilt: float = 0.0) -> void:
+	_do_spawn_melee(dir, thrower_id, dmg, kbs, big_melee_stacks, slow_on_hit, shield_spike_dmg, parry_stun, can_hit_ghosts, floor_tilt)
 
 
-func _do_spawn_melee(dir: int, thrower_id: int, dmg: int = 1, kbs: float = 1.0, big_melee_stacks: int = 0, slow_on_hit: bool = false, shield_spike_dmg: int = 0, parry_stun: bool = false, can_hit_ghosts: bool = false) -> void:
+func _do_spawn_melee(dir: int, thrower_id: int, dmg: int = 1, kbs: float = 1.0, big_melee_stacks: int = 0, slow_on_hit: bool = false, shield_spike_dmg: int = 0, parry_stun: bool = false, can_hit_ghosts: bool = false, floor_tilt: float = 0.0) -> void:
 	var melee := MELEE_SCENE.instantiate()
 	melee.direction        = dir
 	melee.thrower_peer_id  = thrower_id
@@ -1079,6 +1086,7 @@ func _do_spawn_melee(dir: int, thrower_id: int, dmg: int = 1, kbs: float = 1.0, 
 		melee.scale = Vector2(dir * scale_factor, scale_factor)
 	else:
 		melee.scale.x = dir
+	melee.rotation = floor_tilt
 	melee.hit_landed.connect(_on_melee_hit_landed)
 	add_child(melee)
 	melee.position = stats.weapon_spawn_offset * Vector2(dir, 1)
@@ -1592,7 +1600,7 @@ func _sync_state(pos: Vector2, flip: bool, anim: String, body_visible: bool, vis
 	global_position         = pos
 	visible                 = body_visible
 	animated_sprite.flip_h  = flip
-	if animated_sprite.animation != anim:
+	if animated_sprite.animation != anim and animated_sprite.sprite_frames != null and animated_sprite.sprite_frames.has_animation(anim):
 		animated_sprite.play(anim)
 	if USE_STICK_RIG and stick_rig != null:
 		stick_rig.set_facing(-1 if flip else 1)

@@ -12,6 +12,7 @@
 [ext_resource type="Script" uid="uid://b8u5llodnp4b0" path="res://scripts/game_mode.gd" id="9_gamemd"]
 [ext_resource type="Script" uid="uid://d0ngr678ycifw" path="res://scripts/PowerupsMenu.gd" id="10_powerups"]
 [ext_resource type="Script" uid="uid://dq4864pt5njsq" path="res://scripts/TouchControls.gd" id="11_touch"]
+[ext_resource type="Script" uid="uid://cieo6hi3jjdye" path="res://scripts/bridge_wars_mode.gd" id="12_bwmode"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tefeu"]
 bg_color = Color(0.99025565, 0.34329996, 0.36159417, 0.7411765)
@@ -96,8 +97,11 @@ expand_margin_bottom = 20.0
 texture_filter = 1
 script = ExtResource("1_exn86")
 
-[node name="GameMode" type="Node" parent="." unique_id=1000000099]
+[node name="GmRush" type="Node" parent="." unique_id=1000000099]
 script = ExtResource("9_gamemd")
+
+[node name="GmBridge" type="Node" parent="." unique_id=1000000100]
+script = ExtResource("12_bwmode")
 
 [node name="LevelContainer" type="Node2D" parent="." unique_id=2078966969]
 z_index = -115

@@ -264,6 +264,10 @@ func notify_player_picked() -> void:
 		_n_picked = 0
 		_intermission_done.emit()
 
+func skip_powerups() -> void:
+	if state == State.INTERMISSION:
+		_intermission_done.emit()
+
 func _do_intermission(winner_peer_id: int, finishers: Array, tied_peers: Array = []) -> void:
 	if winner_peer_id != -1:
 		_broadcast(State.GAME_OVER, scores, round_number, winner_peer_id)

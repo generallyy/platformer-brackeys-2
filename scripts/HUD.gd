@@ -30,7 +30,14 @@ func _process(delta: float) -> void:
 
 	if _game_mode and _game_mode._round_active:
 		$Time.visible = true
-		_time_label.text = "%.2f" % _game_mode._time_remaining
+		var t: float = _game_mode._time_remaining
+		if t > 60.0:
+			var mins: int = int(t / 60)
+			var secs := int(t) % 60
+			var frac := int((t - floor(t)) * 100)
+			_time_label.text = "%d:%02d.%02d" % [mins, secs, frac]
+		else:
+			_time_label.text = "%.2f" % t
 	else:
 		$Time.visible = false
 
@@ -63,6 +70,18 @@ func update_powerups(passive: Dictionary, active: String) -> void:
 
 func _powerup_display_name(id: String) -> String:
 	return PowerupIds.get_display_name(id)
+
+func update_team_scores(team_scores: Dictionary) -> void:
+	for child in _score_row.get_children():
+		child.queue_free()
+	var names := {1: "Red", 2: "Blue"}
+	var colors := {1: Color(1.0, 0.3, 0.3), 2: Color(0.35, 0.6, 1.0)}
+	for tid in [1, 2]:
+		var lbl := Label.new()
+		lbl.add_theme_font_size_override("font_size", 30)
+		lbl.add_theme_color_override("font_color", colors[tid])
+		lbl.text = "  %s: %d" % [names[tid], team_scores.get(tid, 0)]
+		_score_row.add_child(lbl)
 
 func update_scores(scores: Dictionary, player_numbers: Dictionary = {}, stocks: Dictionary = {}, player_names: Dictionary = {}) -> void:
 	for child in _score_row.get_children():

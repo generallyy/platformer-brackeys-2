@@ -1,0 +1,54 @@
+[gd_scene format=3 uid="uid://mlbacrwj4boy"]
+
+[ext_resource type="PackedScene" uid="uid://bkev11l1s8t2u" path="res://scenes/world/hazards/killzone.tscn" id="1_o8exn"]
+[ext_resource type="PackedScene" uid="uid://r58dyaaue84q" path="res://scenes/world/Door.tscn" id="2_mqdk8"]
+[ext_resource type="PackedScene" uid="uid://cvdqyy6776cv5" path="res://scenes/world/FlagBlue.tscn" id="3_bcvry"]
+[ext_resource type="PackedScene" uid="uid://wn3iw5dkr2af" path="res://scenes/world/FlagRed.tscn" id="4_xov7y"]
+[ext_resource type="PackedScene" uid="uid://dl2oximo51wsm" path="res://scenes/ui/LevelSettings.tscn" id="5_xov7y"]
+
+[sub_resource type="WorldBoundaryShape2D" id="WorldBoundaryShape2D_bcvry"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_o8exn"]
+size = Vector2(485, 54)
+
+[node name="Bridge1" type="Node2D" unique_id=312185456]
+
+[node name="Killzone" parent="." unique_id=967822696 instance=ExtResource("1_o8exn")]
+position = Vector2(1, 82)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Killzone" unique_id=1109680709]
+position = Vector2(-1, -44)
+shape = SubResource("WorldBoundaryShape2D_bcvry")
+
+[node name="PlayerSpawn" type="Marker2D" parent="." unique_id=1460666176]
+position = Vector2(-2, -60)
+
+[node name="PlayerSpawnRed" type="Marker2D" parent="." unique_id=1797649570]
+position = Vector2(-228, -41)
+
+[node name="PlayerSpawnBlue" type="Marker2D" parent="." unique_id=959648063]
+position = Vector2(227, -27)
+
+[node name="FlagBlue" parent="." unique_id=1190096014 instance=ExtResource("3_bcvry")]
+position = Vector2(208, 9)
+
+[node name="FlagRed" parent="." unique_id=1971584435 instance=ExtResource("4_xov7y")]
+position = Vector2(-233, 8)
+
+[node name="Door" parent="." unique_id=45088523 instance=ExtResource("2_mqdk8")]
+position = Vector2(-30, 14)
+target_level_path = "uid://dedncck66f1ak"
+
+[node name="LevelSettings" parent="." unique_id=853737155 instance=ExtResource("5_xov7y")]
+game_mode_type = "bridge_wars"
+points_to_win = 50
+
+[node name="StaticBody2D" type="StaticBody2D" parent="." unique_id=1645632305]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D" unique_id=1611712245]
+position = Vector2(0, 43)
+shape = SubResource("RectangleShape2D_o8exn")
+
+[node name="Polygon2D" type="Polygon2D" parent="StaticBody2D" unique_id=361168306]
+color = Color(0, 0.19703192, 0.23475426, 1)
+polygon = PackedVector2Array(-248, 17, 247, 16, 246, 75, -233, 75)

@@ -15,7 +15,7 @@ polygon = PackedVector2Array(-2, 0, 2, 0, 2, -34, -2, -34)
 
 [node name="Flag" type="Polygon2D" parent="." unique_id=1564351866]
 position = Vector2(2, -32)
-color = Color(0.35, 0.6, 1, 1)
+color = Color(1.0, 0.3, 0.3, 1)
 polygon = PackedVector2Array(0, 0, 16, 4, 0, 10)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=317778162]
@@ -30,7 +30,7 @@ offset_right = 48.0
 offset_bottom = -43.0
 theme = ExtResource("2_bjaru")
 theme_override_font_sizes/font_size = 20
-text = "GOAL"
+text = "RED BASE"
 horizontal_alignment = 1
 metadata/_edit_use_anchors_ = true
 

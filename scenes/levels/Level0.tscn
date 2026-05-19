@@ -692,4 +692,12 @@ shape = SubResource("RectangleShape2D_h27y2")
 position = Vector2(150, 0)
 target_level_path = "uid://b4lj52yjnuj4t"
 
+[node name="Door3" parent="." unique_id=357444530 instance=ExtResource("16_l5fl4")]
+position = Vector2(92, -17)
+target_level_path = "uid://mlbacrwj4boy"
+
+[node name="Door4" parent="." unique_id=1170842960 instance=ExtResource("16_l5fl4")]
+position = Vector2(71, -2)
+target_level_path = "uid://bskquujpfx0r3"
+
 [connection signal="body_entered" from="LevelTransition" to="LevelTransition" method="_on_body_entered"]

@@ -16,7 +16,7 @@ func _process(_delta: float) -> void:
 		return
 	var peer_id := local_player.get_multiplayer_authority()
 	var n: int = main.spawned_players.size()
-	var k: int = main.game_mode.round_kills.get(peer_id, 0)
+	var k: int = main.gm_rush.round_kills.get(peer_id, 0)
 	var qualified := k >= n - 1 or _is_last_active(peer_id, main)
 	modulate = Color.WHITE if qualified else Color(0.4, 0.4, 0.4, 0.5)
 
@@ -27,7 +27,7 @@ func _find_local_player() -> Node:
 	return null
 
 func _is_last_active(peer_id: int, main: Node) -> bool:
-	var gm: Node = main.game_mode
+	var gm: Node = main.gm_rush
 	var active_count := 0
 	var peer_is_active := false
 	for pid in main.spawned_players:
@@ -43,7 +43,7 @@ func _on_body_entered(body: Node2D) -> void:
 	if not body.is_multiplayer_authority():
 		return
 	var _main := get_tree().get_root().get_node("Main")
-	var gm: Node = _main.game_mode
+	var gm: Node = _main.gm_rush
 	if gm.state != gm.State.PLAYING:
 		return
 	if body.is_ghost:
