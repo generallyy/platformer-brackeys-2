@@ -1637,7 +1637,7 @@ shape = SubResource("CapsuleShape2D_miirx")
 
 [node name="StickRig" type="Node2D" parent="." unique_id=2026205896]
 z_index = 2
-scale = Vector2(0.1, 0.1)
+scale = Vector2(0.05, 0.05)
 script = ExtResource("6_oihyf")
 
 [node name="Scarf" type="Line2D" parent="StickRig" unique_id=1360584124]
@@ -1756,7 +1756,7 @@ bone_angle = -90.0
 [node name="RightArm" type="Bone2D" parent="StickRig/Skeleton2D/Torso" unique_id=1460386132]
 position = Vector2(-0.47988015, -207.99945)
 rotation = 0.31112796
-scale = Vector2(0.9999995, 0.9999995)
+scale = Vector2(0.9999994, 0.9999994)
 rest = Transform2D(0.9519889, 0.30613264, -0.30613264, 0.9519889, -0.47988015, -207.99945)
 auto_calculate_length_and_angle = false
 length = 91.99999
@@ -1834,7 +1834,7 @@ bone_angle = 89.867775
 [node name="RightShin" type="Bone2D" parent="StickRig/Skeleton2D/RightThigh" unique_id=380167677]
 position = Vector2(0.22148587, 95.999725)
 rotation = 1.2771724
-scale = Vector2(0.99999833, 0.99999833)
+scale = Vector2(0.9999982, 0.9999982)
 rest = Transform2D(0.2894227, 0.95720065, -0.95720065, 0.2894227, 0.22148587, 95.999725)
 auto_calculate_length_and_angle = false
 length = 112.0
