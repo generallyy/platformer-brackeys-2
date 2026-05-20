@@ -13,7 +13,8 @@ const BOMB_SCENE          = preload("res://scenes/weapons/Bomb.tscn")
 const CONFUSION_RAY_SCENE = preload("res://scenes/weapons/ConfusionRay.tscn")
 
 const GHOST_BOMB_COOLDOWN := 3.0
-const ZAP_SPAWN_OFFSET    := Vector2(0.0, -7.0)
+const ZAP_SPAWN_OFFSET         := Vector2(0.0, -7.0)
+const TORSO_ATTACK_OFFSET      := Vector2(0, -10.0)
 
 ## Set to true to use the StickFigureRig, false to use AnimatedSprite2D.
 @export var USE_STICK_RIG := true
@@ -49,6 +50,7 @@ var _state: PlayerState = PlayerState.GROUNDED
 
 @onready var animated_sprite:     AnimatedSprite2D  = $AnimatedSprite2D
 @onready var stick_rig:           StickFigureRig    = get_node_or_null("StickRig")
+@onready var _torso_bone:         Bone2D            = get_node_or_null("StickRig/Skeleton2D/Torso")
 @onready var animation_player:    AnimationPlayer   = $AnimationPlayer
 @onready var audio_stream_player: AudioStreamPlayer = $AudioStreamPlayer
 @onready var _effects_anchor:     Node2D            = $EffectsAnchor
@@ -227,8 +229,6 @@ func _ready() -> void:
 	_shield_node = SHIELD_SCENE.instantiate()
 	add_child(_shield_node)
 	_shield_node.visible = false
-	
-	# set animation tree to active!
 
 
 func _physics_process(delta: float) -> void:
@@ -1017,7 +1017,8 @@ func _throw_weapon(scene: PackedScene, dir: int, extra_offset: Vector2 = Vector2
 	if scene == null:
 		push_error("%s tried to throw a null weapon scene" % name)
 		return
-	var spawn_pos   := global_position + stats.weapon_spawn_offset * Vector2(dir, 1) + extra_offset
+	var origin      := _torso_bone.global_position + TORSO_ATTACK_OFFSET if (USE_STICK_RIG and _torso_bone != null) else global_position + stats.weapon_spawn_offset * Vector2(dir, 1)
+	var spawn_pos   := origin + extra_offset
 	var slow_on_hit := PowerupIds.SLOW_ON_HIT in passive_powerups
 	_rpc_throw_weapon.rpc(scene.resource_path, dir, spawn_pos, multiplayer.get_unique_id(), _effective_damage(), _effective_knockback_scale(), slow_on_hit)
 
@@ -1058,6 +1059,12 @@ func _on_projectile_returned() -> void:
 # COMBAT — melee & zap
 # ============================================================
 
+func _torso_local_pos() -> Vector2:
+	if USE_STICK_RIG and _torso_bone != null:
+		return to_local(_torso_bone.global_position) + TORSO_ATTACK_OFFSET
+	return ZAP_SPAWN_OFFSET
+
+
 func _do_melee() -> void:
 	_melee_cooldown = stats.melee_cooldown
 	var big_melee_stacks: int = passive_powerups.get(PowerupIds.BIG_MELEE, 0)
@@ -1091,7 +1098,7 @@ func _do_spawn_melee(dir: int, thrower_id: int, dmg: int = 1, kbs: float = 1.0, 
 	melee.rotation = floor_tilt
 	melee.hit_landed.connect(_on_melee_hit_landed)
 	add_child(melee)
-	melee.position = stats.weapon_spawn_offset * Vector2(dir, 1)
+	melee.position = _torso_local_pos()
 
 
 func _do_zap() -> void:
@@ -1113,7 +1120,7 @@ func _do_spawn_zap(dir: int, thrower_id: int, dmg: int = 1, kbs: float = 1.0, sl
 	zap.knockback_scale = kbs
 	zap.slow_on_hit     = slow_on_hit
 	add_child(zap)
-	zap.position = ZAP_SPAWN_OFFSET
+	zap.position = _torso_local_pos()
 
 # ============================================================
 # DAMAGE & DEATH

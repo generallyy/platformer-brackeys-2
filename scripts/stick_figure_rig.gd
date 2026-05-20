@@ -10,10 +10,11 @@ var facing_direction := 1
 
 @onready var _animator: AnimationPlayer = $RigAnimationPlayer
 @onready var _scarf: Line2D = $Scarf
+@onready var _animation_tree: AnimationTree = $AnimationTree
 
 
 func _ready() -> void:
-	#_apply_line_style()
+	_animation_tree.active = true
 	play(current_animation)
 
 
@@ -21,8 +22,15 @@ func play(animation_name: StringName) -> void:
 	current_animation = animation_name
 	if _animator == null or not _animator.has_animation(animation_name):
 		return
+	if _animation_tree != null and _animation_tree.active:
+		var state := _animation_tree.get("parameters/playback") as AnimationNodeStateMachinePlayback
+		if state != null:
+			if not state.is_playing():
+				state.start(animation_name)
+			else:
+				state.travel(animation_name)
+		return
 	if _animator.current_animation != animation_name:
-		#_reset_pose_defaults()
 		_animator.play(animation_name)
 
 
