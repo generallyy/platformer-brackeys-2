@@ -227,6 +227,8 @@ func _ready() -> void:
 	_shield_node = SHIELD_SCENE.instantiate()
 	add_child(_shield_node)
 	_shield_node.visible = false
+	
+	# set animation tree to active!
 
 
 func _physics_process(delta: float) -> void:
