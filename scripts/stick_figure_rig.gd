@@ -23,7 +23,7 @@ func play(animation_name: StringName) -> void:
 	if _animator == null or not _animator.has_animation(animation_name):
 		return
 	if _animation_tree != null and _animation_tree.active:
-		var state := _animation_tree.get("parameters/playback") as AnimationNodeStateMachinePlayback
+		var state := _animation_tree.get("parameters/BodySM/playback") as AnimationNodeStateMachinePlayback
 		if state != null:
 			if not state.is_playing():
 				state.start(animation_name)
@@ -32,6 +32,24 @@ func play(animation_name: StringName) -> void:
 		return
 	if _animator.current_animation != animation_name:
 		_animator.play(animation_name)
+
+
+func play_upper(animation_name: StringName) -> void:
+	if _animation_tree == null or not _animation_tree.active:
+		return
+	_animation_tree.set("parameters/UpperBlend/blend_amount", 1.0)
+	var state := _animation_tree.get("parameters/UpperSM/playback") as AnimationNodeStateMachinePlayback
+	if state != null:
+		state.start(animation_name)
+
+
+func stop_upper() -> void:
+	if _animation_tree == null or not _animation_tree.active:
+		return
+	_animation_tree.set("parameters/UpperBlend/blend_amount", 0.0)
+	var state := _animation_tree.get("parameters/UpperSM/playback") as AnimationNodeStateMachinePlayback
+	if state != null:
+		state.travel(&"idle")
 
 
 func set_facing(direction: int) -> void:

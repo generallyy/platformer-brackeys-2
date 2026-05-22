@@ -143,6 +143,7 @@ var is_invuln             := false
 var _invuln_timer         := 0.0
 var _knockback_timer      := 0.0
 var _melee_cooldown       := 0.0
+var _attack_timer         := 0.0
 var _last_attacker_peer_id: int = -1
 var _last_hit_timer       := 0.0
 var _is_dying             := false
@@ -362,8 +363,12 @@ func _enter_state(state: PlayerState, prev: PlayerState = PlayerState.GROUNDED) 
 		PlayerState.PROJECTILE_ATTACK:
 			_play_attack_animation(&"projectile")
 
-func _exit_state(_exiting_state: PlayerState) -> void:
-	pass
+func _exit_state(exiting_state: PlayerState) -> void:
+	match exiting_state:
+		PlayerState.MELEE_ATTACK, PlayerState.ZAP_ATTACK:
+			_attack_timer = 0.0
+			if USE_STICK_RIG and stick_rig != null:
+				stick_rig.stop_upper()
 
 # ============================================================
 # PER-FRAME HELPERS
@@ -377,6 +382,14 @@ func _tick_timers(delta: float) -> void:
 		_last_hit_timer -= delta
 		if _last_hit_timer <= 0.0:
 			_last_attacker_peer_id = -1
+
+	if _attack_timer > 0.0:
+		_attack_timer -= delta
+		if _attack_timer <= 0.0:
+			match _state:
+				PlayerState.MELEE_ATTACK:      end_melee_attack()
+				PlayerState.ZAP_ATTACK:        end_zap_attack()
+				PlayerState.PROJECTILE_ATTACK: end_projectile_attack()
 
 	_input_cooldown       = _tick_cd(_input_cooldown,      delta)
 	_melee_cooldown       = _tick_cd(_melee_cooldown,      delta)
@@ -807,7 +820,7 @@ func _apply_movement(delta: float) -> void:
 
 
 func _check_landing() -> void:
-	if _state in [PlayerState.KNOCKED_BACK, PlayerState.UI_LOCKED, PlayerState.AIR_BOOST, PlayerState.DASH]:
+	if _state in [PlayerState.KNOCKED_BACK, PlayerState.UI_LOCKED, PlayerState.AIR_BOOST, PlayerState.DASH, PlayerState.MELEE_ATTACK, PlayerState.ZAP_ATTACK, PlayerState.PROJECTILE_ATTACK]:
 		return
 	if is_on_floor():
 		has_air_boosted   = false
@@ -849,11 +862,14 @@ func update_animation() -> void:
 			next_animation = &"idle"
 		else:
 			next_animation = &"run"
+	elif _state == PlayerState.DASH or _state == PlayerState.AIR_BOOST:
+		next_animation = &"boost dash"
 	elif _state != PlayerState.DOUBLE_JUMP:
 		next_animation = &"jump"
 	else:
 		return
-	animated_sprite.play(next_animation)
+	if animated_sprite.sprite_frames != null and animated_sprite.sprite_frames.has_animation(next_animation):
+		animated_sprite.play(next_animation)
 	_play_visual_animation(next_animation)
 
 
@@ -862,7 +878,15 @@ func _play_visual_animation(animation_name: StringName) -> void:
 		stick_rig.play(animation_name)
 
 func _play_attack_animation(anim: StringName) -> void:
-	_play_visual_animation(anim)
+	if USE_STICK_RIG and stick_rig != null:
+		match anim:
+			&"melee", &"zap":
+				stick_rig.play_upper(anim)
+				var rig_player := stick_rig.get_node_or_null("RigAnimationPlayer") as AnimationPlayer
+				if rig_player != null and rig_player.has_animation(anim):
+					_attack_timer = rig_player.get_animation(anim).length
+			_:
+				stick_rig.play(anim)
 	if animated_sprite.sprite_frames != null and animated_sprite.sprite_frames.has_animation(anim):
 		animated_sprite.play(anim)
 	if animation_player.has_animation(anim):
@@ -943,11 +967,15 @@ func end_dbj() -> void:
 
 func end_melee_attack() -> void:
 	if _state == PlayerState.MELEE_ATTACK:
+		if USE_STICK_RIG and stick_rig != null:
+			stick_rig.stop_upper()
 		_transition_to(PlayerState.AIRBORNE if not is_on_floor() else PlayerState.GROUNDED)
 
 
 func end_zap_attack() -> void:
 	if _state == PlayerState.ZAP_ATTACK:
+		if USE_STICK_RIG and stick_rig != null:
+			stick_rig.stop_upper()
 		_transition_to(PlayerState.AIRBORNE if not is_on_floor() else PlayerState.GROUNDED)
 
 
