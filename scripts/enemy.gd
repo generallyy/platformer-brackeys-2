@@ -1,13 +1,13 @@
 extends StaticBody2D
 
-const MAX_HEALTH := 3
-const CONTACT_KNOCKBACK := Vector2(100.0, -150.0)
-const RESPAWN_DELAY := 4.0
+@export var max_health: int = 3
+@export var contact_knockback := Vector2(100.0, -150.0)
+@export var respawn_delay: float = 4.0
 const HIT_BLINK_DURATION := 0.4
 const HIT_BLINK_INTERVAL := 0.12
 const HIT_BLINK_THRESHOLD := 0.06
 
-var health := MAX_HEALTH
+var health := max_health
 var _dead := false
 var _blink_timer := 0.0
 
@@ -46,8 +46,8 @@ func _die() -> void:
 	set_deferred("collision_layer", 0)
 	$Hurtbox.set_deferred("monitorable", false)
 	$PlayerHurtbox.set_deferred("monitoring", false)
-	await get_tree().create_timer(RESPAWN_DELAY).timeout
-	health = MAX_HEALTH
+	await get_tree().create_timer(respawn_delay).timeout
+	health = max_health
 	_blink_timer = 0.0
 	animated_sprite.visible = true
 	visible = true
@@ -61,4 +61,4 @@ func _on_player_hurtbox_body_entered(body: Node2D) -> void:
 		return
 	if body.is_in_group("player"):
 		var dir = sign((body.global_position - global_position).x)
-		body.take_damage(1, Vector2(dir * CONTACT_KNOCKBACK.x, CONTACT_KNOCKBACK.y))
+		body.take_damage(1, Vector2(dir * contact_knockback.x, contact_knockback.y))

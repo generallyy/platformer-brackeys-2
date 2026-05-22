@@ -1,9 +1,12 @@
 extends Node2D
 
-const FUSE_TIME         := 2.0
-const DAMAGE            := 1
-const EXPLOSION_RADIUS  := 60.0
-const EXPLOSION_SHOW    := 0.2  # seconds the explosion flash is visible
+@export var fuse_time: float         = 2.0
+@export var damage: int              = 1
+@export var explosion_radius: float  = 60.0
+@export var explosion_knockback: float = 350.0
+@export var explosion_upward: float  = 80.0
+
+const EXPLOSION_SHOW := 0.2  # seconds the explosion flash is visible
 
 var thrower_peer_id: int = -1
 
@@ -24,21 +27,21 @@ func _process(delta: float) -> void:
 
 	_timer += delta
 	queue_redraw()
-	if _timer >= FUSE_TIME:
+	if _timer >= fuse_time:
 		_explode()
 
 func _draw() -> void:
 	if _exploded:
 		var alpha := clampf(_show_timer / EXPLOSION_SHOW, 0.0, 1.0)
-		draw_circle(Vector2.ZERO, EXPLOSION_RADIUS, Color(1.0, 0.45, 0.0, alpha * 0.45))
-		draw_arc(Vector2.ZERO, EXPLOSION_RADIUS, 0.0, TAU, 32, Color(1.0, 0.2, 0.0, alpha), 3.0)
+		draw_circle(Vector2.ZERO, explosion_radius, Color(1.0, 0.45, 0.0, alpha * 0.45))
+		draw_arc(Vector2.ZERO, explosion_radius, 0.0, TAU, 32, Color(1.0, 0.2, 0.0, alpha), 3.0)
 		return
 
 	# Bomb body
 	draw_circle(Vector2.ZERO, 5.0, Color(0.15, 0.15, 0.15))
 
 	# Fuse ring: draws the remaining time as an arc that shrinks
-	var frac  := clampf(_timer / FUSE_TIME, 0.0, 1.0)
+	var frac  := clampf(_timer / fuse_time, 0.0, 1.0)
 	var angle := TAU * (1.0 - frac)
 	# Flash faster as time runs out
 	var blink_rate := 3.0 + frac * 12.0
@@ -57,11 +60,11 @@ func _explode() -> void:
 		if body.get("is_ghost") == true:
 			continue
 		var dist: float = body.global_position.distance_to(global_position)
-		if dist > EXPLOSION_RADIUS:
+		if dist > explosion_radius:
 			continue
 		var dir: Vector2 = (body.global_position - global_position).normalized()
 		if dir.is_zero_approx():
 			dir = Vector2.UP
-		body.take_damage(DAMAGE, dir * 350.0 + Vector2(0.0, -80.0), thrower_peer_id)
+		body.take_damage(damage, dir * explosion_knockback + Vector2(0.0, -explosion_upward), thrower_peer_id)
 
 	set_process(true)  # re-enable so _show_timer can count down

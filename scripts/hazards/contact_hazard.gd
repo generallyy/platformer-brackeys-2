@@ -1,5 +1,4 @@
-extends Area2D
-
+extends HazardBase
 
 @export var damage: int = 1
 @export var hit_interval: float = 0.0
@@ -11,34 +10,9 @@ extends Area2D
 @export var bypass_ghost := false
 @export var hits_on_enter := true
 
-var _cooldowns: Dictionary = {}
-
-
 func _ready() -> void:
-	monitoring = true
-	body_entered.connect(_on_body_entered)
-	body_exited.connect(_on_body_exited)
+	super._ready()
 	set_physics_process(hit_interval > 0.0)
-
-
-func _physics_process(delta: float) -> void:
-	if _cooldowns.is_empty():
-		return
-
-	var stale_ids: Array[int] = []
-	for body_id in _cooldowns.keys():
-		var body := instance_from_id(body_id) as Node2D
-		if body == null or not is_instance_valid(body) or not overlaps_body(body):
-			stale_ids.append(body_id)
-			continue
-		_cooldowns[body_id] -= delta
-		if _cooldowns[body_id] <= 0.0:
-			_apply_hit(body)
-			_cooldowns[body_id] = hit_interval
-
-	for body_id in stale_ids:
-		_cooldowns.erase(body_id)
-
 
 func _on_body_entered(body: Node2D) -> void:
 	if not HazardUtils.is_target(body):
@@ -46,12 +20,13 @@ func _on_body_entered(body: Node2D) -> void:
 	if hits_on_enter or hit_interval <= 0.0:
 		_apply_hit(body)
 	if hit_interval > 0.0:
-		_cooldowns[body.get_instance_id()] = hit_interval
+		_tracked_bodies[body.get_instance_id()] = hit_interval
 
-
-func _on_body_exited(body: Node2D) -> void:
-	_cooldowns.erase(body.get_instance_id())
-
+func _tick_body(body: Node2D, body_id: int, delta: float) -> void:
+	_tracked_bodies[body_id] -= delta
+	if _tracked_bodies[body_id] <= 0.0:
+		_apply_hit(body)
+		_tracked_bodies[body_id] = hit_interval
 
 func _apply_hit(body: Node) -> void:
 	var final_knockback := local_knockback.rotated(global_rotation)
@@ -69,15 +44,12 @@ func _apply_hit(body: Node) -> void:
 			final_knockback += tangential_direction * tangential_knockback_strength
 	HazardUtils.damage_target(body, damage, final_knockback, attacker_peer_id, bypass_ghost)
 
-
 func _tangent_spin_sign() -> float:
 	if tangent_spin_source_path == NodePath(""):
 		return 0.0
-
 	var spin_source := get_node_or_null(tangent_spin_source_path)
 	if spin_source == null:
 		return 0.0
-
 	var spin_speed = spin_source.get("spin_speed")
 	if spin_speed == null:
 		return 0.0

@@ -119,7 +119,7 @@ var _dash_cooldown      := 0.0
 var _visual_tilt        := 0.0
 var _last_floor_normal  := Vector2.UP
 var _coyote_timer       := 0.0
-const _COYOTE_TIME      := 0.1
+@export var coyote_time: float = 0.1
 
 # --- Team ---
 var team_id: int = 0  # 0 = no team
@@ -326,10 +326,7 @@ func _enter_state(state: PlayerState, prev: PlayerState = PlayerState.GROUNDED) 
 			_dbj_jump_lockout  = 0.4
 			_jump_buffered     = false
 			_dbj_frozen        = false
-			_play_visual_animation(&"dbj")
-			animated_sprite.play(&"dbj")
-			animation_player.play("dbj")
-			animation_player.seek(0, true)
+			_play_attack_animation(&"dbj")
 		PlayerState.DASH:
 			_dash_timer    = stats.dash_duration
 			_dash_cooldown = stats.dash_cooldown
@@ -355,31 +352,15 @@ func _enter_state(state: PlayerState, prev: PlayerState = PlayerState.GROUNDED) 
 			_knockback_timer = stats.knockback_duration
 		PlayerState.AIRBORNE:
 			if prev == PlayerState.GROUNDED:
-				_coyote_timer = _COYOTE_TIME
+				_coyote_timer = coyote_time
 		PlayerState.UI_LOCKED:
 			velocity = Vector2.ZERO
 		PlayerState.MELEE_ATTACK:
-			_play_visual_animation(&"melee")
-			if animated_sprite.sprite_frames != null and animated_sprite.sprite_frames.has_animation(&"melee"):
-				animated_sprite.play(&"melee")
-
-			if animation_player.has_animation("zap"):
-				animation_player.play("melee")
-				animation_player.seek(0, true)
+			_play_attack_animation(&"melee")
 		PlayerState.ZAP_ATTACK:
-			_play_visual_animation(&"zap")
-			if animated_sprite.sprite_frames != null and animated_sprite.sprite_frames.has_animation(&"zap"):
-				animated_sprite.play(&"zap")
-			if animation_player.has_animation("zap"):
-				animation_player.play("zap")
-				animation_player.seek(0, true)
+			_play_attack_animation(&"zap")
 		PlayerState.PROJECTILE_ATTACK:
-			_play_visual_animation(&"projectile")
-			if animated_sprite.sprite_frames != null and animated_sprite.sprite_frames.has_animation(&"projectile"):
-				animated_sprite.play(&"projectile")
-			if animation_player.has_animation("projectile"):
-				animation_player.play("projectile")
-				animation_player.seek(0, true)
+			_play_attack_animation(&"projectile")
 
 func _exit_state(_exiting_state: PlayerState) -> void:
 	pass
@@ -388,20 +369,23 @@ func _exit_state(_exiting_state: PlayerState) -> void:
 # PER-FRAME HELPERS
 # ============================================================
 
+static func _tick_cd(val: float, delta: float) -> float:
+	return max(0.0, val - delta)
+
 func _tick_timers(delta: float) -> void:
 	if _last_hit_timer > 0.0:
 		_last_hit_timer -= delta
 		if _last_hit_timer <= 0.0:
 			_last_attacker_peer_id = -1
 
-	_input_cooldown       = max(0.0, _input_cooldown       - delta)
-	_melee_cooldown       = max(0.0, _melee_cooldown       - delta)
-	_projectile_cooldown  = max(0.0, _projectile_cooldown  - delta)
-	_ghost_bomb_cooldown  = max(0.0, _ghost_bomb_cooldown  - delta)
-	_dbj_boost_lockout    = max(0.0, _dbj_boost_lockout    - delta)
-	_boost_dbj_lockout    = max(0.0, _boost_dbj_lockout    - delta)
-	_dbj_jump_lockout     = max(0.0, _dbj_jump_lockout     - delta)
-	_coyote_timer         = max(0.0, _coyote_timer         - delta)
+	_input_cooldown       = _tick_cd(_input_cooldown,      delta)
+	_melee_cooldown       = _tick_cd(_melee_cooldown,      delta)
+	_projectile_cooldown  = _tick_cd(_projectile_cooldown, delta)
+	_ghost_bomb_cooldown  = _tick_cd(_ghost_bomb_cooldown, delta)
+	_dbj_boost_lockout    = _tick_cd(_dbj_boost_lockout,   delta)
+	_boost_dbj_lockout    = _tick_cd(_boost_dbj_lockout,   delta)
+	_dbj_jump_lockout     = _tick_cd(_dbj_jump_lockout,    delta)
+	_coyote_timer         = _tick_cd(_coyote_timer,        delta)
 	if _blink_timer > 0.0:
 		_blink_timer = max(0.0, _blink_timer - delta)
 		if _blink_timer <= 0.0:
@@ -461,8 +445,7 @@ func _tick_timers(delta: float) -> void:
 		if _dash_timer <= 0.0:
 			_transition_to(PlayerState.GROUNDED)
 
-	if _dash_cooldown > 0.0:
-		_dash_cooldown -= delta
+	_dash_cooldown = _tick_cd(_dash_cooldown, delta)
 
 	if _kill_indicator_timer > 0.0:
 		_kill_indicator_timer -= delta
@@ -877,6 +860,14 @@ func update_animation() -> void:
 func _play_visual_animation(animation_name: StringName) -> void:
 	if USE_STICK_RIG and stick_rig != null:
 		stick_rig.play(animation_name)
+
+func _play_attack_animation(anim: StringName) -> void:
+	_play_visual_animation(anim)
+	if animated_sprite.sprite_frames != null and animated_sprite.sprite_frames.has_animation(anim):
+		animated_sprite.play(anim)
+	if animation_player.has_animation(anim):
+		animation_player.play(anim)
+		animation_player.seek(0, true)
 
 
 func _set_visual_visible(visibility: bool) -> void:
