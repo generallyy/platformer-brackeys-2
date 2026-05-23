@@ -25,7 +25,7 @@ func play(animation_name: StringName) -> void:
 	if _animation_tree != null and _animation_tree.active:
 		var state := _animation_tree.get("parameters/BodySM/playback") as AnimationNodeStateMachinePlayback
 		if state != null:
-			if not state.is_playing():
+			if not state.is_playing() or (animation_name == &"boost dash" and state.get_current_node() == &"jump"):
 				state.start(animation_name)
 			else:
 				state.travel(animation_name)

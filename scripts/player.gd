@@ -16,9 +16,6 @@ const GHOST_BOMB_COOLDOWN := 3.0
 const ZAP_SPAWN_OFFSET         := Vector2(0.0, -7.0)
 const TORSO_ATTACK_OFFSET      := Vector2(0, -10.0)
 
-## Set to true to use the StickFigureRig, false to use AnimatedSprite2D.
-@export var USE_STICK_RIG := true
-
 const _JUMP_SFX  = preload("res://assets/sounds/my_jump.wav")
 const _DBJ_SFX   = preload("res://assets/sounds/dbj.wav")
 const _BOOST_SFX = preload("res://assets/sounds/boost.wav")
@@ -48,7 +45,6 @@ var _state: PlayerState = PlayerState.GROUNDED
 
 @export var stats: PlayerStats
 
-@onready var animated_sprite:     AnimatedSprite2D  = $AnimatedSprite2D
 @onready var stick_rig:           StickFigureRig    = get_node_or_null("StickRig")
 @onready var _torso_bone:         Bone2D            = get_node_or_null("StickRig/Skeleton2D/Torso")
 @onready var animation_player:    AnimationPlayer   = $AnimationPlayer
@@ -59,7 +55,6 @@ var _state: PlayerState = PlayerState.GROUNDED
 @onready var _kill_indicator:     Label             = $KillIndicator
 @onready var _raycast_left:       RayCast2D         = $RayCastLeft
 @onready var _raycast_right:      RayCast2D         = $RayCastRight
-@onready var _hitbox:             CollisionShape2D  = $Hitbox
 @onready var _movement_collision: CollisionShape2D  = $MovementCollision
 
 # ============================================================
@@ -202,13 +197,6 @@ var _outfit: PlayerOutfit
 # LIFECYCLE
 # ============================================================
 
-func _enter_tree() -> void:
-	if not USE_STICK_RIG:
-		var rig := get_node_or_null("StickRig")
-		if rig:
-			rig.free()
-
-
 func _ready() -> void:
 	if stats == null:
 		stats = PlayerStats.new()
@@ -217,12 +205,7 @@ func _ready() -> void:
 	_kill_indicator.visible = false
 	add_to_group("player")
 	_outfit = PlayerOutfit.new()
-	_outfit.setup(animated_sprite)
-	outfit_id = _outfit.apply_visuals(outfit_id)
 	_apply_rig_outfit_color(outfit_id)
-	animated_sprite.visible = not USE_STICK_RIG
-	if stick_rig != null:
-		stick_rig.visible = USE_STICK_RIG
 	floor_snap_length = 10.0
 
 	_play_visual_animation(&"idle")
@@ -367,7 +350,7 @@ func _exit_state(exiting_state: PlayerState) -> void:
 	match exiting_state:
 		PlayerState.MELEE_ATTACK, PlayerState.ZAP_ATTACK:
 			_attack_timer = 0.0
-			if USE_STICK_RIG and stick_rig != null:
+			if stick_rig != null:
 				stick_rig.stop_upper()
 
 # ============================================================
@@ -404,7 +387,6 @@ func _tick_timers(delta: float) -> void:
 		if _blink_timer <= 0.0:
 			_input_locked      = false
 			velocity           = Vector2.ZERO
-			_hitbox.disabled = false
 			_movement_collision.disabled = false
 			_rpc_end_blink.rpc()
 
@@ -543,9 +525,10 @@ func enter_spectator_mode(pos: Vector2) -> void:
 	_dbj_frozen           = false
 	_dbj_freeze_timer     = 0.0
 	# Frozen character stays visible at the goal for everyone
-	_goal_marker = animated_sprite.duplicate() as AnimatedSprite2D
-	get_parent().add_child(_goal_marker)
-	_goal_marker.global_position = pos + animated_sprite.position
+	if stick_rig != null:
+		_goal_marker = stick_rig.duplicate() as Node2D
+		get_parent().add_child(_goal_marker)
+		_goal_marker.global_position = pos
 	activate_ghost_mode(false, pos)
 	nudge_changed.emit("Press [%s] to enter spectate mode." % InputUtils.get_action_key("interact"))
 	if is_multiplayer_authority():
@@ -774,7 +757,8 @@ func _handle_input(_delta: float) -> void:
 					_blink_timer = 0.25
 					_input_locked = true
 					velocity = Vector2.ZERO
-					_hitbox.disabled = true
+					is_invuln = true
+					_invuln_timer = _blink_timer
 					_movement_collision.disabled = true
 					_rpc_teleport_to.rpc(nearest.global_position)
 			PowerupIds.HEART_RESET:
@@ -846,8 +830,7 @@ func _check_landing() -> void:
 func update_direction(direction: float) -> void:
 	if direction != 0.0:
 		facing_direction = 1 if direction > 0.0 else -1
-	animated_sprite.flip_h = (facing_direction == -1)
-	if USE_STICK_RIG and stick_rig != null:
+	if stick_rig != null:
 		stick_rig.set_facing(facing_direction)
 
 
@@ -868,39 +851,28 @@ func update_animation() -> void:
 		next_animation = &"jump"
 	else:
 		return
-	if animated_sprite.sprite_frames != null and animated_sprite.sprite_frames.has_animation(next_animation):
-		animated_sprite.play(next_animation)
 	_play_visual_animation(next_animation)
 
 
 func _play_visual_animation(animation_name: StringName) -> void:
-	if USE_STICK_RIG and stick_rig != null:
+	if stick_rig != null:
 		stick_rig.play(animation_name)
 
 func _play_attack_animation(anim: StringName) -> void:
-	if USE_STICK_RIG and stick_rig != null:
+	if stick_rig != null:
 		match anim:
 			&"melee", &"zap":
 				stick_rig.play_upper(anim)
-				var rig_player := stick_rig.get_node_or_null("RigAnimationPlayer") as AnimationPlayer
-				if rig_player != null and rig_player.has_animation(anim):
-					_attack_timer = rig_player.get_animation(anim).length
 			_:
 				stick_rig.play(anim)
-	if animated_sprite.sprite_frames != null and animated_sprite.sprite_frames.has_animation(anim):
-		animated_sprite.play(anim)
 	if animation_player.has_animation(anim):
 		animation_player.play(anim)
 		animation_player.seek(0, true)
 
 
 func _set_visual_visible(visibility: bool) -> void:
-	if USE_STICK_RIG:
-		if stick_rig != null:
-			stick_rig.visible = visibility
-		animated_sprite.visible = false
-	else:
-		animated_sprite.visible = visibility
+	if stick_rig != null:
+		stick_rig.visible = visibility
 
 
 func _update_slope_tracking(delta: float) -> void:
@@ -921,7 +893,6 @@ func _update_slope_tracking(delta: float) -> void:
 	else:
 		target_angle = Vector2.UP.angle_to(_last_floor_normal)
 	_visual_tilt = lerp_angle(_visual_tilt, target_angle, minf(12.0 * delta, 1.0)) if _state != PlayerState.GROUNDED else target_angle
-	animated_sprite.rotation = _visual_tilt
 	if stick_rig != null:
 		stick_rig.rotation = _visual_tilt
 
@@ -967,14 +938,14 @@ func end_dbj() -> void:
 
 func end_melee_attack() -> void:
 	if _state == PlayerState.MELEE_ATTACK:
-		if USE_STICK_RIG and stick_rig != null:
+		if stick_rig != null:
 			stick_rig.stop_upper()
 		_transition_to(PlayerState.AIRBORNE if not is_on_floor() else PlayerState.GROUNDED)
 
 
 func end_zap_attack() -> void:
 	if _state == PlayerState.ZAP_ATTACK:
-		if USE_STICK_RIG and stick_rig != null:
+		if stick_rig != null:
 			stick_rig.stop_upper()
 		_transition_to(PlayerState.AIRBORNE if not is_on_floor() else PlayerState.GROUNDED)
 
@@ -1036,7 +1007,7 @@ func _throw_weapon(scene: PackedScene, dir: int, extra_offset: Vector2 = Vector2
 	if scene == null:
 		push_error("%s tried to throw a null weapon scene" % name)
 		return
-	var origin      := _torso_bone.global_position + TORSO_ATTACK_OFFSET if (USE_STICK_RIG and _torso_bone != null) else global_position + stats.weapon_spawn_offset * Vector2(dir, 1)
+	var origin      := _torso_bone.global_position + TORSO_ATTACK_OFFSET if _torso_bone != null else global_position + stats.weapon_spawn_offset * Vector2(dir, 1)
 	var spawn_pos   := origin + extra_offset
 	var slow_on_hit := PowerupIds.SLOW_ON_HIT in passive_powerups
 	_rpc_throw_weapon.rpc(scene.resource_path, dir, spawn_pos, multiplayer.get_unique_id(), _effective_damage(), _effective_knockback_scale(), slow_on_hit)
@@ -1079,7 +1050,7 @@ func _on_projectile_returned() -> void:
 # ============================================================
 
 func _torso_local_pos() -> Vector2:
-	if USE_STICK_RIG and _torso_bone != null:
+	if _torso_bone != null:
 		return to_local(_torso_bone.global_position) + TORSO_ATTACK_OFFSET
 	return ZAP_SPAWN_OFFSET
 
@@ -1198,10 +1169,8 @@ func die(instant: bool = false) -> void:
 	if not instant:
 		_is_dying = true
 		_input_locked = true
-		animated_sprite.play(&"die")
 		_play_visual_animation(&"die")
-		await animated_sprite.animation_finished
-		animated_sprite.pause()
+		await get_tree().create_timer(0.5).timeout
 		await get_tree().create_timer(0.25).timeout
 		_is_dying = false
 		_input_locked = false
@@ -1605,19 +1574,14 @@ func _send_state_sync() -> void:
 	if not NetworkManager.is_online():
 		return
 	var shield_visible: bool = _shield_node.visible if _shield_node else false
-	var visual_visible := true
-	var visual_animation := str(animated_sprite.animation)
-	if USE_STICK_RIG and stick_rig != null:
-		visual_visible = stick_rig.visible
-		visual_animation = str(stick_rig.current_animation)
-	elif not USE_STICK_RIG:
-		visual_visible = animated_sprite.visible
+	var visual_visible := stick_rig.visible if stick_rig != null else true
+	var visual_animation := str(stick_rig.current_animation) if stick_rig != null else ""
 	if multiplayer.is_server():
 		for pid in _sync_peers:
-			_sync_state.rpc_id(pid, global_position, animated_sprite.flip_h,
+			_sync_state.rpc_id(pid, global_position, facing_direction == -1,
 					visual_animation, visible, visual_visible, shield_visible, _visual_tilt)
 	else:
-		_sync_state.rpc_id(1, global_position, animated_sprite.flip_h,
+		_sync_state.rpc_id(1, global_position, facing_direction == -1,
 				visual_animation, visible, visual_visible, shield_visible, _visual_tilt)
 
 
@@ -1627,16 +1591,12 @@ func _sync_state(pos: Vector2, flip: bool, anim: String, body_visible: bool, vis
 		return
 	global_position         = pos
 	visible                 = body_visible
-	animated_sprite.flip_h  = flip
-	if animated_sprite.animation != anim and animated_sprite.sprite_frames != null and animated_sprite.sprite_frames.has_animation(anim):
-		animated_sprite.play(anim)
-	if USE_STICK_RIG and stick_rig != null:
+	if stick_rig != null:
 		stick_rig.set_facing(-1 if flip else 1)
 	_play_visual_animation(StringName(anim))
 	_set_visual_visible(visual_visible)
 	_shield_node.set_active(shield_visible)
 	_visual_tilt            = tilt
-	animated_sprite.rotation = tilt
 	if stick_rig != null:
 		stick_rig.rotation = tilt
 	if multiplayer.is_server():
