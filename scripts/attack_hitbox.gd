@@ -19,8 +19,8 @@ func _ready() -> void:
 	await get_tree().create_timer(lifetime).timeout
 	queue_free()
 
-static func calc_knockback(base: Vector2, dir: int, knockback_scale: float = 1.0) -> Vector2:
-	return Vector2(dir * base.x, base.y) * knockback_scale
+static func calc_knockback(base: Vector2, dir: int, kb_scale: float = 1.0) -> Vector2:
+	return Vector2(dir * base.x, base.y) * kb_scale
 
 func _on_body_entered(body: Node2D) -> void:
 	if body in _hit:

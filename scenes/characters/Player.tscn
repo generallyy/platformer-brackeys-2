@@ -118,7 +118,6 @@ states/zap/position = Vector2(614, 92.8)
 transitions = ["Start", "idle", SubResource("AnimationNodeStateMachineTransition_xtneo"), "idle", "melee", SubResource("AnimationNodeStateMachineTransition_esqba"), "idle", "zap", SubResource("AnimationNodeStateMachineTransition_gshud"), "melee", "idle", SubResource("AnimationNodeStateMachineTransition_2gor4"), "zap", "idle", SubResource("AnimationNodeStateMachineTransition_yfc33")]
 
 [sub_resource type="AnimationNodeBlendTree" id="AnimationNodeBlendTree_ufbvs"]
-graph_offset = Vector2(-601.3091, 27.527271)
 nodes/UpperBlend/node = SubResource("AnimationNodeBlend2_7lms1")
 nodes/UpperBlend/position = Vector2(-16, 160)
 nodes/BodySM/node = SubResource("AnimationNodeStateMachine_7lms1")
@@ -468,7 +467,7 @@ tracks/7/keys = {
 "times": PackedFloat32Array(-7.450581e-09, 0.05),
 "transitions": PackedFloat32Array(1, 1),
 "update": 0,
-"values": [-2.282222, -1.9841149]
+"values": [4.000294645571004, 4.298745947662033]
 }
 tracks/8/type = "value"
 tracks/8/imported = false
@@ -492,7 +491,7 @@ tracks/9/keys = {
 "times": PackedFloat32Array(-7.450581e-09, 0.05),
 "transitions": PackedFloat32Array(1, 1),
 "update": 0,
-"values": [-2.6468344, -2.6468344]
+"values": [3.635520831904188, 3.635520831904188]
 }
 tracks/10/type = "value"
 tracks/10/imported = false
@@ -537,10 +536,10 @@ tracks/13/path = NodePath("Skeleton2D/Torso/Head:rotation")
 tracks/13/interp = 1
 tracks/13/loop_wrap = true
 tracks/13/keys = {
-"times": PackedFloat32Array(-7.450581e-09, 0.05),
-"transitions": PackedFloat32Array(1, 1),
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [1.7363285, 1.2912875]
+"values": [1.2912875]
 }
 tracks/14/type = "value"
 tracks/14/imported = false
@@ -1982,8 +1981,8 @@ bone_angle = 72.04148
 [node name="RightForearm" type="Bone2D" parent="StickRig/Skeleton2D/Torso/RightArm" unique_id=42319703]
 position = Vector2(34.57041, 106.531204)
 rotation = -1.8845247
-scale = Vector2(0.9999986, 0.9999985)
-skew = 0.02340269
+scale = Vector2(0.9999986, 0.99999845)
+skew = 0.023401976
 rest = Transform2D(-0.3086069, -0.95118874, 0.9581513, -0.28626198, 34.57041, 106.531204)
 auto_calculate_length_and_angle = false
 length = 102.582
@@ -2010,7 +2009,7 @@ bone_angle = -3.2815914
 [node name="Head" type="Bone2D" parent="StickRig/Skeleton2D/Torso" unique_id=1087815954]
 position = Vector2(0, -207.999)
 rotation = 1.5785387
-scale = Vector2(0.9999978, 0.9999978)
+scale = Vector2(0.9999977, 0.9999977)
 rest = Transform2D(-0.007742252, 0.99997, -0.99997, -0.007742252, 0, -207.999)
 auto_calculate_length_and_angle = false
 length = 42.72
@@ -2043,7 +2042,7 @@ bone_angle = 75.705925
 
 [node name="RightThigh" type="Bone2D" parent="StickRig/Skeleton2D" unique_id=2059949400]
 position = Vector2(27.643703, -188.0527)
-scale = Vector2(0.9999988, 0.9999988)
+scale = Vector2(0.9999987, 0.9999987)
 rest = Transform2D(0.99999994, 0, 0, 0.99999994, 27.643703, -188.0527)
 auto_calculate_length_and_angle = false
 length = 95.99998
@@ -2052,7 +2051,7 @@ bone_angle = 89.867775
 [node name="RightShin" type="Bone2D" parent="StickRig/Skeleton2D/RightThigh" unique_id=380167677]
 position = Vector2(0.22148587, 95.999725)
 rotation = 1.2771724
-scale = Vector2(0.99999785, 0.99999785)
+scale = Vector2(0.9999979, 0.9999979)
 rest = Transform2D(0.2894227, 0.95720065, -0.95720065, 0.2894227, 0.22148587, 95.999725)
 auto_calculate_length_and_angle = false
 length = 112.0
