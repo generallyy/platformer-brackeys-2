@@ -77,7 +77,7 @@ states/jump/position = Vector2(467.2, 147.6)
 states/run/node = SubResource("AnimationNodeAnimation_bpxo2")
 states/run/position = Vector2(597.92, 17.200003)
 transitions = ["Start", "idle", SubResource("AnimationNodeStateMachineTransition_bb7xv"), "idle", "jump", SubResource("AnimationNodeStateMachineTransition_m0xnk"), "jump", "dbj", SubResource("AnimationNodeStateMachineTransition_cro7t"), "jump", "boost dash", SubResource("AnimationNodeStateMachineTransition_q4687"), "idle", "run", SubResource("AnimationNodeStateMachineTransition_8el8x"), "run", "idle", SubResource("AnimationNodeStateMachineTransition_dhihs"), "jump", "idle", SubResource("AnimationNodeStateMachineTransition_wid4g"), "dbj", "jump", SubResource("AnimationNodeStateMachineTransition_gquc1"), "boost dash", "jump", SubResource("AnimationNodeStateMachineTransition_cdscg")]
-graph_offset = Vector2(110, -46)
+graph_offset = Vector2(56, -107)
 
 [sub_resource type="AnimationNodeBlend2" id="AnimationNodeBlend2_7lms1"]
 filter_enabled = true
@@ -128,7 +128,7 @@ states/zap/position = Vector2(614, 92.8)
 transitions = ["Start", "idle", SubResource("AnimationNodeStateMachineTransition_xtneo"), "idle", "melee", SubResource("AnimationNodeStateMachineTransition_esqba"), "idle", "zap", SubResource("AnimationNodeStateMachineTransition_gshud"), "melee", "idle", SubResource("AnimationNodeStateMachineTransition_2gor4"), "zap", "idle", SubResource("AnimationNodeStateMachineTransition_yfc33"), "idle", "projectile", SubResource("AnimationNodeStateMachineTransition_miirx"), "projectile", "idle", SubResource("AnimationNodeStateMachineTransition_m6phi")]
 
 [sub_resource type="AnimationNodeBlendTree" id="AnimationNodeBlendTree_ufbvs"]
-graph_offset = Vector2(-643.49036, 49.41736)
+graph_offset = Vector2(-560, 51)
 nodes/UpperBlend/node = SubResource("AnimationNodeBlend2_7lms1")
 nodes/UpperBlend/position = Vector2(-16, 160)
 nodes/BodySM/node = SubResource("AnimationNodeStateMachine_7lms1")
@@ -2155,7 +2155,7 @@ bone_angle = 72.04148
 [node name="RightForearm" type="Bone2D" parent="StickRig/Skeleton2D/Torso/RightArm" unique_id=42319703]
 position = Vector2(34.57041, 106.531204)
 rotation = -1.8845247
-scale = Vector2(0.9999984, 0.9999986)
+scale = Vector2(0.9999983, 0.99999875)
 skew = 0.023401976
 rest = Transform2D(-0.3086069, -0.95118874, 0.9581513, -0.28626198, 34.57041, 106.531204)
 auto_calculate_length_and_angle = false
@@ -2174,7 +2174,7 @@ bone_angle = -61.017487
 [node name="LeftForearm" type="Bone2D" parent="StickRig/Skeleton2D/Torso/LeftArm" unique_id=1797633340]
 position = Vector2(54.234207, -97.99323)
 rotation = -1.008149
-scale = Vector2(0.99999803, 0.99999803)
+scale = Vector2(0.9999979, 0.9999979)
 rest = Transform2D(0.5334273, -0.84584594, 0.84584594, 0.5334273, 54.234207, -97.99323)
 auto_calculate_length_and_angle = false
 length = 102.582
@@ -2183,7 +2183,7 @@ bone_angle = -3.2815914
 [node name="Head" type="Bone2D" parent="StickRig/Skeleton2D/Torso" unique_id=1087815954]
 position = Vector2(0, -207.999)
 rotation = 1.5785387
-scale = Vector2(0.9999977, 0.9999977)
+scale = Vector2(0.9999975, 0.9999975)
 rest = Transform2D(-0.007742252, 0.99997, -0.99997, -0.007742252, 0, -207.999)
 auto_calculate_length_and_angle = false
 length = 42.72
@@ -2198,7 +2198,7 @@ debug_color = Color(0.53333336, 0.1882353, 1, 0.4)
 
 [node name="LeftThigh" type="Bone2D" parent="StickRig/Skeleton2D" unique_id=1546391934]
 position = Vector2(27.643703, -188.05269)
-scale = Vector2(0.9999991, 0.9999991)
+scale = Vector2(0.99999905, 0.99999905)
 rest = Transform2D(0.9999998, 0, 0, 0.9999998, 27.643703, -188.05269)
 auto_calculate_length_and_angle = false
 length = 95.99998
@@ -2207,7 +2207,7 @@ bone_angle = 89.867775
 [node name="LeftShin" type="Bone2D" parent="StickRig/Skeleton2D/LeftThigh" unique_id=1368560353]
 position = Vector2(0.22148587, 95.999725)
 rotation = 0.2464272
-scale = Vector2(0.9999997, 0.9999997)
+scale = Vector2(0.99999964, 0.99999964)
 rest = Transform2D(0.96979016, 0.24394065, -0.24394065, 0.96979016, 0.22148587, 95.999725)
 auto_calculate_length_and_angle = false
 length = 112.0
@@ -2224,13 +2224,14 @@ bone_angle = 89.867775
 [node name="RightShin" type="Bone2D" parent="StickRig/Skeleton2D/RightThigh" unique_id=380167677]
 position = Vector2(0.22148587, 95.999725)
 rotation = 1.2771724
-scale = Vector2(0.99999785, 0.99999785)
+scale = Vector2(0.99999774, 0.99999774)
 rest = Transform2D(0.2894227, 0.95720065, -0.95720065, 0.2894227, 0.22148587, 95.999725)
 auto_calculate_length_and_angle = false
 length = 112.0
 bone_angle = 16.718527
 
 [node name="Polygons" type="Node2D" parent="StickRig" unique_id=1698235803]
+modulate = Color(0, 0.91317093, 0.9169842, 1)
 z_index = 15
 position = Vector2(-27.99995, 0.053059407)
 rotation = -0.0032267948
