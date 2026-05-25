@@ -47,9 +47,12 @@ func stop_upper() -> void:
 	if _animation_tree == null or not _animation_tree.active:
 		return
 	_animation_tree.set("parameters/UpperBlend/blend_amount", 0.0)
-	var state := _animation_tree.get("parameters/UpperSM/playback") as AnimationNodeStateMachinePlayback
-	if state != null:
-		state.travel(&"idle")
+	var upper_state := _animation_tree.get("parameters/UpperSM/playback") as AnimationNodeStateMachinePlayback
+	if upper_state != null:
+		upper_state.start(&"idle")
+	var body_state := _animation_tree.get("parameters/BodySM/playback") as AnimationNodeStateMachinePlayback
+	if body_state != null:
+		body_state.travel(current_animation)
 
 
 func set_facing(direction: int) -> void:

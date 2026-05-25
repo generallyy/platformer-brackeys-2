@@ -1,0 +1,68 @@
+[gd_scene format=3 uid="uid://byxwl1um7ajo2"]
+
+[ext_resource type="Texture2D" uid="uid://c44wdtvog1din" path="res://assets/sprites/sticky-man.webp" id="1_qlp1v"]
+[ext_resource type="Theme" uid="uid://2p378flu0i2e" path="res://assets/fonts/labrada.tres" id="2_fccy0"]
+[ext_resource type="Texture2D" uid="uid://da6r0ki7buguf" path="res://assets/sprites/white_circle.png" id="3_p628v"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_axds5"]
+bg_color = Color(0.6, 0.6, 0.6, 0.5647059)
+corner_radius_top_left = 30
+corner_radius_top_right = 30
+corner_radius_bottom_right = 30
+corner_radius_bottom_left = 30
+
+[node name="CharacterCard" type="Panel" unique_id=1602047346]
+offset_right = 512.0
+offset_bottom = 256.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_axds5")
+
+[node name="Profile" type="Sprite2D" parent="." unique_id=1339464321]
+position = Vector2(124.00001, 110.99997)
+scale = Vector2(0.76480836, 0.7648083)
+texture = ExtResource("1_qlp1v")
+region_enabled = true
+region_rect = Rect2(359.2, 159.79999, 287.2, 316.8)
+
+[node name="KillIndicator" type="Label" parent="." unique_id=1904298396]
+layout_mode = 0
+offset_left = 171.0
+offset_top = -10.0
+offset_right = 236.0
+offset_bottom = 92.083336
+rotation = -0.24779536
+theme = ExtResource("2_fccy0")
+theme_override_colors/font_color = Color(0.013917681, 0.8013557, 0.4278283, 1)
+theme_override_font_sizes/font_size = 70
+text = "+1"
+
+[node name="Stocks" type="HBoxContainer" parent="." unique_id=1909384776]
+texture_filter = 1
+layout_mode = 0
+offset_left = 45.0
+offset_top = 202.0
+offset_right = 366.0
+offset_bottom = 242.0
+
+[node name="TextureRect2" type="TextureRect" parent="Stocks" unique_id=1151050630]
+layout_mode = 2
+texture = ExtResource("3_p628v")
+expand_mode = 3
+stretch_mode = 4
+
+[node name="TextureRect3" type="TextureRect" parent="Stocks" unique_id=1578455360]
+layout_mode = 2
+texture = ExtResource("3_p628v")
+expand_mode = 3
+stretch_mode = 4
+
+[node name="TextureRect4" type="TextureRect" parent="Stocks" unique_id=1102109191]
+layout_mode = 2
+texture = ExtResource("3_p628v")
+expand_mode = 3
+stretch_mode = 4
+
+[node name="TextureRect" type="TextureRect" parent="Stocks" unique_id=653389453]
+layout_mode = 2
+texture = ExtResource("3_p628v")
+expand_mode = 3
+stretch_mode = 4

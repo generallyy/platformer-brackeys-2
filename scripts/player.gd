@@ -25,15 +25,13 @@ const _BOOST_SFX = preload("res://assets/sounds/boost.wav")
 # ============================================================
 
 enum PlayerState {
-	GROUNDED,          ## on the floor (idle or running; animation handles the visual distinction)
-	AIRBORNE,          ## in the air with normal movement control
-	DOUBLE_JUMP,       ## DBJ animation is playing
-	AIR_BOOST,         ## horizontal dash (air)
-	DASH,              ## horizontal dash (grounded)
+	GROUNDED,    ## on the floor (idle or running; animation handles the visual distinction)
+	AIRBORNE,    ## in the air with normal movement control
+	DOUBLE_JUMP, ## DBJ animation is playing
+	AIR_BOOST,   ## horizontal dash (air)
+	DASH,        ## horizontal dash (grounded)
 	KNOCKED_BACK,      ## hit response — input disabled
 	UI_LOCKED,         ## menus / round transitions
-	MELEE_ATTACK,      ## directional melee swing animation is playing
-	ZAP_ATTACK,        ## stationary zap animation is playing
 	PROJECTILE_ATTACK, ## projectile throw animation is playing
 }
 
@@ -47,6 +45,7 @@ var _state: PlayerState = PlayerState.GROUNDED
 
 @onready var stick_rig:           StickFigureRig    = get_node_or_null("StickRig")
 @onready var _torso_bone:         Bone2D            = get_node_or_null("StickRig/Skeleton2D/Torso")
+@onready var _head_bone:          Bone2D            = get_node_or_null("StickRig/Skeleton2D/Torso/Head")
 @onready var animation_player:    AnimationPlayer   = $AnimationPlayer
 @onready var audio_stream_player: AudioStreamPlayer = $AudioStreamPlayer
 @onready var _effects_anchor:     Node2D            = $EffectsAnchor
@@ -139,6 +138,7 @@ var _invuln_timer         := 0.0
 var _knockback_timer      := 0.0
 var _melee_cooldown       := 0.0
 var _attack_timer         := 0.0
+var _is_upper_attacking   := false
 var _last_attacker_peer_id: int = -1
 var _last_hit_timer       := 0.0
 var _is_dying             := false
@@ -339,19 +339,12 @@ func _enter_state(state: PlayerState, prev: PlayerState = PlayerState.GROUNDED) 
 				_coyote_timer = coyote_time
 		PlayerState.UI_LOCKED:
 			velocity = Vector2.ZERO
-		PlayerState.MELEE_ATTACK:
-			_play_attack_animation(&"melee")
-		PlayerState.ZAP_ATTACK:
-			_play_attack_animation(&"zap")
 		PlayerState.PROJECTILE_ATTACK:
 			_play_attack_animation(&"projectile")
 
-func _exit_state(exiting_state: PlayerState) -> void:
-	match exiting_state:
-		PlayerState.MELEE_ATTACK, PlayerState.ZAP_ATTACK:
-			_attack_timer = 0.0
-			if stick_rig != null:
-				stick_rig.stop_upper()
+
+func _exit_state(_exiting_state: PlayerState) -> void:
+	pass
 
 # ============================================================
 # PER-FRAME HELPERS
@@ -368,11 +361,8 @@ func _tick_timers(delta: float) -> void:
 
 	if _attack_timer > 0.0:
 		_attack_timer -= delta
-		if _attack_timer <= 0.0:
-			match _state:
-				PlayerState.MELEE_ATTACK:      end_melee_attack()
-				PlayerState.ZAP_ATTACK:        end_zap_attack()
-				PlayerState.PROJECTILE_ATTACK: end_projectile_attack()
+		if _attack_timer <= 0.0 and _is_upper_attacking:
+			stop_upper_attack()
 
 	_input_cooldown       = _tick_cd(_input_cooldown,      delta)
 	_melee_cooldown       = _tick_cd(_melee_cooldown,      delta)
@@ -722,15 +712,17 @@ func _handle_input(_delta: float) -> void:
 		if _equipped_returns:
 			_active_projectile_count += 1
 		_projectile_cooldown = _equipped_cooldown_max
-		_transition_to(PlayerState.PROJECTILE_ATTACK)
+		_is_upper_attacking = true
+		_play_attack_animation(&"projectile")
 
 	if Input.is_action_just_pressed("melee") and _melee_cooldown <= 0.0 and not _is_shielding and not in_safe_zone:
+		_is_upper_attacking = true
 		if Input.get_axis("move_left", "move_right") != 0.0:
 			_do_melee()
-			_transition_to(PlayerState.MELEE_ATTACK)
+			_play_attack_animation(&"melee")
 		else:
 			_do_zap()
-			_transition_to(PlayerState.ZAP_ATTACK)
+			_play_attack_animation(&"zap")
 
 	if Input.is_action_just_pressed("use_active") and not _active_used_this_round and not _is_shielding:
 		match active_powerup:
@@ -804,7 +796,7 @@ func _apply_movement(delta: float) -> void:
 
 
 func _check_landing() -> void:
-	if _state in [PlayerState.KNOCKED_BACK, PlayerState.UI_LOCKED, PlayerState.AIR_BOOST, PlayerState.DASH, PlayerState.MELEE_ATTACK, PlayerState.ZAP_ATTACK, PlayerState.PROJECTILE_ATTACK]:
+	if _state in [PlayerState.KNOCKED_BACK, PlayerState.UI_LOCKED, PlayerState.AIR_BOOST, PlayerState.DASH]:
 		return
 	if is_on_floor():
 		has_air_boosted   = false
@@ -837,7 +829,7 @@ func update_direction(direction: float) -> void:
 func update_animation() -> void:
 	if _state == PlayerState.UI_LOCKED or _is_dying:
 		return
-	if _state in [PlayerState.MELEE_ATTACK, PlayerState.ZAP_ATTACK, PlayerState.PROJECTILE_ATTACK]:
+	if _is_upper_attacking:
 		return
 	var next_animation: StringName
 	if _state == PlayerState.GROUNDED:
@@ -861,7 +853,7 @@ func _play_visual_animation(animation_name: StringName) -> void:
 func _play_attack_animation(anim: StringName) -> void:
 	if stick_rig != null:
 		match anim:
-			&"melee", &"zap":
+			&"melee", &"zap", &"projectile":
 				stick_rig.play_upper(anim)
 			_:
 				stick_rig.play(anim)
@@ -933,26 +925,16 @@ func end_dbj() -> void:
 		_transition_to(PlayerState.AIRBORNE)
 
 # ============================================================
-# ATTACK ANIMATION CALLBACKS  (called by AnimationPlayer tracks)
+# ATTACK ANIMATION CALLBACKS
 # ============================================================
 
-func end_melee_attack() -> void:
-	if _state == PlayerState.MELEE_ATTACK:
-		if stick_rig != null:
-			stick_rig.stop_upper()
-		_transition_to(PlayerState.AIRBORNE if not is_on_floor() else PlayerState.GROUNDED)
-
-
-func end_zap_attack() -> void:
-	if _state == PlayerState.ZAP_ATTACK:
-		if stick_rig != null:
-			stick_rig.stop_upper()
-		_transition_to(PlayerState.AIRBORNE if not is_on_floor() else PlayerState.GROUNDED)
-
-
-func end_projectile_attack() -> void:
-	if _state == PlayerState.PROJECTILE_ATTACK:
-		_transition_to(PlayerState.AIRBORNE if not is_on_floor() else PlayerState.GROUNDED)
+func stop_upper_attack() -> void:
+	if not _is_upper_attacking:
+		return
+	_is_upper_attacking = false
+	_attack_timer = 0.0
+	if stick_rig != null:
+		stick_rig.stop_upper()
 
 # ============================================================
 # JUMP
@@ -1050,6 +1032,8 @@ func _on_projectile_returned() -> void:
 # ============================================================
 
 func _torso_local_pos() -> Vector2:
+	if _torso_bone != null and _head_bone != null:
+		return to_local((_torso_bone.global_position + _head_bone.global_position) * 0.5)
 	if _torso_bone != null:
 		return to_local(_torso_bone.global_position) + TORSO_ATTACK_OFFSET
 	return ZAP_SPAWN_OFFSET
