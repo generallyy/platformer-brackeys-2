@@ -2146,7 +2146,7 @@ bone_angle = -90.0
 [node name="RightArm" type="Bone2D" parent="StickRig/Skeleton2D/Torso" unique_id=1460386132]
 position = Vector2(-0.47988015, -207.99945)
 rotation = 0.31112796
-scale = Vector2(0.9999981, 0.9999981)
+scale = Vector2(0.99999815, 0.99999815)
 rest = Transform2D(0.9519889, 0.30613264, -0.30613264, 0.9519889, -0.47988015, -207.99945)
 auto_calculate_length_and_angle = false
 length = 91.99999
@@ -2155,7 +2155,7 @@ bone_angle = 72.04148
 [node name="RightForearm" type="Bone2D" parent="StickRig/Skeleton2D/Torso/RightArm" unique_id=42319703]
 position = Vector2(34.57041, 106.531204)
 rotation = -1.8845247
-scale = Vector2(0.9999985, 0.9999986)
+scale = Vector2(0.9999984, 0.9999986)
 skew = 0.023401976
 rest = Transform2D(-0.3086069, -0.95118874, 0.9581513, -0.28626198, 34.57041, 106.531204)
 auto_calculate_length_and_angle = false
