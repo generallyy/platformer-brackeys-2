@@ -2360,11 +2360,10 @@ zoom = Vector2(3, 3)
 position_smoothing_enabled = true
 
 [node name="Label" type="Label" parent="." unique_id=2000590278]
-visible = false
-offset_left = -31.079533
-offset_top = -41.94118
-offset_right = 30.920467
-offset_bottom = -28.941181
+offset_left = -31.081425
+offset_top = -42.94118
+offset_right = 30.918575
+offset_bottom = -29.941181
 theme = ExtResource("6_rpfb3")
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 4
@@ -2374,7 +2373,6 @@ text = "dummy"
 horizontal_alignment = 1
 
 [node name="KillIndicator" type="Label" parent="." unique_id=415679306]
-visible = false
 offset_left = 4.0
 offset_top = -28.0
 offset_right = 22.0
