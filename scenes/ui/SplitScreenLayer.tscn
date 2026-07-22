@@ -1,0 +1,195 @@
+[gd_scene format=3 uid="uid://wri71q2h2lgv"]
+
+[ext_resource type="PackedScene" uid="uid://dqmini0hud001" path="res://scenes/ui/MiniHUD.tscn" id="1_q0tb2"]
+[ext_resource type="Script" path="res://scripts/split_screen_camera.gd" id="2_sscam"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cellborder"]
+bg_color = Color(0, 0, 0, 0)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0, 0, 0, 1)
+
+[node name="SplitScreenLayer" type="CanvasLayer" unique_id=1595148183]
+layer = 0
+
+[node name="Cell0" type="Control" parent="." unique_id=687653447]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="SubViewportContainer" type="SubViewportContainer" parent="Cell0" unique_id=78906421]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+stretch = true
+
+[node name="SubViewport" type="SubViewport" parent="Cell0/SubViewportContainer" unique_id=1850461365]
+handle_input_locally = false
+size = Vector2i(960, 540)
+render_target_update_mode = 4
+
+[node name="Camera2D" type="Camera2D" parent="Cell0/SubViewportContainer/SubViewport" unique_id=1780231145]
+script = ExtResource("2_sscam")
+zoom = Vector2(3, 3)
+position_smoothing_enabled = true
+
+[node name="MiniHUD" parent="Cell0" unique_id=2112746619 instance=ExtResource("1_q0tb2")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Border" type="Panel" parent="Cell0"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_cellborder")
+
+[node name="Cell1" type="Control" parent="." unique_id=502362786]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="SubViewportContainer" type="SubViewportContainer" parent="Cell1" unique_id=1150042660]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+stretch = true
+
+[node name="SubViewport" type="SubViewport" parent="Cell1/SubViewportContainer" unique_id=1841858944]
+handle_input_locally = false
+size = Vector2i(960, 540)
+render_target_update_mode = 4
+
+[node name="Camera2D" type="Camera2D" parent="Cell1/SubViewportContainer/SubViewport" unique_id=1616180786]
+script = ExtResource("2_sscam")
+zoom = Vector2(3, 3)
+position_smoothing_enabled = true
+
+[node name="MiniHUD" parent="Cell1" unique_id=1665002510 instance=ExtResource("1_q0tb2")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Border" type="Panel" parent="Cell1"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_cellborder")
+
+[node name="Cell2" type="Control" parent="." unique_id=1894180473]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="SubViewportContainer" type="SubViewportContainer" parent="Cell2" unique_id=1056688447]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+stretch = true
+
+[node name="SubViewport" type="SubViewport" parent="Cell2/SubViewportContainer" unique_id=27146469]
+handle_input_locally = false
+size = Vector2i(960, 540)
+render_target_update_mode = 4
+
+[node name="Camera2D" type="Camera2D" parent="Cell2/SubViewportContainer/SubViewport" unique_id=1565024157]
+script = ExtResource("2_sscam")
+zoom = Vector2(3, 3)
+position_smoothing_enabled = true
+
+[node name="MiniHUD" parent="Cell2" unique_id=1425060324 instance=ExtResource("1_q0tb2")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Border" type="Panel" parent="Cell2"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_cellborder")
+
+[node name="Cell3" type="Control" parent="." unique_id=566421714]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="SubViewportContainer" type="SubViewportContainer" parent="Cell3" unique_id=136320359]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+stretch = true
+
+[node name="SubViewport" type="SubViewport" parent="Cell3/SubViewportContainer" unique_id=1710384122]
+handle_input_locally = false
+size = Vector2i(960, 540)
+render_target_update_mode = 4
+
+[node name="Camera2D" type="Camera2D" parent="Cell3/SubViewportContainer/SubViewport" unique_id=1387307185]
+script = ExtResource("2_sscam")
+zoom = Vector2(3, 3)
+position_smoothing_enabled = true
+
+[node name="MiniHUD" parent="Cell3" unique_id=486533992 instance=ExtResource("1_q0tb2")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Border" type="Panel" parent="Cell3"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_cellborder")

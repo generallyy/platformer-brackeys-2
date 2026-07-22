@@ -14,14 +14,14 @@ func _ready() -> void:
 	$PromptLabel.visible = true
 
 func _process(_delta: float) -> void:
-	if _player_nearby and Input.is_action_just_pressed("interact"):
-		var peer_id := multiplayer.get_unique_id()
+	if _player_nearby and _player_nearby.is_input_just_pressed("interact"):
+		var peer_id := _player_nearby.get_multiplayer_authority()
 		get_tree().get_root().get_node("Main").request_team_change(peer_id, team_id)
 
 func _on_body_entered(body: Node2D) -> void:
 	if not body.is_in_group("player"):
 		return
-	if not body.is_multiplayer_authority():
+	if not NetworkManager.owns_locally(body):
 		return
 	_player_nearby = body
 	$PromptLabel.text = "Press %s to join!" % InputUtils.get_action_key("interact")

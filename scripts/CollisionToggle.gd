@@ -12,9 +12,9 @@ var _player_nearby: Node = null
 func _process(_delta: float) -> void:
 	if not (_player_nearby is CharacterBody2D and _player_nearby.has_method("die")):
 		return
-	if not _player_nearby.is_multiplayer_authority():
+	if not NetworkManager.owns_locally(_player_nearby):
 		return
-	if Input.is_action_just_pressed("interact"):
+	if _player_nearby.is_input_just_pressed("interact"):
 		_phasing = !_phasing
 		var key := InputUtils.get_action_key("interact")
 		if _phasing:
@@ -32,7 +32,7 @@ func _process(_delta: float) -> void:
 func _on_body_entered(body: Node2D) -> void:
 	if not body.is_in_group("player"):
 		return
-	if not body.is_multiplayer_authority():
+	if not NetworkManager.owns_locally(body):
 		return
 	_player_nearby = body
 	var key := InputUtils.get_action_key("interact")

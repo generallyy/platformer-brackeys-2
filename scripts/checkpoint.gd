@@ -30,7 +30,7 @@ func reset_for_peer(peer_id: int) -> void:
 func _on_body_entered(body: Node2D) -> void:
 	if not body.is_in_group("player"):
 		return
-	if not body.is_multiplayer_authority():
+	if not NetworkManager.owns_locally(body):
 		return
 
 	var peer_id := body.get_multiplayer_authority()

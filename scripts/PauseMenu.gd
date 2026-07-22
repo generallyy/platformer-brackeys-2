@@ -35,6 +35,25 @@ var _allow_left_click := false
 var _current_page := 0
 var _title_label: Label
 
+# ============================================================
+# LOCAL-MULTIPLAYER SIMULTANEOUS KEYBINDS (see LocalBindings autoload)
+# ============================================================
+
+const LOCAL_ACTION_LABELS := {
+	&"move_left": "Move Left", &"move_right": "Move Right", &"jump": "Jump", &"f": "Boost",
+	&"projectile": "Projectile", &"melee": "Melee", &"shield": "Shield",
+	&"interact": "Interact", &"use_active": "Use Active", &"ui_cancel": "Exit Spectate",
+}
+
+const LOCAL_KEYBINDS_MENU_SCENE = preload("res://scenes/ui/KeybindsMenu.tscn")
+
+var _local_kb_panel: Control
+var _local_columns_row: HBoxContainer
+var _local_columns: Array = []  # Array[Dictionary] — one per active local-mp player slot
+var _local_capture_slot: int = -1
+var _local_capture_device: int = -1
+var _local_capture_action: StringName = &""
+
 @export var row_template: PackedScene
 @export var keybind_button: PackedScene
 var keybind_header = preload("res://scenes/ui/KeybindHeader.tscn")
@@ -55,8 +74,9 @@ func _ready():
 
 	_init_bindings()
 	_build_keybinds_panel()
+	_build_local_keybinds_panel()
 	_load_keybinds()
-	
+
 	_keybinds_panel.visible = false
 	$PauseMenu.visible = true
 	
@@ -257,10 +277,212 @@ func _close_keybinds() -> void:
 	$PauseMenu.visible = true
 
 # ============================================================
+# LOCAL-MULTIPLAYER KEYBINDS UI
+# ============================================================
+
+func _build_local_keybinds_panel() -> void:
+	_local_kb_panel = LOCAL_KEYBINDS_MENU_SCENE.instantiate()
+	_local_kb_panel.name = "LocalKeybindsMenu"
+	_local_kb_panel.visible = false
+	add_child(_local_kb_panel)
+
+	var hbox: HBoxContainer = _local_kb_panel.get_node("PanelContainer/HBoxContainer")
+	# Pagination arrows don't apply here — every player's column fits side by side at once.
+	hbox.get_node("ArrowLeft").visible = false
+	hbox.get_node("ArrowRight").visible = false
+
+	var vbox: VBoxContainer = hbox.get_node("VBoxContainer")
+	var title: Label = vbox.get_node("Title")
+	title.text = "Keybinds Menu"
+	title.autowrap_mode = TextServer.AUTOWRAP_WORD
+
+	_local_columns_row = HBoxContainer.new()
+	_local_columns_row.name = "Columns"
+	_local_columns_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	_local_columns_row.add_theme_constant_override("separation", 40)
+	_local_columns_row.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	vbox.add_child(_local_columns_row)
+
+
+func _open_local_keybinds() -> void:
+	$PauseMenu.visible = false
+	_rebuild_local_columns()
+	_local_kb_panel.visible = true
+
+
+func _rebuild_local_columns() -> void:
+	for c in _local_columns_row.get_children():
+		c.queue_free()
+	_local_columns.clear()
+	_local_capture_slot = -1
+	var n: int = NetworkManager.local_player_count
+	for i in n:
+		var is_kb := i == NetworkManager.keyboard_slot
+		var device := -1 if is_kb else NetworkManager.local_player_devices[i]
+		var col := _build_local_column(i, is_kb, device)
+		_local_columns_row.add_child(col["panel"])
+		_local_columns.append(col)
+
+
+func _build_local_column(slot: int, is_kb: bool, device: int) -> Dictionary:
+	var panel := VBoxContainer.new()
+	panel.custom_minimum_size = Vector2(320, 0)
+	panel.add_theme_constant_override("separation", 8)
+
+	var header: Label = keybind_header.instantiate()
+	header.text = "Player %d%s" % [slot + 1, "  (Keyboard)" if is_kb else "  (Gamepad %d)" % device]
+	panel.add_child(header)
+
+	var actions: Array = LocalBindings.KB_REBINDABLE_ACTIONS if is_kb else LocalBindings.GAMEPAD_REBINDABLE_ACTIONS
+	var name_labels: Array = []
+	var bind_buttons: Array = []
+	for action in actions:
+		var row := HBoxContainer.new()
+		panel.add_child(row)
+
+		var name_lbl: Label = row_template.instantiate()
+		name_lbl.text = LOCAL_ACTION_LABELS.get(action, str(action))
+		name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_child(name_lbl)
+		name_labels.append(name_lbl)
+
+		var bind_btn: Button = keybind_button.instantiate()
+		row.add_child(bind_btn)
+		if is_kb:
+			bind_btn.pressed.connect(_start_kb_capture.bind(slot, action))
+		bind_buttons.append(bind_btn)
+
+	var hint := Label.new()
+	hint.text = "Click a row, then press the key" if is_kb else "D-pad: select   A: rebind   B: ready"
+	hint.add_theme_font_size_override("font_size", 14)
+	hint.modulate.a = 0.7
+	panel.add_child(hint)
+
+	var ready_btn: Button = keybind_button.instantiate()
+	ready_btn.toggle_mode = true
+	ready_btn.text = "Not Ready"
+	panel.add_child(ready_btn)
+
+	var col := {
+		"slot": slot, "is_kb": is_kb, "device": device, "cursor": 0,
+		"ready": false, "panel": panel, "header": header,
+		"name_labels": name_labels, "row_labels": bind_buttons, "ready_button": ready_btn,
+	}
+	ready_btn.pressed.connect(_toggle_ready.bind(slot))
+	_refresh_local_column(col)
+	return col
+
+
+func _start_kb_capture(slot: int, action: StringName) -> void:
+	_local_capture_slot = slot
+	_local_capture_device = -1
+	_local_capture_action = action
+	_refresh_local_columns()
+
+
+func _toggle_ready(slot: int) -> void:
+	for col in _local_columns:
+		if col["slot"] == slot:
+			col["ready"] = not col["ready"]
+			col["ready_button"].text = "Ready ✓" if col["ready"] else "Not Ready"
+			col["ready_button"].button_pressed = col["ready"]
+			break
+	_maybe_auto_close_local_keybinds()
+
+
+func _maybe_auto_close_local_keybinds() -> void:
+	for col in _local_columns:
+		if not col["ready"]:
+			return
+	_local_kb_panel.visible = false
+	$PauseMenu.visible = true
+
+
+## Returns true if the event was consumed (should not reach normal GUI/gameplay input).
+func _handle_local_keybinds_input(event: InputEvent) -> bool:
+	if event.is_action_pressed("pause"):
+		return true  # closing only happens once every column marks itself Ready
+
+	if _local_capture_slot != -1:
+		if _local_capture_device == -1:
+			if event is InputEventKey and event.pressed and not event.echo:
+				LocalBindings.rebind_kb(_local_capture_slot, _local_capture_action, event.physical_keycode)
+				_local_capture_slot = -1
+				_refresh_local_columns()
+				return true
+			return event is InputEventKey
+		if event is InputEventJoypadButton and event.pressed and event.device == _local_capture_device:
+			LocalBindings.rebind_gamepad(_local_capture_slot, _local_capture_action, event.button_index)
+			_local_capture_slot = -1
+			_refresh_local_columns()
+			return true
+		return event is InputEventJoypadButton or event is InputEventJoypadMotion
+
+	if event.is_action_pressed("ui_cancel"):
+		return true  # a bare Escape (no capture in progress) shouldn't fall through to resume
+
+	if event is InputEventJoypadButton and event.pressed:
+		for col in _local_columns:
+			if col["is_kb"] or col["device"] != event.device:
+				continue
+			var actions: Array = LocalBindings.GAMEPAD_REBINDABLE_ACTIONS
+			match event.button_index:
+				JOY_BUTTON_DPAD_UP:
+					col["cursor"] = (col["cursor"] - 1 + actions.size()) % actions.size()
+					_refresh_local_column(col)
+					return true
+				JOY_BUTTON_DPAD_DOWN:
+					col["cursor"] = (col["cursor"] + 1) % actions.size()
+					_refresh_local_column(col)
+					return true
+				JOY_BUTTON_A:
+					_local_capture_slot = col["slot"]
+					_local_capture_device = col["device"]
+					_local_capture_action = actions[col["cursor"]]
+					_refresh_local_column(col)
+					return true
+				JOY_BUTTON_B:
+					_toggle_ready(col["slot"])
+					return true
+	return false
+
+
+func _refresh_local_column(col: Dictionary) -> void:
+	var actions: Array = LocalBindings.KB_REBINDABLE_ACTIONS if col["is_kb"] else LocalBindings.GAMEPAD_REBINDABLE_ACTIONS
+	for i in actions.size():
+		var action: StringName = actions[i]
+		var name_lbl: Label = col["name_labels"][i]
+		var bind_btn: Button = col["row_labels"][i]
+		var capturing: bool = _local_capture_slot == col["slot"] and _local_capture_action == action
+		if col["is_kb"]:
+			name_lbl.text = LOCAL_ACTION_LABELS.get(action, str(action))
+			var binding_key: int = LocalBindings.get_kb_binding(col["slot"], action)
+			bind_btn.text = "[ press key... ]" if capturing else (_key_name(binding_key) if binding_key != KEY_NONE else "---")
+		else:
+			var selected: bool = i == col["cursor"]
+			name_lbl.text = "%s%s" % ["> " if selected else "   ", LOCAL_ACTION_LABELS.get(action, str(action))]
+			var binding_idx: int = LocalBindings.get_gamepad_binding(col["slot"], action)
+			bind_btn.text = "[ press... ]" if capturing else ("---" if binding_idx == JOY_BUTTON_INVALID else _joy_button_name(binding_idx))
+
+
+func _key_name(keycode: int) -> String:
+	return OS.get_keycode_string(keycode)
+
+
+func _refresh_local_columns() -> void:
+	for col in _local_columns:
+		_refresh_local_column(col)
+
+# ============================================================
 # INPUT — rebind capture
 # ============================================================
 
 func _input(event: InputEvent) -> void:
+	if _local_kb_panel != null and _local_kb_panel.visible:
+		if _handle_local_keybinds_input(event):
+			get_viewport().set_input_as_handled()
+		return
+
 	# Pause toggle always runs
 	if event.is_action_pressed("pause"):
 		var blackjack_menu := get_parent().get_node_or_null("BlackjackMenu")
@@ -434,6 +656,9 @@ func _deserialize_event(data: Dictionary) -> InputEvent:
 # ============================================================
 
 func _get_local_player() -> Node:
+	if NetworkManager.is_local_multiplayer:
+		var main := get_node("/root/Main")
+		return main.spawned_players.get(main._local_peer_id())
 	for p in get_tree().get_nodes_in_group("player"):
 		if p.is_multiplayer_authority():
 			return p
@@ -443,27 +668,41 @@ func pause_game():
 	visible = true
 	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 	$PauseMenu/PanelContainer/VBoxContainer/Resume.grab_focus()
-	var p := _get_local_player()
-	if p:
-		p._input_locked = true
+	_set_local_players_input_locked(true)
 
 func resume_game():
 	visible = false
+	_set_local_players_input_locked(false)
+
+## Pausing must freeze every locally-controlled player, not just one — _get_local_player()
+## picks a single "UI viewer" player (slot 0 in local-multiplayer), which would otherwise
+## leave players 2-4 free to keep moving/fighting while the menu (and especially the
+## simultaneous Keybinds screen) is open.
+func _set_local_players_input_locked(locked: bool) -> void:
+	if NetworkManager.is_local_multiplayer:
+		var main := get_node("/root/Main")
+		for p in main.spawned_players.values():
+			p._input_locked = locked
+		return
 	var p := _get_local_player()
 	if p:
-		p._input_locked = false
+		p._input_locked = locked
 
 func _on_resume_pressed():
 	resume_game()
 
 func _on_restart_pressed():
-	get_node("/root/Main").respawn_player_by_id(multiplayer.get_unique_id())
+	var main := get_node("/root/Main")
+	main.respawn_player_by_id(main._local_peer_id())
 	visible = false
 
 func _on_title_pressed():
 	get_tree().change_scene_to_file("res://scenes/UI/TitleScreen.tscn")
 
 func _on_keybinds_pressed():
+	if NetworkManager.is_local_multiplayer:
+		_open_local_keybinds()
+		return
 	$PauseMenu.visible = false
 	_keybinds_panel.visible = true
 	_show_page(0)

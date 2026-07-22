@@ -79,6 +79,10 @@ func _on_solo_button_pressed():
 	NetworkManager.play_solo()
 	get_tree().change_scene_to_file("res://scenes/main.tscn")
 
+func _on_local_play_button_pressed():
+	UiAudio.play_click()
+	get_tree().change_scene_to_file("res://scenes/ui/LocalPlayScreen.tscn")
+
 func _on_back_button_pressed():
 	UiAudio.play_click()
 	get_tree().change_scene_to_file("res://scenes/ui/TitleScreen.tscn")

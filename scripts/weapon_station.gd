@@ -30,7 +30,7 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
 	if weapon_scene == null:
 		return
-	if _player_nearby and Input.is_action_just_pressed("interact"):
+	if _player_nearby and _player_nearby.is_input_just_pressed("interact"):
 		_player_nearby.equip_weapon(weapon_scene, _weapon_cooldown)
 		$PromptLabel.text = "Equipped!"
 		_show_equipped_flash()
@@ -38,7 +38,7 @@ func _process(_delta: float) -> void:
 func _on_body_entered(body: Node2D) -> void:
 	if not body.is_in_group("player"):
 		return
-	if not body.is_multiplayer_authority():
+	if not NetworkManager.owns_locally(body):
 		return
 	_player_nearby = body
 	$PromptLabel.text = "%s — Equip" % InputUtils.get_action_key("interact")

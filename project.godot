@@ -27,6 +27,7 @@ config/icon="res://icon.svg"
 
 UiAudio="*res://scenes/ui/UIAudio.tscn"
 NetworkManager="*res://scripts/network_manager.gd"
+LocalBindings="*res://scripts/local_bindings.gd"
 
 [display]
 

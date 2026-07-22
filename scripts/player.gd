@@ -83,6 +83,14 @@ var health: int = 0
 var outfit_id  := 0
 var facing_direction := 1  # 1 = right, -1 = left
 
+## Local-multiplayer identity. -1 = normal (Solo/online) player, reads the global Input
+## singleton unchanged. 0..3 = local-multiplayer slot; if uses_keyboard is true this is
+## the session's one keyboard player (also reads the global Input singleton, since there's
+## only one keyboard); otherwise it reads LocalBindings scoped to local_joy_device.
+var local_player_index: int = -1
+var uses_keyboard: bool = true
+var local_joy_device: int = -1
+
 ## Compatibility property — external code (main.gd) may set this to clear a
 ## stuck DBJ freeze on level load or respawn.
 var is_frozen: bool:
@@ -217,8 +225,11 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
-	if multiplayer.has_multiplayer_peer() and not is_multiplayer_authority():
+	if not NetworkManager.owns_locally(self):
 		return
+	if local_player_index >= 0:
+		LocalBindings.update(local_player_index, local_joy_device)
+		_poll_local_mp_meta_input()
 
 	_tick_timers(delta)
 	_update_damage_flash(delta)
@@ -229,7 +240,7 @@ func _physics_process(delta: float) -> void:
 		velocity = Vector2.ZERO
 
 	_input_direction = 0.0 if (_state == PlayerState.KNOCKED_BACK or _is_shielding or has_input_lock()) \
-			else Input.get_axis("move_left", "move_right")
+			else _in_axis()
 	if _is_confused:
 		_input_direction = -_input_direction
 	update_direction(_input_direction)
@@ -245,7 +256,7 @@ func _physics_process(delta: float) -> void:
 		PlayerState.AIR_BOOST:
 			velocity.x = facing_direction * stats.boost_speed * pow(PowerupIds.DASH_BOOST_MULT, passive_powerups.get(PowerupIds.DASH_BOOST_AIR, 0))
 			velocity.y = 0.0
-			if Input.is_action_just_pressed("jump") and not _is_shielding and _boost_dbj_lockout <= 0.0:
+			if _in_just_pressed("jump") and not _is_shielding and _boost_dbj_lockout <= 0.0:
 				if not has_dbj:
 					_transition_to(PlayerState.DOUBLE_JUMP)
 				elif _extra_jumps_used < passive_powerups.get(PowerupIds.EXTRA_JUMP, 0):
@@ -253,7 +264,7 @@ func _physics_process(delta: float) -> void:
 					_transition_to(PlayerState.DOUBLE_JUMP)
 		PlayerState.DASH:
 			velocity.x = facing_direction * stats.dash_speed * pow(PowerupIds.DASH_BOOST_MULT, passive_powerups.get(PowerupIds.DASH_BOOST_GROUND, 0))
-			if is_multiplayer_authority():
+			if NetworkManager.owns_locally(self):
 				for target in _passthrough_targets:
 					if is_instance_valid(target) and target.is_in_group("player"):
 						if global_position.distance_to(target.global_position) < 12.0:
@@ -494,7 +505,7 @@ func _apply_gravity(delta: float) -> void:
 
 func _update_shield(delta: float) -> void:
 	var can_shield := _state != PlayerState.KNOCKED_BACK and _state != PlayerState.UI_LOCKED
-	var want_shield := can_shield and not has_input_lock() and Input.is_action_pressed("shield") \
+	var want_shield := can_shield and not has_input_lock() and _in_pressed("shield") \
 			and (_is_shielding or shield_charge > 0.25)
 	_is_shielding = want_shield
 	if _is_shielding:
@@ -580,26 +591,26 @@ func _handle_ghost_input() -> void:
 					break
 			if not has_valid:
 				_exit_camera_lock_mode()
-			elif Input.is_action_just_pressed("interact"):
+			elif _in_just_pressed("interact"):
 				_exit_camera_lock_mode()
-			elif Input.is_action_just_pressed("move_right"):
+			elif _in_just_pressed("move_right"):
 				_advance_spectate_target(1)
-			elif Input.is_action_just_pressed("move_left"):
+			elif _in_just_pressed("move_left"):
 				_advance_spectate_target(-1)
 			return  # no body movement in camera lock
 		else:  # ghost submode
-			if Input.is_action_just_pressed("interact"):
+			if _in_just_pressed("interact"):
 				_enter_camera_lock_mode()
 				return
 	# Jump / double jump
-	if Input.is_action_just_pressed("jump") and _input_cooldown <= 0.0:
+	if _in_just_pressed("jump") and _input_cooldown <= 0.0:
 		if is_on_floor():
 			_do_jump()
 		elif not has_dbj and _boost_dbj_lockout <= 0.0:
 			_transition_to(PlayerState.DOUBLE_JUMP)
 
 	# Dash / air boost
-	if Input.is_action_just_pressed("f"):
+	if _in_just_pressed("f"):
 		if is_on_floor() and _dash_cooldown <= 0.0:
 			_transition_to(PlayerState.DASH)
 		elif not is_on_floor() and not has_air_boosted and _dbj_boost_lockout <= 0.0:
@@ -608,9 +619,9 @@ func _handle_ghost_input() -> void:
 	# Bomb placement
 	if not _ghost_can_bomb:
 		return
-	if Input.is_action_just_pressed("projectile") and _ghost_bomb_cooldown <= 0.0 and not in_safe_zone:
+	if _in_just_pressed("projectile") and _ghost_bomb_cooldown <= 0.0 and not in_safe_zone:
 		_ghost_bomb_cooldown = GHOST_BOMB_COOLDOWN
-		_rpc_place_bomb.rpc(global_position, multiplayer.get_unique_id())
+		_rpc_place_bomb.rpc(global_position, get_multiplayer_authority())
 
 
 @rpc("authority", "call_local", "reliable")
@@ -666,16 +677,67 @@ func deactivate_ghost_mode() -> void:
 
 
 func _input(event: InputEvent) -> void:
-	if multiplayer.has_multiplayer_peer() and not is_multiplayer_authority():
+	if not NetworkManager.owns_locally(self):
+		return
+	if local_player_index >= 0:
+		# Local-multiplayer players read interact/ui_cancel via _handle_ghost_input's
+		# per-frame polling instead — raw InputEvents match the global wildcard-device
+		# action map, which would let any other local player's press trigger this one.
 		return
 	if _finished_at_goal and not is_spectator and _state == PlayerState.UI_LOCKED:
 		if event.is_action_pressed("interact"):
-			get_tree().get_root().get_node("Main").request_enter_spectator(multiplayer.get_unique_id())
+			get_tree().get_root().get_node("Main").request_enter_spectator(get_multiplayer_authority())
 			get_viewport().set_input_as_handled()
 			return
 	if is_spectator and event.is_action_pressed("ui_cancel"):
-		get_tree().get_root().get_node("Main").request_exit_spectator(multiplayer.get_unique_id())
+		get_tree().get_root().get_node("Main").request_exit_spectator(get_multiplayer_authority())
 		get_viewport().set_input_as_handled()
+
+
+## Per-frame equivalent of the block above, for local-multiplayer players (which skip
+## _input() entirely — see the guard there).
+func _poll_local_mp_meta_input() -> void:
+	if _finished_at_goal and not is_spectator and _state == PlayerState.UI_LOCKED:
+		if _in_just_pressed("interact"):
+			get_tree().get_root().get_node("Main").request_enter_spectator(get_multiplayer_authority())
+			return
+	if is_spectator and _in_just_pressed("ui_cancel"):
+		get_tree().get_root().get_node("Main").request_exit_spectator(get_multiplayer_authority())
+
+
+## Public passthrough so world scripts (interact zones, doors, etc.) read this player's own
+## device-scoped input instead of the global Input singleton, which is device-wildcard and
+## would otherwise let any other local player's press trigger this player's interactions.
+func is_input_just_pressed(action: StringName) -> bool:
+	return _in_just_pressed(action)
+
+
+## True only for a normal (Solo/online) player — the ONLY case that may safely read the
+## global Input singleton. Every local-multiplayer slot, including the keyboard slot (if
+## any), must read through LocalBindings instead: every action in project.godot binds its
+## gamepad events with device:-1 ("any device"), so the global Input singleton doesn't
+## distinguish which local player's keyboard/gamepad pressed a button — reusing it for a
+## local-mp keyboard player would let every other local player's gamepad presses leak in.
+func _uses_global_input() -> bool:
+	return local_player_index < 0
+
+
+func _in_axis() -> float:
+	if _uses_global_input():
+		return Input.get_axis("move_left", "move_right")
+	return LocalBindings.get_move_axis(local_player_index, local_joy_device)
+
+
+func _in_pressed(action: StringName) -> bool:
+	if _uses_global_input():
+		return Input.is_action_pressed(action)
+	return LocalBindings.is_pressed(local_player_index, local_joy_device, action)
+
+
+func _in_just_pressed(action: StringName) -> bool:
+	if _uses_global_input():
+		return Input.is_action_just_pressed(action)
+	return LocalBindings.is_just_pressed(local_player_index, local_joy_device, action)
 
 
 func _handle_input(_delta: float) -> void:
@@ -686,7 +748,7 @@ func _handle_input(_delta: float) -> void:
 		return
 	if _is_stunned:
 		return
-	if Input.is_action_just_pressed("jump") and not _is_shielding and _input_cooldown <= 0.0:
+	if _in_just_pressed("jump") and not _is_shielding and _input_cooldown <= 0.0:
 		if _state == PlayerState.GROUNDED or _coyote_timer > 0.0:
 			_coyote_timer = 0.0
 			_add_passthrough(_get_overhead_players(), 0.4)
@@ -700,7 +762,7 @@ func _handle_input(_delta: float) -> void:
 				_extra_jumps_used += 1
 				_transition_to(PlayerState.DOUBLE_JUMP)
 
-	if Input.is_action_just_pressed("f") and not _is_shielding:
+	if _in_just_pressed("f") and not _is_shielding:
 		if is_on_floor() and _dash_cooldown <= 0.0:
 			_transition_to(PlayerState.DASH)
 		elif not is_on_floor() and not has_air_boosted and _dbj_boost_lockout <= 0.0:
@@ -708,7 +770,7 @@ func _handle_input(_delta: float) -> void:
 
 	var can_throw := _projectile_cooldown <= 0.0 \
 			and (not _equipped_returns or _active_projectile_count < _equipped_max_simultaneous)
-	if Input.is_action_just_pressed("projectile") and can_throw and not _is_shielding and not in_safe_zone:
+	if _in_just_pressed("projectile") and can_throw and not _is_shielding and not in_safe_zone:
 		_throw_weapon(equipped_projectile_scene, facing_direction)
 		if _equipped_returns:
 			_active_projectile_count += 1
@@ -716,16 +778,16 @@ func _handle_input(_delta: float) -> void:
 		_is_upper_attacking = true
 		_play_attack_animation(&"projectile")
 
-	if Input.is_action_just_pressed("melee") and _melee_cooldown <= 0.0 and not _is_shielding and not in_safe_zone:
+	if _in_just_pressed("melee") and _melee_cooldown <= 0.0 and not _is_shielding and not in_safe_zone:
 		_is_upper_attacking = true
-		if Input.get_axis("move_left", "move_right") != 0.0:
+		if _in_axis() != 0.0:
 			_do_melee()
 			_play_attack_animation(&"melee")
 		else:
 			_do_zap()
 			_play_attack_animation(&"zap")
 
-	if Input.is_action_just_pressed("use_active") and not _active_used_this_round and not _is_shielding:
+	if _in_just_pressed("use_active") and not _active_used_this_round and not _is_shielding:
 		match active_powerup:
 			PowerupIds.SPEED_BOOST:
 				_speed_surge_active     = true
@@ -993,7 +1055,7 @@ func _throw_weapon(scene: PackedScene, dir: int, extra_offset: Vector2 = Vector2
 	var origin      := _torso_bone.global_position + TORSO_ATTACK_OFFSET if _torso_bone != null else global_position + stats.weapon_spawn_offset * Vector2(dir, 1)
 	var spawn_pos   := origin + extra_offset
 	var slow_on_hit := PowerupIds.SLOW_ON_HIT in passive_powerups
-	_rpc_throw_weapon.rpc(scene.resource_path, dir, spawn_pos, multiplayer.get_unique_id(), _effective_damage(), _effective_knockback_scale(), slow_on_hit)
+	_rpc_throw_weapon.rpc(scene.resource_path, dir, spawn_pos, get_multiplayer_authority(), _effective_damage(), _effective_knockback_scale(), slow_on_hit)
 
 
 @rpc("authority", "call_local", "reliable")
@@ -1020,7 +1082,7 @@ func _do_spawn_weapon(scene: PackedScene, dir: int, pos: Vector2, thrower_id: in
 		projectile.owner_node = self
 	get_parent().add_child(projectile)
 	projectile.global_position = pos
-	if _equipped_returns and is_multiplayer_authority():
+	if _equipped_returns and NetworkManager.owns_locally(self):
 		projectile.tree_exiting.connect(_on_projectile_returned)
 
 
@@ -1047,7 +1109,7 @@ func _do_melee() -> void:
 	var shield_spike_dmg: int = passive_powerups.get(PowerupIds.SHIELD_SPIKE, 0)
 	var parry_stun        := PowerupIds.PARRY_STUN in passive_powerups
 	var can_hit_ghosts    := PowerupIds.GHOST_HUNTER in passive_powerups
-	_rpc_throw_melee.rpc(facing_direction, multiplayer.get_unique_id(), _effective_damage(), _effective_knockback_scale(), big_melee_stacks, slow_on_hit, shield_spike_dmg, parry_stun, can_hit_ghosts, _visual_tilt)
+	_rpc_throw_melee.rpc(facing_direction, get_multiplayer_authority(), _effective_damage(), _effective_knockback_scale(), big_melee_stacks, slow_on_hit, shield_spike_dmg, parry_stun, can_hit_ghosts, _visual_tilt)
 
 
 @rpc("authority", "call_local", "reliable")
@@ -1079,7 +1141,7 @@ func _do_spawn_melee(dir: int, thrower_id: int, dmg: int = 1, kbs: float = 1.0, 
 func _do_zap() -> void:
 	_melee_cooldown = stats.melee_cooldown
 	var slow_on_hit := PowerupIds.SLOW_ON_HIT in passive_powerups
-	_rpc_throw_zap.rpc(facing_direction, multiplayer.get_unique_id(), _effective_damage(), _effective_knockback_scale(), slow_on_hit)
+	_rpc_throw_zap.rpc(facing_direction, get_multiplayer_authority(), _effective_damage(), _effective_knockback_scale(), slow_on_hit)
 
 
 @rpc("authority", "call_local", "reliable")
@@ -1102,7 +1164,7 @@ func _do_spawn_zap(dir: int, thrower_id: int, dmg: int = 1, kbs: float = 1.0, sl
 # ============================================================
 
 func take_damage(amount: int, knockback: Vector2 = Vector2.ZERO, attacker_peer_id: int = -1, bypass_ghost: bool = false) -> void:
-	if not is_multiplayer_authority():
+	if not NetworkManager.owns_locally(self):
 		return
 	if is_ghost and not bypass_ghost:
 		return
@@ -1124,7 +1186,7 @@ func take_damage(amount: int, knockback: Vector2 = Vector2.ZERO, attacker_peer_i
 	if attacker_peer_id != -1:
 		var main := get_tree().get_root().get_node_or_null("Main")
 		if main:
-			main.notify_damage(attacker_peer_id, multiplayer.get_unique_id(), actual)
+			main.notify_damage(attacker_peer_id, get_multiplayer_authority(), actual)
 	if health <= 0:
 		if knockback != Vector2.ZERO:
 			velocity = knockback
@@ -1142,7 +1204,7 @@ func die(instant: bool = false) -> void:
 	if is_ghost:
 		var ghost_main := get_tree().get_root().get_node_or_null("Main")
 		if ghost_main:
-			var ghost_spawn: Node2D = ghost_main.get_current_spawn_for_peer(multiplayer.get_unique_id())
+			var ghost_spawn: Node2D = ghost_main.get_current_spawn_for_peer(get_multiplayer_authority())
 			if ghost_spawn:
 				global_position = ghost_spawn.global_position
 		velocity = Vector2.ZERO
@@ -1165,7 +1227,7 @@ func die(instant: bool = false) -> void:
 	health_changed.emit(health, get_effective_max_health())
 	_state = PlayerState.GROUNDED
 	var main    := get_tree().get_root().get_node("Main")
-	var peer_id := multiplayer.get_unique_id()
+	var peer_id := get_multiplayer_authority()
 	if _last_attacker_peer_id != -1 and _last_attacker_peer_id != peer_id:
 		main.notify_kill(_last_attacker_peer_id, peer_id)
 	else:
@@ -1209,7 +1271,7 @@ func _rpc_receive_dash_push(push_velocity_x: float) -> void:
 
 
 func apply_environmental_push(push_delta: Vector2, max_speed: float = -1.0) -> void:
-	if not is_multiplayer_authority():
+	if not NetworkManager.owns_locally(self):
 		return
 	if push_delta.is_zero_approx():
 		return
@@ -1225,7 +1287,7 @@ func apply_environmental_push(push_delta: Vector2, max_speed: float = -1.0) -> v
 
 
 func set_environmental_push_source(source_id: int, acceleration: Vector2, max_speed: float = -1.0) -> void:
-	if not is_multiplayer_authority():
+	if not NetworkManager.owns_locally(self):
 		return
 	if acceleration.is_zero_approx():
 		_environmental_push_sources.erase(source_id)
@@ -1406,7 +1468,7 @@ func _reset_powerup_state() -> void:
 # ============================================================
 
 func _on_melee_hit_landed() -> void:
-	if not is_multiplayer_authority():
+	if not NetworkManager.owns_locally(self):
 		return
 	if PowerupIds.LIFESTEAL not in passive_powerups:
 		return
@@ -1419,14 +1481,14 @@ func _on_melee_hit_landed() -> void:
 
 
 func apply_slow(duration: float) -> void:
-	if not is_multiplayer_authority():
+	if not NetworkManager.owns_locally(self):
 		return
 	_is_slowed  = true
 	_slow_timer = max(_slow_timer, duration)
 
 
 func apply_stun(duration: float) -> void:
-	if not is_multiplayer_authority():
+	if not NetworkManager.owns_locally(self):
 		return
 	_is_stunned   = true
 	_stun_timer   = duration
@@ -1434,7 +1496,7 @@ func apply_stun(duration: float) -> void:
 
 
 func apply_confusion(duration: float) -> void:
-	if not is_multiplayer_authority():
+	if not NetworkManager.owns_locally(self):
 		return
 	_is_confused     = true
 	_confusion_timer = max(_confusion_timer, duration)
@@ -1503,7 +1565,7 @@ func _rpc_end_blink() -> void:
 func _rpc_heart_reset() -> void:
 	# Each peer sets health on the player they control
 	for player in get_tree().get_nodes_in_group("player"):
-		if player.is_multiplayer_authority() and not player.is_ghost:
+		if NetworkManager.owns_locally(player) and not player.is_ghost:
 			player.health = 1
 			player.health_changed.emit(1, player.get_effective_max_health())
 
@@ -1524,7 +1586,7 @@ func get_outfit_id() -> int:
 
 
 func request_outfit_change(new_outfit_id: int) -> void:
-	get_tree().get_root().get_node("Main").request_player_outfit_change(multiplayer.get_unique_id(), new_outfit_id)
+	get_tree().get_root().get_node("Main").request_player_outfit_change(get_multiplayer_authority(), new_outfit_id)
 
 
 func set_outfit_from_sync(new_outfit_id: int) -> void:

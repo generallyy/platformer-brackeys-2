@@ -58,6 +58,14 @@ func set_nudge(text: String) -> void:
 	_nudge_label.text    = text
 	_nudge_label.visible = not text.is_empty()
 
+## Hides this shared HUD's single-player Hearts/Powerups/Nudge widgets when split-screen
+## is active (each local player gets their own via MiniHUD instead). Scores/KDA/Announcement/
+## Objective stay visible — they're already multi-peer-aware.
+func set_single_player_widgets_visible(v: bool) -> void:
+	$Hearts.visible = v
+	_powerups_label.visible = v and not _powerups_label.text.is_empty()
+	_nudge_label.visible = v and not _nudge_label.text.is_empty()
+
 func update_hearts(current: int, max_health: int = 3) -> void:
 	var text := ""
 	for i in max_health:

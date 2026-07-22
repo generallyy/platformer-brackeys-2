@@ -3,14 +3,14 @@ extends Area2D
 var _player_nearby: Node = null
 
 func _process(_delta: float) -> void:
-	if _player_nearby and Input.is_action_just_pressed("interact"):
+	if _player_nearby and _player_nearby.is_input_just_pressed("interact"):
 		get_tree().get_root().get_node("Main").open_wardrobe(_player_nearby)
 		#$PromptLabel.text = "Equipped!"
 
 func _on_body_entered(body: Node2D) -> void:
 	if not body.is_in_group("player"):
 		return
-	if not body.is_multiplayer_authority():
+	if not NetworkManager.owns_locally(body):
 		return
 	_player_nearby = body
 	$PromptLabel.text = "Press %s to change outfit!" % InputUtils.get_action_key("interact")

@@ -1,0 +1,58 @@
+[gd_scene format=3 uid="uid://wi7p5dsvtj7w"]
+
+[ext_resource type="Theme" uid="uid://2p378flu0i2e" path="res://assets/fonts/labrada.tres" id="1_l1ngn"]
+[ext_resource type="Texture2D" uid="uid://nkwt7n8a488r" path="res://assets/sprites/grayarrow2.png" id="2_ding5"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_85g3d"]
+bg_color = Color(0.09803922, 0.13333334, 0.16470589, 1)
+border_width_left = 20
+border_width_top = 20
+border_width_right = 20
+border_width_bottom = 20
+border_blend = true
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+expand_margin_left = 40.0
+expand_margin_top = 20.0
+expand_margin_right = 40.0
+expand_margin_bottom = 20.0
+
+[node name="KeybindsMenu" type="CenterContainer" unique_id=1191615980]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("1_l1ngn")
+
+[node name="PanelContainer" type="PanelContainer" parent="." unique_id=2063390812]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_85g3d")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer" unique_id=998475621]
+layout_mode = 2
+theme_override_constants/separation = 30
+
+[node name="ArrowLeft" type="TextureButton" parent="PanelContainer/HBoxContainer" unique_id=2002808667]
+layout_mode = 2
+size_flags_vertical = 4
+texture_normal = ExtResource("2_ding5")
+stretch_mode = 6
+flip_h = true
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/HBoxContainer" unique_id=472019954]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Title" type="Label" parent="PanelContainer/HBoxContainer/VBoxContainer" unique_id=209868917]
+layout_mode = 2
+text = "Keybinds - Combat"
+horizontal_alignment = 1
+
+[node name="ArrowRight" type="TextureButton" parent="PanelContainer/HBoxContainer" unique_id=182049954]
+layout_mode = 2
+size_flags_vertical = 4
+texture_normal = ExtResource("2_ding5")

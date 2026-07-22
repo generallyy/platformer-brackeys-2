@@ -40,7 +40,7 @@ func _is_last_active(peer_id: int, main: Node) -> bool:
 func _on_body_entered(body: Node2D) -> void:
 	if not body.is_in_group("player"):
 		return
-	if not body.is_multiplayer_authority():
+	if not NetworkManager.owns_locally(body):
 		return
 	var _main := get_tree().get_root().get_node("Main")
 	var gm: Node = _main.gm_rush

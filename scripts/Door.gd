@@ -16,19 +16,19 @@ func _process(_delta: float) -> void:
 		return
 	if not (_player_nearby is CharacterBody2D and _player_nearby.has_method("die")):
 		return
-	if not _player_nearby.is_multiplayer_authority():
+	if not NetworkManager.owns_locally(_player_nearby):
 		return
 	if target_level_path == "":
 		print("No level path set!")
 		return
-	if Input.is_action_just_pressed("interact"):
+	if _player_nearby.is_input_just_pressed("interact"):
 		_triggered = true
 		get_tree().get_root().get_node("Main").request_load_level(target_level_path)
 
 func _on_body_entered(body: Node2D) -> void:
 	if not body.is_in_group("player"):
 		return
-	if not body.is_multiplayer_authority():
+	if not NetworkManager.owns_locally(body):
 		return
 	_player_nearby = body
 	var actual_path := target_level_path

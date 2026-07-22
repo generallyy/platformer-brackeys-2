@@ -13,6 +13,11 @@ var is_host := false
 var _on_mp_connection_failed: Callable
 var _on_mp_server_disconnected: Callable
 
+var is_local_multiplayer := false
+var local_player_count := 0
+var keyboard_slot := -1               # -1 if no local-multiplayer slot uses keyboard this session
+var local_player_devices: Array[int] = []  # joypad device index per slot; entry at keyboard_slot is unused
+
 var _reconnect_address  := ""
 var _reconnect_attempts := 0
 var _reconnect_timer    := 0.0
@@ -70,6 +75,10 @@ func close():
 		multiplayer.multiplayer_peer.close()
 	multiplayer.multiplayer_peer = null
 	is_host = false
+	is_local_multiplayer = false
+	local_player_count = 0
+	keyboard_slot = -1
+	local_player_devices = []
 
 func is_online() -> bool:
 	return multiplayer.multiplayer_peer is ENetMultiplayerPeer
@@ -78,6 +87,26 @@ func play_solo() -> void:
 	close()
 	multiplayer.multiplayer_peer = OfflineMultiplayerPeer.new()
 	is_host = true
+
+## Starts a fully offline local-multiplayer session. `kb_slot` is the slot index (0-based)
+## assigned to the keyboard, or -1 if every slot is a gamepad. `joy_devices` is sized to
+## `player_count`; the entry at `kb_slot`, if any, is ignored.
+func play_local_multiplayer(player_count: int, kb_slot: int, joy_devices: Array[int]) -> void:
+	close()
+	multiplayer.multiplayer_peer = OfflineMultiplayerPeer.new()
+	is_host = true
+	is_local_multiplayer = true
+	local_player_count = player_count
+	keyboard_slot = kb_slot
+	local_player_devices = joy_devices
+
+## Drop-in replacement for `node.is_multiplayer_authority()` that also does the right thing
+## for local-multiplayer, where every local player node is driven by this one process despite
+## none of them having a network authority id that matches multiplayer.get_unique_id().
+func owns_locally(node: Node) -> bool:
+	if is_online():
+		return node.is_multiplayer_authority()
+	return true
 
 func _handle_connection_failed():
 	multiplayer.multiplayer_peer = null
