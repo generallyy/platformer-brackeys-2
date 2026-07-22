@@ -1,4 +1,5 @@
 extends CharacterBody2D
+class_name Player
 
 # ============================================================
 # PRELOADS
@@ -1368,7 +1369,7 @@ func clear_powerups() -> void:
 	passive_powerups.clear()
 	active_powerup = ""
 	_is_dying      = false
-	scale          = Vector2(1.0, 1.0)
+	scale          = stats.base_scale
 	_reset_powerup_state()
 	powerups_changed.emit(passive_powerups, active_powerup)
 

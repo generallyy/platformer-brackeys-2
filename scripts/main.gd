@@ -372,6 +372,7 @@ func _spawn_player(peer_id: int):
 		return
 	_player_numbers[peer_id] = _player_numbers.size() + 1
 	var p = PLAYER_SCENE.instantiate()
+	p.scale = p.stats.base_scale
 	p.name = "Player_%d" % peer_id
 	p.set_multiplayer_authority(peer_id)
 	add_child(p)

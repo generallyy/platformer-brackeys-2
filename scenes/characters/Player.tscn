@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://8y0ak4ctjdvg" path="res://scripts/player.gd" id="1_wlgh5"]
 [ext_resource type="Resource" uid="uid://gxu7b4kv2qap" path="res://resources/player_stats.tres" id="2_gj1sn"]
 [ext_resource type="Texture2D" uid="uid://da6r0ki7buguf" path="res://assets/sprites/white_circle.png" id="3_a8hje"]
+[ext_resource type="Texture2D" uid="uid://nbqal1ukhu5c" path="res://assets/sprites/cosmetics/hats.png" id="4_miirx"]
 [ext_resource type="Texture2D" uid="uid://c44wdtvog1din" path="res://assets/sprites/sticky-man.webp" id="6_m6phi"]
 [ext_resource type="Script" uid="uid://b4sv4e2lh3sqr" path="res://scripts/stick_figure_rig.gd" id="6_oihyf"]
 [ext_resource type="Theme" uid="uid://2p378flu0i2e" path="res://assets/fonts/labrada.tres" id="6_rpfb3"]
@@ -128,7 +129,6 @@ states/zap/position = Vector2(614, 92.8)
 transitions = ["Start", "idle", SubResource("AnimationNodeStateMachineTransition_xtneo"), "idle", "melee", SubResource("AnimationNodeStateMachineTransition_esqba"), "idle", "zap", SubResource("AnimationNodeStateMachineTransition_gshud"), "melee", "idle", SubResource("AnimationNodeStateMachineTransition_2gor4"), "zap", "idle", SubResource("AnimationNodeStateMachineTransition_yfc33"), "idle", "projectile", SubResource("AnimationNodeStateMachineTransition_miirx"), "projectile", "idle", SubResource("AnimationNodeStateMachineTransition_m6phi")]
 
 [sub_resource type="AnimationNodeBlendTree" id="AnimationNodeBlendTree_ufbvs"]
-graph_offset = Vector2(-560, 51)
 nodes/UpperBlend/node = SubResource("AnimationNodeBlend2_7lms1")
 nodes/UpperBlend/position = Vector2(-16, 160)
 nodes/BodySM/node = SubResource("AnimationNodeStateMachine_7lms1")
@@ -2114,12 +2114,12 @@ stats = ExtResource("2_gj1sn")
 
 [node name="MovementCollision" type="CollisionShape2D" parent="." unique_id=1239734096]
 z_index = 1
-position = Vector2(-0.006034649, -10.184628)
+position = Vector2(-2.2254927, -125.99603)
+scale = Vector2(12.577428, 12.577428)
 shape = SubResource("CapsuleShape2D_miirx")
 
 [node name="StickRig" type="Node2D" parent="." unique_id=2026205896]
 z_index = 2
-scale = Vector2(0.05, 0.05)
 script = ExtResource("6_oihyf")
 
 [node name="Scarf" type="Line2D" parent="StickRig" unique_id=1360584124]
@@ -2155,7 +2155,7 @@ bone_angle = 72.04148
 [node name="RightForearm" type="Bone2D" parent="StickRig/Skeleton2D/Torso/RightArm" unique_id=42319703]
 position = Vector2(34.57041, 106.531204)
 rotation = -1.8845247
-scale = Vector2(0.9999983, 0.99999875)
+scale = Vector2(0.99999815, 0.99999875)
 skew = 0.023401976
 rest = Transform2D(-0.3086069, -0.95118874, 0.9581513, -0.28626198, 34.57041, 106.531204)
 auto_calculate_length_and_angle = false
@@ -2174,7 +2174,7 @@ bone_angle = -61.017487
 [node name="LeftForearm" type="Bone2D" parent="StickRig/Skeleton2D/Torso/LeftArm" unique_id=1797633340]
 position = Vector2(54.234207, -97.99323)
 rotation = -1.008149
-scale = Vector2(0.9999979, 0.9999979)
+scale = Vector2(0.999998, 0.999998)
 rest = Transform2D(0.5334273, -0.84584594, 0.84584594, 0.5334273, 54.234207, -97.99323)
 auto_calculate_length_and_angle = false
 length = 102.582
@@ -2188,6 +2188,15 @@ rest = Transform2D(-0.007742252, 0.99997, -0.99997, -0.007742252, 0, -207.999)
 auto_calculate_length_and_angle = false
 length = 42.72
 bone_angle = 180.0
+
+[node name="Sprite2D" type="Sprite2D" parent="StickRig/Skeleton2D/Torso/Head" unique_id=267375238]
+z_index = 21
+position = Vector2(-202.77344, 49.535156)
+rotation = -1.6804992
+scale = Vector2(0.681894, 0.53475374)
+texture = ExtResource("4_miirx")
+region_enabled = true
+region_rect = Rect2(-41.05121, 262.66153, 629.8515, 430.8187)
 
 [node name="RigHitbox" type="Area2D" parent="StickRig/Skeleton2D/Torso" unique_id=2012089818]
 
@@ -2224,7 +2233,7 @@ bone_angle = 89.867775
 [node name="RightShin" type="Bone2D" parent="StickRig/Skeleton2D/RightThigh" unique_id=380167677]
 position = Vector2(0.22148587, 95.999725)
 rotation = 1.2771724
-scale = Vector2(0.99999774, 0.99999774)
+scale = Vector2(0.9999976, 0.9999976)
 rest = Transform2D(0.2894227, 0.95720065, -0.95720065, 0.2894227, 0.22148587, 95.999725)
 auto_calculate_length_and_angle = false
 length = 112.0
@@ -2361,10 +2370,12 @@ zoom = Vector2(3, 3)
 position_smoothing_enabled = true
 
 [node name="Label" type="Label" parent="." unique_id=2000590278]
-offset_left = -31.081425
-offset_top = -42.94118
-offset_right = 30.918575
-offset_bottom = -29.941181
+z_index = 10
+offset_left = -497.20596
+offset_top = -853.0594
+offset_right = -435.20596
+offset_bottom = -840.0594
+scale = Vector2(16, 16)
 theme = ExtResource("6_rpfb3")
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 4
@@ -2374,21 +2385,18 @@ text = "dummy"
 horizontal_alignment = 1
 
 [node name="KillIndicator" type="Label" parent="." unique_id=415679306]
-offset_left = 4.0
-offset_top = -28.0
-offset_right = 22.0
-offset_bottom = -15.0
+offset_left = 153.66003
+offset_top = -707.2924
+offset_right = 171.66003
+offset_bottom = -694.2924
+scale = Vector2(16.701895, 16.701895)
 theme = ExtResource("6_rpfb3")
 theme_override_colors/font_color = Color(0.013917681, 0.8013557, 0.4278283, 1)
 theme_override_font_sizes/font_size = 8
 text = "+1"
 
 [node name="RayCastLeft" type="RayCast2D" parent="." unique_id=1984120513]
-visible = false
 position = Vector2(-3, -2)
-target_position = Vector2(0, 10)
 
 [node name="RayCastRight" type="RayCast2D" parent="." unique_id=157166717]
-visible = false
 position = Vector2(3, -2)
-target_position = Vector2(0, 10)

@@ -47,6 +47,7 @@ extends Resource
 @export var jump_boost_scale: float = 1.35
 
 # Misc
+@export var base_scale: Vector2 = Vector2(.05, .05)
 @export var mass: float = 1.0
 @export var push_restitution: float = 0.0
 @export var respawn_delay: float = 0.25
