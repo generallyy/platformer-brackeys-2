@@ -67,14 +67,7 @@ func _on_body_entered(body: Node2D) -> void:
 		return
 	if body == owner_node:
 		return
-	if body.is_in_group("player"):
-		if body.get_multiplayer_authority() == thrower_peer_id:
-			return
-		body.take_damage(damage, AttackHitbox.calc_knockback(knockback, direction), thrower_peer_id)
-		if slow_on_hit:
-			body.apply_slow(PowerupIds.SLOW_DURATION)
-		_on_hit_character(body)
-		return
+	# Players are hit via their RigHitbox (player_hurtbox) instead — see _on_area_entered.
 	if body is CharacterBody2D or body.is_in_group("enemy"):
 		return
 	_on_landed()
@@ -88,6 +81,17 @@ func _on_area_entered(area: Area2D) -> void:
 	if area.is_in_group("enemy_hurtbox"):
 		area.get_parent().take_damage(damage)
 		_on_hit_character(area.get_parent())
+		return
+	if area.is_in_group("player_hurtbox"):
+		var body: Node = area.owner
+		if body == owner_node:
+			return
+		if body.get_multiplayer_authority() == thrower_peer_id:
+			return
+		body.take_damage(damage, AttackHitbox.calc_knockback(knockback, direction), thrower_peer_id)
+		if slow_on_hit:
+			body.apply_slow(PowerupIds.SLOW_DURATION)
+		_on_hit_character(body)
 
 
 func _despawn() -> void:

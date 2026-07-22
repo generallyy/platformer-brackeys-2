@@ -2199,6 +2199,7 @@ region_enabled = true
 region_rect = Rect2(-41.05121, 262.66153, 629.8515, 430.8187)
 
 [node name="RigHitbox" type="Area2D" parent="StickRig/Skeleton2D/Torso" unique_id=2012089818]
+groups=["player_hurtbox"]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="StickRig/Skeleton2D/Torso/RigHitbox" unique_id=1943173743]
 position = Vector2(-5.617468, -100.16216)
