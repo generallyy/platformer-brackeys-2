@@ -1361,8 +1361,8 @@ func apply_powerup(id: String) -> void:
 
 
 @rpc("authority", "call_local", "reliable")
-func _rpc_sync_scale(s: Vector2) -> void:
-	scale = s
+func _rpc_sync_scale(factor: Vector2) -> void:
+	scale *= factor
 
 
 func clear_powerups() -> void:
