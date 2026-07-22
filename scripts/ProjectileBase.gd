@@ -83,8 +83,8 @@ func _on_area_entered(area: Area2D) -> void:
 		_on_hit_character(area.get_parent())
 		return
 	if area.is_in_group("player_hurtbox"):
-		var body: Node = area.owner
-		if body == owner_node:
+		var body: Node = _find_player_ancestor(area)
+		if body == null or body == owner_node:
 			return
 		if body.get_multiplayer_authority() == thrower_peer_id:
 			return
@@ -93,6 +93,14 @@ func _on_area_entered(area: Area2D) -> void:
 			body.apply_slow(PowerupIds.SLOW_DURATION)
 		_on_hit_character(body)
 
+
+func _find_player_ancestor(node: Node) -> Node:
+	var n := node
+	while n != null:
+		if n.is_in_group("player"):
+			return n
+		n = n.get_parent()
+	return null
 
 func _despawn() -> void:
 	if not _active:
