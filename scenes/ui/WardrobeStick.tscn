@@ -1,0 +1,385 @@
+[gd_scene format=3 uid="uid://bafjb4ich64k5"]
+
+[ext_resource type="Theme" uid="uid://2p378flu0i2e" path="res://assets/fonts/labrada.tres" id="1_eelre"]
+[ext_resource type="Script" uid="uid://bj5n8gnun1p02" path="res://scripts/WardrobeStick.gd" id="1_script"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hlkt4"]
+bg_color = Color(0.010308163, 0.24287656, 0.35054344, 0.9607843)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.772549, 0.65098, 0.243137, 1)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_rhrnm"]
+bg_color = Color(2.117753e-06, 0.6444667, 0.9184547, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.15487596, 0.154876, 0.15487596, 1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_rhrnm_hover"]
+bg_color = Color(2.117753e-06, 0.6444667, 0.9184547, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.15487596, 0.154876, 0.15487596, 1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_size = 8
+shadow_offset = Vector2(0, 4)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_color_red"]
+bg_color = Color(0.85, 0.15, 0.15, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.15487596, 0.154876, 0.15487596, 1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_color_red_hover"]
+bg_color = Color(0.85, 0.15, 0.15, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.15487596, 0.154876, 0.15487596, 1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_size = 8
+shadow_offset = Vector2(0, 4)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_color_orange"]
+bg_color = Color(0.95, 0.55, 0.1, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.15487596, 0.154876, 0.15487596, 1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_color_orange_hover"]
+bg_color = Color(0.95, 0.55, 0.1, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.15487596, 0.154876, 0.15487596, 1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_size = 8
+shadow_offset = Vector2(0, 4)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_color_yellow"]
+bg_color = Color(0.95, 0.85, 0.15, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.15487596, 0.154876, 0.15487596, 1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_color_yellow_hover"]
+bg_color = Color(0.95, 0.85, 0.15, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.15487596, 0.154876, 0.15487596, 1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_size = 8
+shadow_offset = Vector2(0, 4)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_color_green"]
+bg_color = Color(0.2, 0.75, 0.25, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.15487596, 0.154876, 0.15487596, 1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_color_green_hover"]
+bg_color = Color(0.2, 0.75, 0.25, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.15487596, 0.154876, 0.15487596, 1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_size = 8
+shadow_offset = Vector2(0, 4)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_color_indigo"]
+bg_color = Color(0.25, 0.25, 0.85, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.15487596, 0.154876, 0.15487596, 1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_color_indigo_hover"]
+bg_color = Color(0.25, 0.25, 0.85, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.15487596, 0.154876, 0.15487596, 1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_size = 8
+shadow_offset = Vector2(0, 4)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_color_purple"]
+bg_color = Color(0.55, 0.2, 0.75, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.15487596, 0.154876, 0.15487596, 1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_color_purple_hover"]
+bg_color = Color(0.55, 0.2, 0.75, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.15487596, 0.154876, 0.15487596, 1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_size = 8
+shadow_offset = Vector2(0, 4)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_color_pink"]
+bg_color = Color(0.9, 0.35, 0.6, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.15487596, 0.154876, 0.15487596, 1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_color_pink_hover"]
+bg_color = Color(0.9, 0.35, 0.6, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.15487596, 0.154876, 0.15487596, 1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_size = 8
+shadow_offset = Vector2(0, 4)
+
+[node name="WardrobeStick" type="CanvasLayer" unique_id=929491088]
+layer = 3
+script = ExtResource("1_script")
+
+[node name="ColorRect" type="ColorRect" parent="." unique_id=1897819652]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("1_eelre")
+color = Color(0, 0, 0, 0.35)
+
+[node name="CenterContainer" type="CenterContainer" parent="ColorRect" unique_id=1971566343]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="PanelContainer" type="PanelContainer" parent="ColorRect/CenterContainer" unique_id=977604815]
+custom_minimum_size = Vector2(1200, 600)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_hlkt4")
+
+[node name="MarginContainer" type="MarginContainer" parent="ColorRect/CenterContainer/PanelContainer" unique_id=929544178]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 20
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ColorRect/CenterContainer/PanelContainer/MarginContainer" unique_id=1838130087]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Title" type="Label" parent="ColorRect/CenterContainer/PanelContainer/MarginContainer/VBoxContainer" unique_id=1904749774]
+layout_mode = 2
+text = "Wardrobe"
+horizontal_alignment = 1
+
+[node name="HBoxContainer" type="HBoxContainer" parent="ColorRect/CenterContainer/PanelContainer/MarginContainer/VBoxContainer" unique_id=22252803]
+layout_mode = 2
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="ColorBox" type="CenterContainer" parent="ColorRect/CenterContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer" unique_id=1563297414]
+custom_minimum_size = Vector2(200, 400)
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ColorRect/CenterContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/ColorBox" unique_id=272360422]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="ColorRect/CenterContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/ColorBox/VBoxContainer" unique_id=677203602]
+layout_mode = 2
+text = "Colors"
+horizontal_alignment = 1
+
+[node name="GridContainer" type="GridContainer" parent="ColorRect/CenterContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/ColorBox/VBoxContainer" unique_id=848177935]
+custom_minimum_size = Vector2(10, 10)
+layout_mode = 2
+columns = 2
+
+[node name="Button" type="Button" parent="ColorRect/CenterContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/ColorBox/VBoxContainer/GridContainer" unique_id=1589820005 groups=["wardrobe_color_button"]]
+custom_minimum_size = Vector2(75, 75)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_rhrnm")
+theme_override_styles/hover = SubResource("StyleBoxFlat_rhrnm_hover")
+
+[node name="Button2" type="Button" parent="ColorRect/CenterContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/ColorBox/VBoxContainer/GridContainer" unique_id=1589820006 groups=["wardrobe_color_button"]]
+custom_minimum_size = Vector2(75, 75)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_color_red")
+theme_override_styles/hover = SubResource("StyleBoxFlat_color_red_hover")
+
+[node name="Button3" type="Button" parent="ColorRect/CenterContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/ColorBox/VBoxContainer/GridContainer" unique_id=1589820007 groups=["wardrobe_color_button"]]
+custom_minimum_size = Vector2(75, 75)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_color_orange")
+theme_override_styles/hover = SubResource("StyleBoxFlat_color_orange_hover")
+
+[node name="Button4" type="Button" parent="ColorRect/CenterContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/ColorBox/VBoxContainer/GridContainer" unique_id=1589820008 groups=["wardrobe_color_button"]]
+custom_minimum_size = Vector2(75, 75)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_color_yellow")
+theme_override_styles/hover = SubResource("StyleBoxFlat_color_yellow_hover")
+
+[node name="Button5" type="Button" parent="ColorRect/CenterContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/ColorBox/VBoxContainer/GridContainer" unique_id=1589820009 groups=["wardrobe_color_button"]]
+custom_minimum_size = Vector2(75, 75)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_color_green")
+theme_override_styles/hover = SubResource("StyleBoxFlat_color_green_hover")
+
+[node name="Button6" type="Button" parent="ColorRect/CenterContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/ColorBox/VBoxContainer/GridContainer" unique_id=1589820010 groups=["wardrobe_color_button"]]
+custom_minimum_size = Vector2(75, 75)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_color_indigo")
+theme_override_styles/hover = SubResource("StyleBoxFlat_color_indigo_hover")
+
+[node name="Button7" type="Button" parent="ColorRect/CenterContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/ColorBox/VBoxContainer/GridContainer" unique_id=1589820011 groups=["wardrobe_color_button"]]
+custom_minimum_size = Vector2(75, 75)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_color_purple")
+theme_override_styles/hover = SubResource("StyleBoxFlat_color_purple_hover")
+
+[node name="Button8" type="Button" parent="ColorRect/CenterContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/ColorBox/VBoxContainer/GridContainer" unique_id=1589820012 groups=["wardrobe_color_button"]]
+custom_minimum_size = Vector2(75, 75)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_color_pink")
+theme_override_styles/hover = SubResource("StyleBoxFlat_color_pink_hover")
+
+[node name="PreviewBox" type="CenterContainer" parent="ColorRect/CenterContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer" unique_id=1050416602]
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ColorRect/CenterContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PreviewBox" unique_id=129438246]
+layout_mode = 2
+
+[node name="PreviewName" type="Label" parent="ColorRect/CenterContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PreviewBox/VBoxContainer" unique_id=552627224]
+layout_mode = 2
+text = "Preview"
+horizontal_alignment = 1
+
+[node name="PreviewCenter" type="CenterContainer" parent="ColorRect/CenterContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PreviewBox/VBoxContainer" unique_id=1022970193]
+layout_mode = 2
+
+[node name="PreviewViewportContainer" type="SubViewportContainer" parent="ColorRect/CenterContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PreviewBox/VBoxContainer/PreviewCenter" unique_id=523723204]
+custom_minimum_size = Vector2(220, 320)
+layout_mode = 2
+stretch = true
+
+[node name="PreviewViewport" type="SubViewport" parent="ColorRect/CenterContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/PreviewBox/VBoxContainer/PreviewCenter/PreviewViewportContainer" unique_id=523723205]
+transparent_bg = true
+handle_input_locally = false
+size = Vector2i(220, 320)
+render_target_update_mode = 4
+
+[node name="CosmeticBox" type="CenterContainer" parent="ColorRect/CenterContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer" unique_id=2019844185]
+custom_minimum_size = Vector2(500, 400)
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ColorRect/CenterContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/CosmeticBox" unique_id=1723423180]
+layout_mode = 2
+
+[node name="Options" type="VBoxContainer" parent="ColorRect/CenterContainer/PanelContainer/MarginContainer/VBoxContainer" unique_id=189676013]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Close" type="Button" parent="ColorRect/CenterContainer/PanelContainer/MarginContainer/VBoxContainer" unique_id=236620587]
+layout_mode = 2
+text = "Close"
+
+[connection signal="pressed" from="ColorRect/CenterContainer/PanelContainer/MarginContainer/VBoxContainer/Close" to="." method="_on_close_pressed"]

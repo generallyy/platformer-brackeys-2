@@ -10,13 +10,14 @@ height = 32.0
 script = ExtResource("1_melee")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1815644894]
-position = Vector2(14, 0)
+position = Vector2(353.99997, -2.9999998)
 rotation = 1.5707964
+scale = Vector2(20, 20)
 shape = SubResource("CapsuleShape2D_rnlpq")
 
 [node name="Visual" type="Polygon2D" parent="." unique_id=2007490893]
 position = Vector2(-3.8666668, 0)
-scale = Vector2(0.96666664, 1)
+scale = Vector2(20, 20.683)
 color = Color(1, 1, 0.6, 0.45)
 polygon = PackedVector2Array(4, -10, 32, -6, 34, 6, 4, 10)
 

@@ -36,7 +36,7 @@ var _debug_visible := false
 @onready var level_container = $LevelContainer
 @onready var loading_screen = $LoadingScreen
 @onready var hud = $HUD
-@onready var wardrobe_menu = $WardrobeMenu
+@onready var wardrobe_stick = $WardrobeStick
 @onready var blackjack_menu = $BlackjackMenu
 @onready var eight_ball_menu = $EightBallMenu
 @onready var gm_rush = $GmRush
@@ -60,7 +60,7 @@ func _ready() -> void:
 		_mouse_idle = 0.0
 	)
 	#pause_menu.visible = false
-	wardrobe_menu.visible = false
+	wardrobe_stick.visible = false
 	blackjack_menu.close_menu()
 	eight_ball_menu.close_menu()
 	hud.visible = true
@@ -158,7 +158,7 @@ func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("blackjack"):
 		if blackjack_menu.visible:
 			close_blackjack()
-		elif not pause_menu.visible and not loading_screen.visible and not wardrobe_menu.visible and not powerups_menu.visible and not eight_ball_menu.visible:
+		elif not pause_menu.visible and not loading_screen.visible and not wardrobe_stick.visible and not powerups_menu.visible and not eight_ball_menu.visible:
 			open_blackjack()
 		get_viewport().set_input_as_handled()
 		return
@@ -218,7 +218,9 @@ func _request_state(player_name: String = ""):
 	for existing_id in spawned_players:
 		_rpc_spawn.rpc_id(caller, existing_id)
 		spawned_players[existing_id].add_sync_peer(caller)
-		_sync_player_outfit.rpc_id(caller, existing_id, spawned_players[existing_id].get_outfit_id())
+		_sync_player_accent_color.rpc_id(caller, existing_id, spawned_players[existing_id].get_accent_color())
+		for slot in spawned_players[existing_id].get_equipped_cosmetics():
+			_sync_player_cosmetic.rpc_id(caller, existing_id, slot, spawned_players[existing_id].get_equipped_cosmetics()[slot])
 	# Tell everyone (including server) to spawn the new player
 	_rpc_spawn.rpc(caller)
 	# Add existing clients to new player's sync_peers so the server can relay their state to each other
@@ -644,7 +646,7 @@ func _sync_checkpoint(peer_id: int, checkpoint_path: NodePath) -> void:
 func open_wardrobe(player: Node) -> void:
 	if player.get_multiplayer_authority() != multiplayer.get_unique_id():
 		return
-	if _wardrobe_player == player and wardrobe_menu.visible:
+	if _wardrobe_player == player and wardrobe_stick.visible:
 		return
 	close_blackjack()
 	close_eight_ball()
@@ -652,13 +654,13 @@ func open_wardrobe(player: Node) -> void:
 	_wardrobe_player = player
 	if is_instance_valid(_wardrobe_player):
 		_wardrobe_player.set_ui_locked(true)
-	wardrobe_menu.open_for_player(player)
+	wardrobe_stick.open_for_player(player)
 
 func close_wardrobe() -> void:
 	if is_instance_valid(_wardrobe_player):
 		_wardrobe_player.set_ui_locked(false)
 	_wardrobe_player = null
-	wardrobe_menu.close_menu()
+	wardrobe_stick.close_menu()
 
 
 func open_blackjack() -> void:
@@ -819,27 +821,49 @@ func _do_eight_ball_shot(peer_id: int, angle: float, power: float) -> void:
 	if NetworkManager.is_online() and not multiplayer.get_peers().is_empty():
 		_sync_eight_ball_shot_anim.rpc(pre_shot_balls, peer_id, angle, power, animation_id)
 
-func request_player_outfit_change(peer_id: int, outfit_id: int) -> void:
+func request_player_accent_color_change(peer_id: int, color: Color) -> void:
 	if NetworkManager.is_online() and not multiplayer.is_server():
-		_req_player_outfit_change.rpc_id(1, peer_id, outfit_id)
+		_req_player_accent_color_change.rpc_id(1, peer_id, color)
 		return
-	_apply_player_outfit(peer_id, outfit_id)
+	_apply_player_accent_color(peer_id, color)
 
 @rpc("any_peer", "reliable")
-func _req_player_outfit_change(peer_id: int, outfit_id: int) -> void:
+func _req_player_accent_color_change(peer_id: int, color: Color) -> void:
 	if multiplayer.get_remote_sender_id() != peer_id:
 		return
-	_apply_player_outfit(peer_id, outfit_id)
+	_apply_player_accent_color(peer_id, color)
 
-func _apply_player_outfit(peer_id: int, outfit_id: int) -> void:
+func _apply_player_accent_color(peer_id: int, color: Color) -> void:
 	if not peer_id in spawned_players:
 		return
-	_sync_player_outfit.rpc(peer_id, outfit_id)
+	_sync_player_accent_color.rpc(peer_id, color)
 
 @rpc("authority", "call_local", "reliable")
-func _sync_player_outfit(peer_id: int, outfit_id: int) -> void:
+func _sync_player_accent_color(peer_id: int, color: Color) -> void:
 	if peer_id in spawned_players:
-		spawned_players[peer_id].set_outfit_from_sync(outfit_id)
+		spawned_players[peer_id].set_accent_color_from_sync(color)
+
+func request_player_cosmetic_change(peer_id: int, slot: StringName, item_path: String) -> void:
+	if NetworkManager.is_online() and not multiplayer.is_server():
+		_req_player_cosmetic_change.rpc_id(1, peer_id, slot, item_path)
+		return
+	_apply_player_cosmetic(peer_id, slot, item_path)
+
+@rpc("any_peer", "reliable")
+func _req_player_cosmetic_change(peer_id: int, slot: StringName, item_path: String) -> void:
+	if multiplayer.get_remote_sender_id() != peer_id:
+		return
+	_apply_player_cosmetic(peer_id, slot, item_path)
+
+func _apply_player_cosmetic(peer_id: int, slot: StringName, item_path: String) -> void:
+	if not peer_id in spawned_players:
+		return
+	_sync_player_cosmetic.rpc(peer_id, slot, item_path)
+
+@rpc("authority", "call_local", "reliable")
+func _sync_player_cosmetic(peer_id: int, slot: StringName, item_path: String) -> void:
+	if peer_id in spawned_players:
+		spawned_players[peer_id].set_cosmetic_from_sync(slot, item_path)
 
 func goal_reached(peer_id: int) -> void:
 	if NetworkManager.is_online() and not multiplayer.is_server():

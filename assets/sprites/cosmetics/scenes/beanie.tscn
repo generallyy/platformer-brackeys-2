@@ -1,0 +1,11 @@
+[gd_scene format=3 uid="uid://cj5o6m06w5sca"]
+
+[ext_resource type="Texture2D" uid="uid://nbqal1ukhu5c" path="res://assets/sprites/cosmetics/hats.png" id="1_niymf"]
+
+[node name="Beanie" type="Node2D" unique_id=1982245841]
+
+[node name="Node2D" type="Sprite2D" parent="." unique_id=697715756]
+position = Vector2(-37, -89)
+texture = ExtResource("1_niymf")
+region_enabled = true
+region_rect = Rect2(-25.128479, 268.15384, 596.30774, 424.82047)

@@ -1,3 +1,4 @@
+@tool
 class_name StickFigureRig
 extends Node2D
 
@@ -5,12 +6,27 @@ extends Node2D
 @export var accent_color := Color(0.1, 0.48, 0.95, 1.0)
 @export var line_width := 60
 
+## Editor-only: assign a CosmeticItem here to see it live on the rig in the
+## scene editor while tuning its offset/rotation/scale. No effect at runtime.
+@export_group("Editor Preview")
+@export var preview_cosmetic: CosmeticItem:
+	set(value):
+		if preview_cosmetic != null and preview_cosmetic.changed.is_connected(_on_preview_cosmetic_changed):
+			preview_cosmetic.changed.disconnect(_on_preview_cosmetic_changed)
+		preview_cosmetic = value
+		if preview_cosmetic != null:
+			preview_cosmetic.changed.connect(_on_preview_cosmetic_changed)
+		if Engine.is_editor_hint():
+			_refresh_preview_cosmetic()
+
 var current_animation: StringName = &"idle"
 var facing_direction := 1
 
 @onready var _animator: AnimationPlayer = $RigAnimationPlayer
 @onready var _scarf: Line2D = $Scarf
 @onready var _animation_tree: AnimationTree = $AnimationTree
+@onready var _polygons: Node2D = get_node_or_null("Polygons")
+@onready var _hat_socket: Node2D = get_node_or_null("Skeleton2D/Torso/Head/HeadCosmetic")
 
 
 func _ready() -> void:
@@ -66,6 +82,55 @@ func set_accent_color(color: Color) -> void:
 	accent_color = color
 	if _scarf != null:
 		_configure_line(_scarf, accent_color)
+	if _polygons != null:
+		_polygons.modulate = color
+
+
+func _socket_for_slot(slot: StringName) -> Node2D:
+	match slot:
+		&"hat":
+			return _hat_socket
+		_:
+			return null
+
+
+func equip_cosmetic(item: CosmeticItem) -> void:
+	if item == null:
+		return
+	var socket := _socket_for_slot(item.slot)
+	if socket == null:
+		return
+	for child in socket.get_children():
+		child.queue_free()
+	if item.scene == null:
+		return
+	var instance := item.scene.instantiate() as Node2D
+	socket.add_child(instance)
+	instance.position = item.offset
+	instance.rotation_degrees = item.rotation_degrees
+	instance.scale = item.item_scale
+
+
+func unequip_slot(slot: StringName) -> void:
+	var socket := _socket_for_slot(slot)
+	if socket == null:
+		return
+	for child in socket.get_children():
+		child.queue_free()
+
+
+func _on_preview_cosmetic_changed() -> void:
+	if Engine.is_editor_hint():
+		_refresh_preview_cosmetic()
+
+
+func _refresh_preview_cosmetic() -> void:
+	if preview_cosmetic == null:
+		if _hat_socket != null:
+			for child in _hat_socket.get_children():
+				child.queue_free()
+		return
+	equip_cosmetic(preview_cosmetic)
 
 
 func _apply_line_style() -> void:

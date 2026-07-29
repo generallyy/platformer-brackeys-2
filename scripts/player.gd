@@ -80,7 +80,8 @@ func set_team(tid: int, color: Color) -> void:
 # ============================================================
 
 var health: int = 0
-var outfit_id  := 0
+var accent_color := Color(0.1, 0.48, 0.95, 1.0)
+var equipped_cosmetics: Dictionary = {}
 var facing_direction := 1  # 1 = right, -1 = left
 
 ## Local-multiplayer identity. -1 = normal (Solo/online) player, reads the global Input
@@ -199,9 +200,6 @@ var _passthrough_timer   := 0.0
 var _sync_peers: Array = []
 var _input_cooldown := 0.0
 
-# --- Outfit ---
-var _outfit: PlayerOutfit
-
 # ============================================================
 # LIFECYCLE
 # ============================================================
@@ -213,8 +211,6 @@ func _ready() -> void:
 	shield_charge = stats.shield_max
 	_kill_indicator.visible = false
 	add_to_group("player")
-	_outfit = PlayerOutfit.new()
-	_apply_rig_outfit_color(outfit_id)
 	floor_snap_length = 10.0
 
 	_play_visual_animation(&"idle")
@@ -1570,39 +1566,41 @@ func _rpc_heart_reset() -> void:
 			player.health_changed.emit(1, player.get_effective_max_health())
 
 # ============================================================
-# OUTFIT / VISUALS
+# ACCENT COLOR / VISUALS
 # ============================================================
 
-func get_outfit_preview_texture(outfit_index: int) -> Texture2D:
-	return _outfit.get_preview_texture(outfit_index)
+func get_accent_color() -> Color:
+	return accent_color
 
 
-func get_outfit_options() -> Array:
-	return _outfit.get_options()
+func request_accent_color_change(new_color: Color) -> void:
+	get_tree().get_root().get_node("Main").request_player_accent_color_change(get_multiplayer_authority(), new_color)
 
 
-func get_outfit_id() -> int:
-	return outfit_id
+func set_accent_color_from_sync(new_color: Color) -> void:
+	accent_color = new_color
+	if stick_rig != null:
+		stick_rig.set_accent_color(new_color)
 
 
-func request_outfit_change(new_outfit_id: int) -> void:
-	get_tree().get_root().get_node("Main").request_player_outfit_change(get_multiplayer_authority(), new_outfit_id)
+func get_equipped_cosmetics() -> Dictionary:
+	return equipped_cosmetics
 
 
-func set_outfit_from_sync(new_outfit_id: int) -> void:
-	outfit_id = _outfit.apply_visuals(new_outfit_id)
-	_apply_rig_outfit_color(outfit_id)
+func request_cosmetic_change(slot: StringName, item_path: String) -> void:
+	get_tree().get_root().get_node("Main").request_player_cosmetic_change(get_multiplayer_authority(), slot, item_path)
 
 
-func _apply_rig_outfit_color(new_outfit_id: int) -> void:
-	if stick_rig == null or _outfit == null:
+func set_cosmetic_from_sync(slot: StringName, item_path: String) -> void:
+	equipped_cosmetics[slot] = item_path
+	if stick_rig == null:
 		return
-	var options := _outfit.get_options()
-	if options.is_empty():
+	if item_path == "":
+		stick_rig.unequip_slot(slot)
 		return
-	var outfit := options[clampi(new_outfit_id, 0, options.size() - 1)] as Dictionary
-	var accent := outfit.get("cape_primary", Color(0.1, 0.48, 0.95, 1.0)) as Color
-	stick_rig.set_accent_color(accent)
+	var item := load(item_path) as CosmeticItem
+	if item != null:
+		stick_rig.equip_cosmetic(item)
 
 # ============================================================
 # NETWORKING

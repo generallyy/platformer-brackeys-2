@@ -1,7 +1,7 @@
-[gd_scene format=3 uid="uid://cwyrcu15opvxa"]
+[gd_scene format=3 uid="uid://c1m1xqtsegwvm"]
 
 [ext_resource type="Script" uid="uid://bll64vmi1miib" path="res://scripts/main.gd" id="1_exn86"]
-[ext_resource type="PackedScene" uid="uid://dg30pfci4cpnd" path="res://scenes/ui/WardrobeMenu.tscn" id="2_wardrobe"]
+[ext_resource type="PackedScene" uid="uid://bafjb4ich64k5" path="res://scenes/ui/WardrobeStick.tscn" id="2_wardrobe"]
 [ext_resource type="Script" uid="uid://cbcey5h2tbcht" path="res://scripts/PauseMenu.gd" id="3_7frdm"]
 [ext_resource type="PackedScene" path="res://scenes/ui/BlackjackMenu.tscn" id="3_blackjack"]
 [ext_resource type="PackedScene" uid="uid://drxwha7jplgnk" path="res://scenes/ui/EightBallMenu.tscn" id="4_eightball"]
@@ -338,7 +338,7 @@ value = -40.0
 
 [node name="KeybindsMenu" parent="PauseMenu" unique_id=1191615980 instance=ExtResource("10_a8y0u")]
 
-[node name="WardrobeMenu" parent="." unique_id=2125863574 instance=ExtResource("2_wardrobe")]
+[node name="WardrobeStick" parent="." unique_id=2125863574 instance=ExtResource("2_wardrobe")]
 
 [node name="BlackjackMenu" parent="." unique_id=1423577171 instance=ExtResource("3_blackjack")]
 

@@ -31,7 +31,7 @@ func _on_join_button_pressed():
 	var address = address_input.text.strip_edges()
 	
 	# TEMP: empty address connects to localhost for fast multiplayer testing
-	#address = "127.0.0.1"
+	address = "127.0.0.1"
 
 	if address != "127.0.0.1":
 		if address.is_empty():

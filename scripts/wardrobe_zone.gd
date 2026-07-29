@@ -13,7 +13,7 @@ func _on_body_entered(body: Node2D) -> void:
 	if not NetworkManager.owns_locally(body):
 		return
 	_player_nearby = body
-	$PromptLabel.text = "Press %s to change outfit!" % InputUtils.get_action_key("interact")
+	$PromptLabel.text = "Press %s to change color!" % InputUtils.get_action_key("interact")
 	$PromptLabel.visible = true
 	
 

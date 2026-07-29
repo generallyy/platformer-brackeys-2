@@ -1,0 +1,7 @@
+[gd_resource type="Resource" script_class="CosmeticItem" format=3 uid="uid://xwdx2c7l7ulh"]
+
+[ext_resource type="Script" uid="uid://xb1xq60xby72" path="res://scripts/cosmetic_item.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+slot = &"hat"

@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="CosmeticItem" format=3 uid="uid://c2m7rratylimw"]
+
+[ext_resource type="Script" uid="uid://xb1xq60xby72" path="res://scripts/cosmetic_item.gd" id="1_cuq4k"]
+[ext_resource type="PackedScene" uid="uid://cj5o6m06w5sca" path="res://assets/sprites/cosmetics/scenes/beanie.tscn" id="2_6kpi1"]
+
+[resource]
+script = ExtResource("1_cuq4k")
+slot = &"hat"
+scene = ExtResource("2_6kpi1")
+rotation_degrees = -90.0
+item_scale = Vector2(0.7, 0.7)
