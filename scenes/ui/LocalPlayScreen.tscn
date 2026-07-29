@@ -34,7 +34,7 @@ autowrap_mode = 2
 
 [node name="HintLabel" type="Label" parent="CenterContainer/VBoxContainer" unique_id=104943451]
 layout_mode = 2
-text = "Pick who's playing. Each gamepad player gets their own screen quadrant; button mappings can be customized later from the in-game Pause > Keybinds menu."
+text = "Pick who's playing. Everyone shares one screen with a camera that frames all players; button mappings can be customized later from the in-game Pause > Keybinds menu."
 horizontal_alignment = 1
 autowrap_mode = 2
 

@@ -46,10 +46,11 @@ var _debug_visible := false
 
 var _debug_timer := 0.0
 
-const SPLIT_SCREEN_LAYER_SCENE = preload("res://scenes/ui/SplitScreenLayer.tscn")
+const MINI_HUD_SCENE = preload("res://scenes/ui/MiniHUD.tscn")
+const LOCAL_MP_CAMERA_SCRIPT = preload("res://scripts/local_multiplayer_camera.gd")
 
-var split_screen_layer: CanvasLayer
-var split_screen_cells: Array = []
+var local_mp_camera: Camera2D
+var local_mp_mini_huds: Array = []
 
 func _ready() -> void:
 	get_window().focus_entered.connect(func(): _window_focused = true)
@@ -100,7 +101,7 @@ func _ready() -> void:
 			NetworkManager.reconnected.connect(_on_reconnected)
 			NetworkManager.reconnect_failed.connect(_on_reconnect_failed)
 
-	_build_split_screen_layer()
+	_build_local_mp_camera()
 
 	if multiplayer.is_server():
 		if NetworkManager.is_local_multiplayer:
@@ -407,7 +408,9 @@ const LOCAL_PEER_ID_BASE := -1  # slot i -> peer_id (LOCAL_PEER_ID_BASE - i)
 
 func _spawn_local_multiplayer_players() -> void:
 	var n: int = NetworkManager.local_player_count
-	_setup_split_screen(n)
+	_setup_local_mp_huds(n)
+	local_mp_camera.tracked_players.clear()
+	local_mp_camera.request_snap()
 	for i in n:
 		var peer_id := LOCAL_PEER_ID_BASE - i
 		_player_numbers[peer_id] = _player_numbers.size() + 1
@@ -428,99 +431,42 @@ func _spawn_local_multiplayer_players() -> void:
 			p.set_physics_process(true)
 		else:
 			p.set_physics_process(false)
-		var cell: Control = split_screen_cells[i]
-		cell.get_node("SubViewportContainer/SubViewport/Camera2D").target_player = p
-		cell.get_node("MiniHUD").bind_to_player(p)
+		local_mp_camera.tracked_players.append(p)
+		local_mp_mini_huds[i].bind_to_player(p)
 	_push_eight_ball_state_local()
 
-## Bit 0 (1) is Godot's default CanvasItem.visibility_layer — shared gameplay (level
-## geometry, players, hazards) stays on it and renders in every viewport unchanged.
-## Bits 1-4 (2,4,8,16) are each cell's exclusive layer for its own private cosmetic
-## duplicate (parallax, lights) — see _setup_split_screen_cosmetics.
-func _cell_cosmetic_layer(i: int) -> int:
-	return 1 << (i + 1)
-
-func _build_split_screen_layer() -> void:
-	split_screen_layer = SPLIT_SCREEN_LAYER_SCENE.instantiate()
-	split_screen_layer.visible = false
-	add_child(split_screen_layer)
+## One shared camera for all local players (see local_multiplayer_camera.gd) plus a
+## MiniHUD instance per potential player, reused as simple screen-corner overlays —
+## no SubViewports, no per-viewport cosmetic duplication, no shared-canvas rendering
+## quirks: this renders exactly like Solo/online (one camera, one viewport).
+func _build_local_mp_camera() -> void:
+	local_mp_camera = Camera2D.new()
+	local_mp_camera.name = "LocalMultiplayerCamera"
+	local_mp_camera.set_script(LOCAL_MP_CAMERA_SCRIPT)
+	add_child(local_mp_camera)
 	for i in 4:
-		var cell: Control = split_screen_layer.get_node("Cell%d" % i)
-		cell.visible = false
-		var sv: SubViewport = cell.get_node("SubViewportContainer/SubViewport")
-		sv.canvas_cull_mask = 1 | _cell_cosmetic_layer(i)
-		split_screen_cells.append(cell)
+		var mini_hud = MINI_HUD_SCENE.instantiate()
+		mini_hud.name = "LocalMiniHud%d" % i
+		mini_hud.visible = false
+		hud.add_child(mini_hud)
+		local_mp_mini_huds.append(mini_hud)
 
-func _setup_split_screen(n: int) -> void:
-	split_screen_layer.visible = n > 1
+func _setup_local_mp_huds(n: int) -> void:
 	hud.set_single_player_widgets_visible(n <= 1)
 	var rects := SplitScreenLayout.get_quadrant_rects(n)
 	for i in 4:
-		var cell: Control = split_screen_cells[i]
-		cell.visible = i < n
+		var mini_hud: Control = local_mp_mini_huds[i]
+		mini_hud.visible = i < n
 		if i < n:
 			var r: Rect2 = rects[i]
-			cell.anchor_left   = r.position.x
-			cell.anchor_top    = r.position.y
-			cell.anchor_right  = r.position.x + r.size.x
-			cell.anchor_bottom = r.position.y + r.size.y
-			cell.offset_left   = 0
-			cell.offset_top    = 0
-			cell.offset_right  = 0
-			cell.offset_bottom = 0
-
-## ParallaxBackground and Light2D nodes in a level are single shared instances — Godot
-## has no per-viewport concept for them, so with 4 cameras simultaneously rendering the
-## same shared World2D, they fight over one instance's worth of state (a ParallaxBackground
-## only has one scroll_offset; only one camera's worth of light/shadow gets computed as
-## "current"). The fix: give each active cell its own private duplicate, visible only to
-## that cell's SubViewport via canvas_cull_mask, and hide the level's original entirely —
-## the root viewport is never actually shown to the player in local-multiplayer (fully
-## covered by the opaque split-screen overlay), so there's no need to keep it rendering
-## anywhere. (canvas_cull_mask alone wasn't enough to exclude the original: it reliably
-## hides a CanvasItem's own rendering, but apparently not a Light2D's light contribution.)
-func _setup_split_screen_cosmetics(level_root: Node) -> void:
-	# Search only the freshly-instantiated level, not level_container as a whole: the
-	# previous level's nodes (and any duplicates we made for it) were queue_free()'d by
-	# free_children() just before this runs, which is deferred — they're still physically
-	# in the tree for the rest of this frame. Searching level_container itself would find
-	# those not-yet-removed leftovers too and duplicate them all over again, compounding
-	# every level change.
-	var cosmetic_roots: Array = []
-	_find_cosmetic_roots(level_root, cosmetic_roots)
-	var n: int = NetworkManager.local_player_count
-	for i in n:
-		var cam = split_screen_cells[i].get_node("SubViewportContainer/SubViewport/Camera2D")
-		cam.parallax_targets.clear()
-	for original in cosmetic_roots:
-		for i in n:
-			var dup: Node = original.duplicate()
-			level_container.add_child(dup)
-			# ParallaxBackground is a CanvasLayer, not a Node2D — it doesn't inherit
-			# ancestor transforms, so reparenting it is transform-neutral. Things like
-			# Light2D ARE Node2D and were relative to their original parent (e.g. a
-			# decorative Sprite2D's own offset/scale) — restore their world transform
-			# now that they've been reparented straight under level_container.
-			if dup is Node2D:
-				dup.global_transform = (original as Node2D).global_transform
-			_set_visibility_layer_recursive(dup, _cell_cosmetic_layer(i))
-			if dup is ParallaxBackground:
-				var cam = split_screen_cells[i].get_node("SubViewportContainer/SubViewport/Camera2D")
-				cam.parallax_targets.append(dup)
-		original.visible = false
-
-func _find_cosmetic_roots(node: Node, out_roots: Array) -> void:
-	for child in node.get_children():
-		if child is ParallaxBackground or child is Light2D:
-			out_roots.append(child)
-			continue  # don't also duplicate nodes nested inside a root we're already duplicating
-		_find_cosmetic_roots(child, out_roots)
-
-func _set_visibility_layer_recursive(node: Node, layer: int) -> void:
-	if node is CanvasItem:
-		node.visibility_layer = layer
-	for child in node.get_children():
-		_set_visibility_layer_recursive(child, layer)
+			mini_hud.anchor_left   = r.position.x
+			mini_hud.anchor_top    = r.position.y
+			mini_hud.anchor_right  = r.position.x + r.size.x
+			mini_hud.anchor_bottom = r.position.y + r.size.y
+			mini_hud.offset_left   = 0
+			mini_hud.offset_top    = 0
+			mini_hud.offset_right  = 0
+			mini_hud.offset_bottom = 0
 
 func request_load_level(path: String) -> void:
 	if NetworkManager.is_online() and not multiplayer.is_server():
@@ -579,8 +525,6 @@ func _load_level_local(path: String) -> bool:
 	free_children(level_container)
 	var level_instance := level_scene.instantiate()
 	level_container.add_child(level_instance)
-	if NetworkManager.is_local_multiplayer:
-		_setup_split_screen_cosmetics(level_instance)
 	_respawn_points.clear()
 	await get_tree().process_frame
 	var spawn = _get_spawn()
@@ -605,10 +549,7 @@ func _load_level_local(path: String) -> bool:
 			cam.reset_smoothing()
 		idx += 1
 	if NetworkManager.is_local_multiplayer:
-		for cell in split_screen_cells:
-			var split_cam = cell.get_node_or_null("SubViewportContainer/SubViewport/Camera2D")
-			if split_cam:
-				split_cam.reset_smoothing()
+		local_mp_camera.request_snap()
 	# Fire particles once while the loading screen is visible to compile their shader
 	for p in spawned_players.values():
 		p.warmup_effects()
