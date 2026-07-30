@@ -1,0 +1,10 @@
+[gd_scene format=3 uid="uid://du81oy4l31rt7"]
+
+[ext_resource type="Texture2D" uid="uid://nbqal1ukhu5c" path="res://assets/sprites/cosmetics/hats.png" id="1_cohx4"]
+
+[node name="tophat" type="Node2D" unique_id=753162433]
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=764213611]
+texture = ExtResource("1_cohx4")
+region_enabled = true
+region_rect = Rect2(597.47266, -15.615622, 490.7362, 345.22723)

@@ -1,0 +1,11 @@
+[gd_scene format=3 uid="uid://coslkk0bnob7t"]
+
+[ext_resource type="Texture2D" uid="uid://nbqal1ukhu5c" path="res://assets/sprites/cosmetics/hats.png" id="1_ubfev"]
+
+[node name="Glasses" type="Node2D" unique_id=1982245841]
+
+[node name="Node2D" type="Sprite2D" parent="." unique_id=697715756]
+position = Vector2(-37, -89)
+texture = ExtResource("1_ubfev")
+region_enabled = true
+region_rect = Rect2(621.08, 726.5089, 497.79413, 218.151)

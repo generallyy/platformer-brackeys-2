@@ -1,0 +1,11 @@
+[gd_scene format=3 uid="uid://hl1uu0c3luc3"]
+
+[ext_resource type="Texture2D" uid="uid://nbqal1ukhu5c" path="res://assets/sprites/cosmetics/hats.png" id="1_b1pif"]
+
+[node name="hairspeck" type="Node2D" unique_id=53178518]
+
+[node name="Node2D" type="Sprite2D" parent="." unique_id=804188918]
+position = Vector2(-37, -89)
+texture = ExtResource("1_b1pif")
+region_enabled = true
+region_rect = Rect2(614.2415, 361.95825, 380.88574, 271.04883)

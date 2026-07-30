@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="CosmeticItem" format=3 uid="uid://b6koq6rw75sd6"]
+
+[ext_resource type="PackedScene" uid="uid://hl1uu0c3luc3" path="res://assets/sprites/cosmetics/scenes/hairspeck.tscn" id="1_1cj47"]
+[ext_resource type="Script" uid="uid://xb1xq60xby72" path="res://scripts/cosmetic_item.gd" id="2_nhdjg"]
+
+[resource]
+script = ExtResource("2_nhdjg")
+display_name = "hairspeck"
+slot = &"hat"
+scene = ExtResource("1_1cj47")
+offset = Vector2(59.815, -50.395)
+rotation_degrees = -121.495

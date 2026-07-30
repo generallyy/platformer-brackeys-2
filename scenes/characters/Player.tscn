@@ -3,7 +3,6 @@
 [ext_resource type="Script" uid="uid://8y0ak4ctjdvg" path="res://scripts/player.gd" id="1_wlgh5"]
 [ext_resource type="Resource" uid="uid://gxu7b4kv2qap" path="res://resources/player_stats.tres" id="2_gj1sn"]
 [ext_resource type="Texture2D" uid="uid://da6r0ki7buguf" path="res://assets/sprites/white_circle.png" id="3_a8hje"]
-[ext_resource type="Resource" uid="uid://c2m7rratylimw" path="res://assets/sprites/cosmetics/resources/Beanie.tres" id="4_miirx"]
 [ext_resource type="Texture2D" uid="uid://c44wdtvog1din" path="res://assets/sprites/sticky-man.webp" id="6_m6phi"]
 [ext_resource type="Script" uid="uid://b4sv4e2lh3sqr" path="res://scripts/stick_figure_rig.gd" id="6_oihyf"]
 [ext_resource type="Theme" uid="uid://2p378flu0i2e" path="res://assets/fonts/labrada.tres" id="6_rpfb3"]
@@ -2121,7 +2120,6 @@ shape = SubResource("CapsuleShape2D_miirx")
 [node name="StickRig" type="Node2D" parent="." unique_id=2026205896]
 z_index = 2
 script = ExtResource("6_oihyf")
-preview_cosmetic = ExtResource("4_miirx")
 
 [node name="Scarf" type="Line2D" parent="StickRig" unique_id=1360584124]
 visible = false
@@ -2138,7 +2136,7 @@ position = Vector2(-27.99995, 0.053057972)
 
 [node name="Torso" type="Bone2D" parent="StickRig/Skeleton2D" unique_id=1468860272]
 position = Vector2(27.643703, -188.05272)
-scale = Vector2(0.99999905, 0.99999905)
+scale = Vector2(0.99999785, 0.99999785)
 rest = Transform2D(0.99999994, 0, 0, 0.99999994, 27.643703, -188.05272)
 auto_calculate_length_and_angle = false
 length = 207.99998
@@ -2147,7 +2145,7 @@ bone_angle = -90.0
 [node name="RightArm" type="Bone2D" parent="StickRig/Skeleton2D/Torso" unique_id=1460386132]
 position = Vector2(-0.47988015, -207.99945)
 rotation = 0.31112796
-scale = Vector2(0.9999981, 0.9999981)
+scale = Vector2(0.99999714, 0.99999714)
 rest = Transform2D(0.9519889, 0.30613264, -0.30613264, 0.9519889, -0.47988015, -207.99945)
 auto_calculate_length_and_angle = false
 length = 91.99999
@@ -2166,7 +2164,7 @@ bone_angle = -180.0
 [node name="LeftArm" type="Bone2D" parent="StickRig/Skeleton2D/Torso" unique_id=284639682]
 position = Vector2(-0.47988155, -207.99947)
 rotation = 2.6334453
-scale = Vector2(0.9999983, 0.9999983)
+scale = Vector2(0.9999972, 0.9999972)
 rest = Transform2D(-0.873647, 0.48655933, -0.48655933, -0.873647, -0.47988155, -207.99947)
 auto_calculate_length_and_angle = false
 length = 92.00006
@@ -2184,14 +2182,14 @@ bone_angle = -3.2815914
 [node name="Head" type="Bone2D" parent="StickRig/Skeleton2D/Torso" unique_id=1087815954]
 position = Vector2(0, -207.999)
 rotation = 1.5785387
-scale = Vector2(0.9999974, 0.9999974)
+scale = Vector2(0.9999962, 0.9999962)
 rest = Transform2D(-0.007742252, 0.99997, -0.99997, -0.007742252, 0, -207.999)
 auto_calculate_length_and_angle = false
 length = 42.72
 bone_angle = 180.0
 
 [node name="HeadCosmetic" type="Node2D" parent="StickRig/Skeleton2D/Torso/Head" unique_id=1532103400]
-z_index = 21
+z_index = 18
 position = Vector2(-174.99026, 2.080639)
 
 [node name="RigHitbox" type="Area2D" parent="StickRig/Skeleton2D/Torso" unique_id=2012089818 groups=["player_hurtbox"]]
@@ -2203,7 +2201,7 @@ debug_color = Color(0.53333336, 0.1882353, 1, 0.4)
 
 [node name="LeftThigh" type="Bone2D" parent="StickRig/Skeleton2D" unique_id=1546391934]
 position = Vector2(27.643703, -188.05269)
-scale = Vector2(0.9999988, 0.9999988)
+scale = Vector2(0.9999986, 0.9999986)
 rest = Transform2D(0.9999998, 0, 0, 0.9999998, 27.643703, -188.05269)
 auto_calculate_length_and_angle = false
 length = 95.99998
@@ -2212,7 +2210,7 @@ bone_angle = 89.867775
 [node name="LeftShin" type="Bone2D" parent="StickRig/Skeleton2D/LeftThigh" unique_id=1368560353]
 position = Vector2(0.22148587, 95.999725)
 rotation = 0.2464272
-scale = Vector2(0.9999995, 0.9999995)
+scale = Vector2(0.99999934, 0.99999934)
 rest = Transform2D(0.96979016, 0.24394065, -0.24394065, 0.96979016, 0.22148587, 95.999725)
 auto_calculate_length_and_angle = false
 length = 112.0
@@ -2220,7 +2218,7 @@ bone_angle = 75.705925
 
 [node name="RightThigh" type="Bone2D" parent="StickRig/Skeleton2D" unique_id=2059949400]
 position = Vector2(27.643703, -188.0527)
-scale = Vector2(0.9999987, 0.9999987)
+scale = Vector2(0.9999984, 0.9999984)
 rest = Transform2D(0.99999994, 0, 0, 0.99999994, 27.643703, -188.0527)
 auto_calculate_length_and_angle = false
 length = 95.99998
@@ -2229,7 +2227,7 @@ bone_angle = 89.867775
 [node name="RightShin" type="Bone2D" parent="StickRig/Skeleton2D/RightThigh" unique_id=380167677]
 position = Vector2(0.22148587, 95.999725)
 rotation = 1.2771724
-scale = Vector2(0.99999744, 0.99999744)
+scale = Vector2(0.9999969, 0.9999969)
 rest = Transform2D(0.2894227, 0.95720065, -0.95720065, 0.2894227, 0.22148587, 95.999725)
 auto_calculate_length_and_angle = false
 length = 112.0
@@ -2365,7 +2363,7 @@ zoom = Vector2(3, 3)
 position_smoothing_enabled = true
 
 [node name="Label" type="Label" parent="." unique_id=2000590278]
-z_index = 10
+z_index = 20
 offset_left = -497.20596
 offset_top = -853.0594
 offset_right = -435.20596

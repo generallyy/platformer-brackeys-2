@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="CosmeticItem" format=3 uid="uid://ba2pgvj5kgx6b"]
+
+[ext_resource type="PackedScene" uid="uid://esd5y11t8eue" path="res://assets/sprites/cosmetics/scenes/crazyhair.tscn" id="1_rf6qf"]
+[ext_resource type="Script" uid="uid://xb1xq60xby72" path="res://scripts/cosmetic_item.gd" id="2_fthrb"]
+
+[resource]
+script = ExtResource("2_fthrb")
+display_name = "crazy hair"
+slot = &"hat"
+scene = ExtResource("1_rf6qf")
+offset = Vector2(-38.765, -14.22)
+rotation_degrees = -103.81
+item_scale = Vector2(0.8, 0.7)

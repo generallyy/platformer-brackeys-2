@@ -1,0 +1,10 @@
+[gd_scene format=3 uid="uid://esd5y11t8eue"]
+
+[ext_resource type="Texture2D" uid="uid://nbqal1ukhu5c" path="res://assets/sprites/cosmetics/hats.png" id="1_qbj2e"]
+
+[node name="Crazyhair" type="Node2D" unique_id=614337536]
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=893095161]
+texture = ExtResource("1_qbj2e")
+region_enabled = true
+region_rect = Rect2(51.501404, 692.9297, 558.04175, 325.96722)

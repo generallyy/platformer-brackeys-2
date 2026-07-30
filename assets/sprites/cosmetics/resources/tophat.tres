@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="CosmeticItem" format=3 uid="uid://dbhm838shjf8p"]
+
+[ext_resource type="PackedScene" uid="uid://du81oy4l31rt7" path="res://assets/sprites/cosmetics/scenes/tophat.tscn" id="1_kquic"]
+[ext_resource type="Script" uid="uid://xb1xq60xby72" path="res://scripts/cosmetic_item.gd" id="2_ytv82"]
+
+[resource]
+script = ExtResource("2_ytv82")
+display_name = "tophat"
+slot = &"hat"
+scene = ExtResource("1_kquic")
+offset = Vector2(-18.66, 57.09)
+rotation_degrees = -120.255
+item_scale = Vector2(0.7, 0.7)

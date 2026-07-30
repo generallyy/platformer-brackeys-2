@@ -8,16 +8,12 @@ extends Node2D
 
 ## Editor-only: assign a CosmeticItem here to see it live on the rig in the
 ## scene editor while tuning its offset/rotation/scale. No effect at runtime.
+## Polled every editor frame (see _process) rather than signal-driven, since
+## signal connections don't reliably survive scene reloads.
 @export_group("Editor Preview")
-@export var preview_cosmetic: CosmeticItem:
-	set(value):
-		if preview_cosmetic != null and preview_cosmetic.changed.is_connected(_on_preview_cosmetic_changed):
-			preview_cosmetic.changed.disconnect(_on_preview_cosmetic_changed)
-		preview_cosmetic = value
-		if preview_cosmetic != null:
-			preview_cosmetic.changed.connect(_on_preview_cosmetic_changed)
-		if Engine.is_editor_hint():
-			_refresh_preview_cosmetic()
+@export var preview_cosmetic: CosmeticItem
+
+var _preview_state_key: String = ""
 
 var current_animation: StringName = &"idle"
 var facing_direction := 1
@@ -32,6 +28,26 @@ var facing_direction := 1
 func _ready() -> void:
 	_animation_tree.active = true
 	play(current_animation)
+
+
+func _process(_delta: float) -> void:
+	if not Engine.is_editor_hint():
+		return
+	var key := _compute_preview_state_key()
+	if key != _preview_state_key:
+		_preview_state_key = key
+		_refresh_preview_cosmetic()
+
+
+func _compute_preview_state_key() -> String:
+	if preview_cosmetic == null:
+		return ""
+	return "%s|%s|%s|%s" % [
+		preview_cosmetic.resource_path,
+		preview_cosmetic.offset,
+		preview_cosmetic.rotation_degrees,
+		preview_cosmetic.item_scale,
+	]
 
 
 func play(animation_name: StringName) -> void:
@@ -117,11 +133,6 @@ func unequip_slot(slot: StringName) -> void:
 		return
 	for child in socket.get_children():
 		child.queue_free()
-
-
-func _on_preview_cosmetic_changed() -> void:
-	if Engine.is_editor_hint():
-		_refresh_preview_cosmetic()
 
 
 func _refresh_preview_cosmetic() -> void:

@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="CosmeticItem" format=3 uid="uid://bkfesuwwejrly"]
+
+[ext_resource type="PackedScene" uid="uid://bi3f5vnku5s5g" path="res://assets/sprites/cosmetics/scenes/crown.tscn" id="1_woj0x"]
+[ext_resource type="Script" uid="uid://xb1xq60xby72" path="res://scripts/cosmetic_item.gd" id="2_w77j7"]
+
+[resource]
+script = ExtResource("2_w77j7")
+display_name = "crown"
+slot = &"hat"
+scene = ExtResource("1_woj0x")
+offset = Vector2(-5.72, 18.35)
+rotation_degrees = -120.93
+item_scale = Vector2(0.65, 0.65)
