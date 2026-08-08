@@ -75,6 +75,8 @@ The player's body is a `StickFigureRig` ([stick_figure_rig.gd](scripts/stick_fig
 
 `set_accent_color()` writes `_polygons.modulate` wholesale, overwriting the color authored in `Player.tscn`. Script defaults for `accent_color` must stay in sync with that scene value.
 
+The rig's silhouette outline is generated at runtime by `_build_outline()` (runtime-only — not visible in the editor viewport). It traces each part's visible shape from the atlas texture's alpha (`assets/sprites/sticky-man.webp` — the polygon quads have transparent padding, and the head is a ring with a hole), then parents one closed `Line2D` per boundary directly to the part's bone (every part is rigidly weighted to a single bone), one z-index below the fills. `outline_width` is exported in on-screen pixels at the gameplay camera's default zoom 3.
+
 Cosmetics are `CosmeticItem` resources ([cosmetic_item.gd](scripts/cosmetic_item.gd)) under `assets/sprites/cosmetics/resources/`, discovered at runtime by `CosmeticItem.load_catalog(folder, slot)` and attached to named sockets on the rig. Adding a hat means adding a `.tres`, not editing code.
 
 ## Repo gotchas
