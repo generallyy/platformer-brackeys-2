@@ -87,7 +87,7 @@ func is_pressed(slot: int, device: int, action: StringName) -> bool:
 	return _raw_pressed(slot, device, action)
 
 
-func is_just_pressed(slot: int, device: int, action: StringName) -> bool:
+func is_just_pressed(slot: int, _device: int, action: StringName) -> bool:
 	return _pressed_now[slot].get(action, false) and not _pressed_prev[slot].get(action, false)
 
 

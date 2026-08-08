@@ -30,9 +30,31 @@ layout_mode = 2
 text = "~~~MULTIPLAYER~~~"
 horizontal_alignment = 1
 
-[node name="HostButton" type="Button" parent="CenterContainer/VBoxContainer" unique_id=1309813484]
+[node name="HostButton" type="Button" parent="CenterContainer/VBoxContainer" unique_id=1144949045]
+custom_minimum_size = Vector2(120, 0)
 layout_mode = 2
 text = "HOST"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="CenterContainer/VBoxContainer" unique_id=803286082]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="JoinButton" type="Label" parent="CenterContainer/VBoxContainer/HBoxContainer" unique_id=761978032]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+text = "JOIN:"
+
+[node name="A" type="Button" parent="CenterContainer/VBoxContainer/HBoxContainer" unique_id=1363974837]
+layout_mode = 2
+text = "A (LOCAL)"
+
+[node name="B" type="Button" parent="CenterContainer/VBoxContainer/HBoxContainer" unique_id=724812509]
+layout_mode = 2
+text = "B (LAPTOP)"
+
+[node name="C" type="Button" parent="CenterContainer/VBoxContainer/HBoxContainer" unique_id=1954484888]
+layout_mode = 2
+text = "C (PC)"
 
 [node name="NameInput" type="LineEdit" parent="CenterContainer/VBoxContainer" unique_id=-447676261]
 layout_mode = 2
@@ -40,23 +62,13 @@ placeholder_text = "your name (optional)"
 alignment = 1
 max_length = 12
 
-[node name="AddressInput" type="LineEdit" parent="CenterContainer/VBoxContainer" unique_id=1638241316]
+[node name="LocalPlayButton" type="Button" parent="CenterContainer/VBoxContainer" unique_id=1499690929]
 layout_mode = 2
-text = "11557"
-placeholder_text = "5-digit tunnel number"
-alignment = 1
-
-[node name="JoinButton" type="Button" parent="CenterContainer/VBoxContainer" unique_id=1338700137]
-layout_mode = 2
-text = "JOIN"
+text = "LOCAL PLAY (2-4P)"
 
 [node name="SoloButton" type="Button" parent="CenterContainer/VBoxContainer" unique_id=1502236354]
 layout_mode = 2
 text = "PLAY SOLO"
-
-[node name="LocalPlayButton" type="Button" parent="CenterContainer/VBoxContainer"]
-layout_mode = 2
-text = "LOCAL PLAY (2-4P)"
 
 [node name="StatusLabel" type="Label" parent="CenterContainer/VBoxContainer" unique_id=547746624]
 layout_mode = 2
@@ -67,8 +79,10 @@ autowrap_mode = 3
 layout_mode = 2
 text = "BACK"
 
-[connection signal="pressed" from="CenterContainer/VBoxContainer/HostButton" to="." method="_on_host_button_pressed"]
-[connection signal="pressed" from="CenterContainer/VBoxContainer/JoinButton" to="." method="_on_join_button_pressed"]
-[connection signal="pressed" from="CenterContainer/VBoxContainer/SoloButton" to="." method="_on_solo_button_pressed"]
+[connection signal="pressed" from="CenterContainer/VBoxContainer/HostButton" to="." method="_on_host_pressed"]
+[connection signal="pressed" from="CenterContainer/VBoxContainer/HBoxContainer/A" to="." method="_on_join_pressed" binds= ["a"]]
+[connection signal="pressed" from="CenterContainer/VBoxContainer/HBoxContainer/B" to="." method="_on_join_pressed" binds= ["b"]]
+[connection signal="pressed" from="CenterContainer/VBoxContainer/HBoxContainer/C" to="." method="_on_join_pressed" binds= ["c"]]
 [connection signal="pressed" from="CenterContainer/VBoxContainer/LocalPlayButton" to="." method="_on_local_play_button_pressed"]
+[connection signal="pressed" from="CenterContainer/VBoxContainer/SoloButton" to="." method="_on_solo_button_pressed"]
 [connection signal="pressed" from="CenterContainer/VBoxContainer/BackButton" to="." method="_on_back_button_pressed"]

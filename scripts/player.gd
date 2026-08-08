@@ -80,7 +80,7 @@ func set_team(tid: int, color: Color) -> void:
 # ============================================================
 
 var health: int = 0
-var accent_color := Color(0.1, 0.48, 0.95, 1.0)
+var accent_color := Color(0, 0.91317093, 0.9169842, 1.0)
 var equipped_cosmetics: Dictionary = {}
 var facing_direction := 1  # 1 = right, -1 = left
 

@@ -3,7 +3,7 @@ class_name StickFigureRig
 extends Node2D
 
 @export var line_color := Color(0.04, 0.04, 0.04, 1.0)
-@export var accent_color := Color(0.1, 0.48, 0.95, 1.0)
+@export var accent_color := Color(0, 0.91317093, 0.9169842, 1.0)
 @export var line_width := 60
 
 ## Editor-only: assign a CosmeticItem here to see it live on the rig in the

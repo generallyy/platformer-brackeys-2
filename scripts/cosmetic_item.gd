@@ -25,7 +25,7 @@ extends Resource
 		emit_changed()
 
 ## Scans a folder for CosmeticItem resources belonging to the given slot.
-static func load_catalog(folder: String, slot: StringName) -> Array[CosmeticItem]:
+static func load_catalog(folder: String, cosmetic_slot: StringName) -> Array[CosmeticItem]:
 	var items: Array[CosmeticItem] = []
 	var dir := DirAccess.open(folder)
 	if dir == null:
@@ -35,7 +35,7 @@ static func load_catalog(folder: String, slot: StringName) -> Array[CosmeticItem
 	while file_name != "":
 		if file_name.ends_with(".tres"):
 			var item := load(folder.path_join(file_name)) as CosmeticItem
-			if item != null and item.slot == slot:
+			if item != null and item.slot == cosmetic_slot:
 				items.append(item)
 		file_name = dir.get_next()
 	dir.list_dir_end()
