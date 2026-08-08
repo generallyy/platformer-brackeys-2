@@ -25,7 +25,7 @@ func _process(delta):
 	match multiplayer.multiplayer_peer.get_connection_status():
 		MultiplayerPeer.CONNECTION_CONNECTED:
 			set_process(false)
-			get_tree().change_scene_to_file("res://scenes/main.tscn")
+			get_tree().change_scene_to_file("res://scenes/Main.tscn")
 		MultiplayerPeer.CONNECTION_DISCONNECTED:
 			_fail("Disconnected.")
 			return
@@ -46,7 +46,7 @@ func _on_solo_button_pressed():
 	UiAudio.play_click()
 	NetworkManager.local_name = name_input.text.strip_edges()
 	NetworkManager.play_solo()
-	get_tree().change_scene_to_file("res://scenes/main.tscn")
+	get_tree().change_scene_to_file("res://scenes/Main.tscn")
 
 func _on_local_play_button_pressed():
 	UiAudio.play_click()
@@ -64,7 +64,7 @@ func _on_host_pressed() -> void:
 	if err != OK:
 		status_label.text = "Failed to host (port %d in use?)" % NetworkManager.DEFAULT_PORT
 		return
-	get_tree().change_scene_to_file("res://scenes/main.tscn")
+	get_tree().change_scene_to_file("res://scenes/Main.tscn")
 
 func _on_join_pressed(which: String) -> void:
 	UiAudio.play_click()

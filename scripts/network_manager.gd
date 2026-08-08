@@ -67,6 +67,7 @@ func close():
 	_reconnect_address  = ""
 	_reconnect_attempts = 0
 	_reconnect_timer    = 0.0
+	_disconnect_reconnect_handler()
 	if _on_mp_connection_failed.is_valid() and multiplayer.connection_failed.is_connected(_on_mp_connection_failed):
 		multiplayer.connection_failed.disconnect(_on_mp_connection_failed)
 	if _on_mp_server_disconnected.is_valid() and multiplayer.server_disconnected.is_connected(_on_mp_server_disconnected):
@@ -133,6 +134,7 @@ func _process(delta: float) -> void:
 	set_process(false)
 	if _reconnect_attempts >= MAX_RECONNECT_ATTEMPTS:
 		_reconnect_address = ""
+		_disconnect_reconnect_handler()
 		reconnect_failed.emit()
 		return
 	_reconnect_attempts += 1
@@ -151,7 +153,14 @@ func _process(delta: float) -> void:
 		_schedule_reconnect()
 		return
 	multiplayer.multiplayer_peer = peer
-	multiplayer.connected_to_server.connect(_on_reconnect_success, CONNECT_ONE_SHOT)
+	# A failed attempt consumes connection_failed, not connected_to_server, so the
+	# one-shot from the previous attempt may still be pending — don't connect twice.
+	if not multiplayer.connected_to_server.is_connected(_on_reconnect_success):
+		multiplayer.connected_to_server.connect(_on_reconnect_success, CONNECT_ONE_SHOT)
+
+func _disconnect_reconnect_handler() -> void:
+	if multiplayer.connected_to_server.is_connected(_on_reconnect_success):
+		multiplayer.connected_to_server.disconnect(_on_reconnect_success)
 
 func _on_reconnect_success() -> void:
 	_reconnect_attempts = 0

@@ -697,7 +697,10 @@ func _on_restart_pressed():
 	visible = false
 
 func _on_title_pressed():
-	get_tree().change_scene_to_file("res://scenes/UI/TitleScreen.tscn")
+	# Tear down the session so the port frees up and peers get a disconnect
+	# instead of RPC-ing a freed Main scene.
+	NetworkManager.close()
+	get_tree().change_scene_to_file("res://scenes/ui/TitleScreen.tscn")
 
 func _on_keybinds_pressed():
 	if NetworkManager.is_local_multiplayer:
@@ -708,6 +711,7 @@ func _on_keybinds_pressed():
 	_show_page(0)
 
 func _on_quit_pressed():
+	NetworkManager.close()  # graceful disconnect so peers don't wait out a timeout
 	get_tree().quit()
 
 func _on_h_slider_value_changed(value):

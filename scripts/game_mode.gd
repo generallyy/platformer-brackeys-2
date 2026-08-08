@@ -82,7 +82,8 @@ func register_player(peer_id: int) -> void:
 		stocks[peer_id] = STOCKS_PER_ROUND
 
 func sync_to_peer(peer_id: int) -> void:
-	_sync_round_state.rpc_id(peer_id, state, scores, round_number, -1, _finishers, _time_limit)
+	# announce=false: a late joiner needs the state applied, not the "GO!" fanfare.
+	_sync_round_state.rpc_id(peer_id, state, scores, round_number, -1, _finishers, _time_limit, false)
 
 func start_game(time_limit: float = 60.0, win_score: int = 30) -> void:
 	_time_limit = time_limit
@@ -296,7 +297,7 @@ func _sync_sudden_death(peers: Array) -> void:
 	sudden_death_peers = peers
 
 @rpc("authority", "call_local", "reliable")
-func _sync_round_state(new_state: int, new_scores: Dictionary, round_num: int, event_peer_id: int, finishers: Array = [], time_limit: float = 60.0) -> void:
+func _sync_round_state(new_state: int, new_scores: Dictionary, round_num: int, event_peer_id: int, finishers: Array = [], time_limit: float = 60.0, announce: bool = true) -> void:
 	state = new_state
 	scores = new_scores
 	round_number = round_num
@@ -311,7 +312,8 @@ func _sync_round_state(new_state: int, new_scores: Dictionary, round_num: int, e
 			for peer_id in new_scores:
 				stocks[peer_id] = STOCKS_PER_ROUND
 			stocks_changed.emit(stocks)
-			round_started.emit(round_num)
+			if announce:
+				round_started.emit(round_num)
 		State.INTERMISSION:
 			round_ended.emit(finishers, new_scores)
 			if event_peer_id == -1:

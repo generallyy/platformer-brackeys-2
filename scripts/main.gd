@@ -180,6 +180,12 @@ func _on_peer_connected(_id: int):
 func _on_peer_disconnected(id: int):
 	for p in spawned_players.values():
 		p.remove_sync_peer(id)
+	# _player_numbers is deliberately kept: numbers are allocated from its size(),
+	# so erasing an entry could hand a later joiner an existing player's number.
+	player_names.erase(id)
+	player_teams.erase(id)
+	team_colors.erase(id)
+	_respawn_points.erase(id)
 	if multiplayer.is_server():
 		if EightBallLogic.is_participant(_eight_ball_session, id):
 			_set_eight_ball_session(EightBallLogic.create_idle_session("%s left the table." % get_player_display_name(id)))
@@ -515,6 +521,7 @@ func _load_level_local(path: String) -> bool:
 		p.health_changed.emit(p.health, p.get_effective_max_health())
 	loading_screen.visible = true
 	close_wardrobe()
+	_powerup_pick_queue.clear()
 	powerups_menu.close_menu()
 	await get_tree().process_frame
 	if path.begins_with("uid://"):
@@ -644,7 +651,7 @@ func _sync_checkpoint(peer_id: int, checkpoint_path: NodePath) -> void:
 		_respawn_points[peer_id] = checkpoint
 
 func open_wardrobe(player: Node) -> void:
-	if player.get_multiplayer_authority() != multiplayer.get_unique_id():
+	if not NetworkManager.owns_locally(player):
 		return
 	if _wardrobe_player == player and wardrobe_stick.visible:
 		return
@@ -663,10 +670,19 @@ func close_wardrobe() -> void:
 	wardrobe_stick.close_menu()
 
 
+## Every player this process controls: all slots in local multiplayer, the one
+## local player otherwise. Use for UI locks that must cover the whole machine.
+func _locally_owned_players() -> Array:
+	var result: Array = []
+	for p in spawned_players.values():
+		if NetworkManager.owns_locally(p):
+			result.append(p)
+	return result
+
+
 func open_blackjack() -> void:
-	var player: Node2D = spawned_players.get(multiplayer.get_unique_id())
 	close_eight_ball()
-	if player != null:
+	for player in _locally_owned_players():
 		player.set_external_input_lock(&"blackjack", true)
 	_mouse_idle = 0.0
 	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
@@ -677,16 +693,14 @@ func close_blackjack() -> void:
 	if not blackjack_menu.visible:
 		return
 	blackjack_menu.close_menu()
-	var player: Node2D = spawned_players.get(multiplayer.get_unique_id())
-	if player != null:
+	for player in _locally_owned_players():
 		player.set_external_input_lock(&"blackjack", false)
 
 
 func open_eight_ball() -> void:
-	var player: Node2D = spawned_players.get(multiplayer.get_unique_id())
 	close_blackjack()
 	close_wardrobe()
-	if player != null:
+	for player in _locally_owned_players():
 		player.set_external_input_lock(&"eight_ball", true)
 	_mouse_idle = 0.0
 	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
@@ -698,8 +712,7 @@ func close_eight_ball() -> void:
 	if not eight_ball_menu.visible:
 		return
 	eight_ball_menu.close_menu()
-	var player: Node2D = spawned_players.get(multiplayer.get_unique_id())
-	if player != null:
+	for player in _locally_owned_players():
 		player.set_external_input_lock(&"eight_ball", false)
 
 func request_eight_ball_challenge(opponent_id: int) -> void:
@@ -921,6 +934,7 @@ func _freeze_for_all_players(duration: float) -> void:
 func _on_round_started(round_number: int) -> void:
 	close_blackjack()
 	close_eight_ball()
+	_powerup_pick_queue.clear()
 	powerups_menu.close_menu()
 	for cp in get_tree().get_nodes_in_group("checkpoint"):
 		cp.reset_for_round()
@@ -978,13 +992,8 @@ func _on_kda_changed(kda_kills: Dictionary, kda_deaths: Dictionary, kda_damage: 
 func _on_powerups_distribute(_scores: Dictionary, finishers: Array) -> void:
 	close_blackjack()
 	close_eight_ball()
-	var local_peer := multiplayer.get_unique_id()
-	var player = spawned_players.get(local_peer)
-	if player == null:
+	if spawned_players.get(_local_peer_id()) == null:
 		return
-	var placement := finishers.find(local_peer) + 1  # 1-indexed; 0 means not in finishers
-	if placement == 0: 
-		placement = spawned_players.size()
 	var delay := 1.0
 	await get_tree().create_timer(delay).timeout
 	if _active_mode != gm_rush or _active_mode.state != gm_rush.State.INTERMISSION:
@@ -993,14 +1002,41 @@ func _on_powerups_distribute(_scores: Dictionary, finishers: Array) -> void:
 		if not NetworkManager.is_online() or multiplayer.is_server():
 			_active_mode.skip_powerups()
 		return
-	var time_left: float = gm_rush.INTERMISSION_DURATION - delay
-	powerups_menu.open_for_player(player, placement, time_left)
+	_start_powerup_picks(finishers, gm_rush.INTERMISSION_DURATION - delay)
+
+var _powerup_pick_queue: Array = []
+var _powerup_pick_finishers: Array = []
+var _powerup_pick_deadline_msec := 0
+
+## Opens the powerup picker for every locally-controlled player in turn — one player
+## in Solo/online, every slot in local multiplayer (where each slot picks in sequence).
+func _start_powerup_picks(finishers: Array, time_left: float) -> void:
+	_powerup_pick_queue = _locally_owned_players()
+	_powerup_pick_finishers = finishers
+	_powerup_pick_deadline_msec = Time.get_ticks_msec() + int(time_left * 1000.0)
+	_open_next_powerup_menu()
+
+func _open_next_powerup_menu() -> void:
+	var time_left := (_powerup_pick_deadline_msec - Time.get_ticks_msec()) / 1000.0
+	if time_left <= 0.0:
+		_powerup_pick_queue.clear()
+		return
+	while not _powerup_pick_queue.is_empty():
+		var player = _powerup_pick_queue.pop_front()
+		if not is_instance_valid(player):
+			continue
+		var placement: int = _powerup_pick_finishers.find(player.get_multiplayer_authority()) + 1
+		if placement == 0:  # not in finishers
+			placement = spawned_players.size()
+		powerups_menu.open_for_player(player, placement, time_left)
+		return
 
 func _on_powerup_picked() -> void:
 	if NetworkManager.is_online() and not multiplayer.is_server():
 		_req_notify_picked.rpc_id(1)
 	else:
 		_active_mode.notify_player_picked()
+	_open_next_powerup_menu()
 
 @rpc("any_peer", "reliable")
 func _req_notify_picked() -> void:
@@ -1075,11 +1111,10 @@ func _req_notify_kill(killer_peer_id: int, victim_peer_id: int) -> void:
 	_notify_kill_indicator(killer_peer_id)
 
 func _notify_kill_indicator(killer_peer_id: int) -> void:
-	if killer_peer_id == multiplayer.get_unique_id():
-		var player: Node2D = spawned_players.get(killer_peer_id)
-		if player:
-			player.show_kill()
-	elif NetworkManager.is_online():
+	var player: Node2D = spawned_players.get(killer_peer_id)
+	if player != null and NetworkManager.owns_locally(player):
+		player.show_kill()
+	elif NetworkManager.is_online() and killer_peer_id in spawned_players:
 		_rpc_kill_indicator.rpc_id(killer_peer_id, killer_peer_id)
 
 @rpc("authority", "reliable")
@@ -1248,13 +1283,8 @@ func _on_bw_player_scored(peer_id: int) -> void:
 func _on_bw_powerups_distribute(_scores: Dictionary, finishers: Array) -> void:
 	close_blackjack()
 	close_eight_ball()
-	var local_peer := multiplayer.get_unique_id()
-	var player = spawned_players.get(local_peer)
-	if player == null:
+	if spawned_players.get(_local_peer_id()) == null:
 		return
-	var placement := finishers.find(local_peer) + 1
-	if placement == 0:
-		placement = spawned_players.size()
 	var delay := 1.0
 	await get_tree().create_timer(delay).timeout
 	if _active_mode != gm_bridge:
@@ -1263,8 +1293,7 @@ func _on_bw_powerups_distribute(_scores: Dictionary, finishers: Array) -> void:
 		if not NetworkManager.is_online() or multiplayer.is_server():
 			gm_bridge.skip_powerups()
 		return
-	var time_left: float = gm_bridge.POWERUP_PHASE_DURATION - delay
-	powerups_menu.open_for_player(player, placement, time_left)
+	_start_powerup_picks(finishers, gm_bridge.POWERUP_PHASE_DURATION - delay)
 
 func _on_bw_game_over(winner_team_id: int) -> void:
 	close_blackjack()

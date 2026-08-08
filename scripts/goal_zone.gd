@@ -21,6 +21,12 @@ func _process(_delta: float) -> void:
 	modulate = Color.WHITE if qualified else Color(0.4, 0.4, 0.4, 0.5)
 
 func _find_local_player() -> Node:
+	# In local multiplayer the tint follows slot 0 (the single-focus UI viewer),
+	# matching how PauseMenu picks its local player.
+	if NetworkManager.is_local_multiplayer:
+		var main := get_tree().get_root().get_node_or_null("Main")
+		if main != null:
+			return main.spawned_players.get(main._local_peer_id())
 	for p in get_tree().get_nodes_in_group("player"):
 		if p.is_multiplayer_authority():
 			return p

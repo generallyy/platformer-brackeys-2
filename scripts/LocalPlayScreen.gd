@@ -57,7 +57,7 @@ func _on_start_button_pressed() -> void:
 	var n := (1 if use_kb else 0) + joy_devices.size()
 	if n <= 1:
 		NetworkManager.play_solo()
-		get_tree().change_scene_to_file("res://scenes/main.tscn")
+		get_tree().change_scene_to_file("res://scenes/Main.tscn")
 		return
 	var kb_slot := 0 if use_kb else -1
 	var devices_by_slot: Array[int] = []
@@ -66,7 +66,7 @@ func _on_start_button_pressed() -> void:
 	for i in joy_devices.size():
 		devices_by_slot[start_idx + i] = joy_devices[i]
 	NetworkManager.play_local_multiplayer(n, kb_slot, devices_by_slot)
-	get_tree().change_scene_to_file("res://scenes/main.tscn")
+	get_tree().change_scene_to_file("res://scenes/Main.tscn")
 
 
 func _on_back_button_pressed() -> void:

@@ -957,11 +957,19 @@ func start_freeze(duration: float) -> void:
 	_dbj_freeze_timer = duration
 
 
+var _round_freeze_gen := 0
+
+## Uses its own external lock (not _input_locked) so the delayed unlock can't cancel
+## a stun or the pause menu's lock; the generation guard makes overlapping freezes
+## keep the longest one instead of unlocking when the first timer fires.
 func freeze_for_duration(duration: float) -> void:
-	_input_locked = true
-	velocity.x    = 0.0
+	_round_freeze_gen += 1
+	var my_gen := _round_freeze_gen
+	set_external_input_lock(&"round_freeze", true)
+	velocity.x = 0.0
 	await get_tree().create_timer(duration).timeout
-	_input_locked = false
+	if my_gen == _round_freeze_gen:
+		set_external_input_lock(&"round_freeze", false)
 
 
 func run_dbj(_delta = null) -> void:
@@ -1102,26 +1110,22 @@ func _do_melee() -> void:
 	_melee_cooldown = stats.melee_cooldown
 	var big_melee_stacks: int = passive_powerups.get(PowerupIds.BIG_MELEE, 0)
 	var slow_on_hit       := PowerupIds.SLOW_ON_HIT in passive_powerups
-	var shield_spike_dmg: int = passive_powerups.get(PowerupIds.SHIELD_SPIKE, 0)
-	var parry_stun        := PowerupIds.PARRY_STUN in passive_powerups
 	var can_hit_ghosts    := PowerupIds.GHOST_HUNTER in passive_powerups
-	_rpc_throw_melee.rpc(facing_direction, get_multiplayer_authority(), _effective_damage(), _effective_knockback_scale(), big_melee_stacks, slow_on_hit, shield_spike_dmg, parry_stun, can_hit_ghosts, _visual_tilt)
+	_rpc_throw_melee.rpc(facing_direction, get_multiplayer_authority(), _effective_damage(), _effective_knockback_scale(), big_melee_stacks, slow_on_hit, can_hit_ghosts, _visual_tilt)
 
 
 @rpc("authority", "call_local", "reliable")
-func _rpc_throw_melee(dir: int, thrower_id: int, dmg: int = 1, kbs: float = 1.0, big_melee_stacks: int = 0, slow_on_hit: bool = false, shield_spike_dmg: int = 0, parry_stun: bool = false, can_hit_ghosts: bool = false, floor_tilt: float = 0.0) -> void:
-	_do_spawn_melee(dir, thrower_id, dmg, kbs, big_melee_stacks, slow_on_hit, shield_spike_dmg, parry_stun, can_hit_ghosts, floor_tilt)
+func _rpc_throw_melee(dir: int, thrower_id: int, dmg: int = 1, kbs: float = 1.0, big_melee_stacks: int = 0, slow_on_hit: bool = false, can_hit_ghosts: bool = false, floor_tilt: float = 0.0) -> void:
+	_do_spawn_melee(dir, thrower_id, dmg, kbs, big_melee_stacks, slow_on_hit, can_hit_ghosts, floor_tilt)
 
 
-func _do_spawn_melee(dir: int, thrower_id: int, dmg: int = 1, kbs: float = 1.0, big_melee_stacks: int = 0, slow_on_hit: bool = false, shield_spike_dmg: int = 0, parry_stun: bool = false, can_hit_ghosts: bool = false, floor_tilt: float = 0.0) -> void:
+func _do_spawn_melee(dir: int, thrower_id: int, dmg: int = 1, kbs: float = 1.0, big_melee_stacks: int = 0, slow_on_hit: bool = false, can_hit_ghosts: bool = false, floor_tilt: float = 0.0) -> void:
 	var melee := MELEE_SCENE.instantiate()
 	melee.direction        = dir
 	melee.thrower_peer_id  = thrower_id
 	melee.damage           = dmg
 	melee.knockback_scale  = kbs
 	melee.slow_on_hit      = slow_on_hit
-	melee.shield_spike_dmg = shield_spike_dmg
-	melee.parry_stun       = parry_stun
 	melee.can_hit_ghosts   = can_hit_ghosts
 	if big_melee_stacks > 0:
 		var scale_factor := pow(PowerupIds.BIG_MELEE_SCALE_MULT, big_melee_stacks)

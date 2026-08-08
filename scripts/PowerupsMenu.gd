@@ -16,8 +16,6 @@ const POWERUPS_LIST := [
 	{ "id": PowerupIds.SLOW_ON_HIT,        "name": "Chilling Strikes", "desc": "Attacks slow target\n−20% speed for 1.5s",    "is_active": false, "min_place": 0, "max_place": 9999 },
 	{ "id": PowerupIds.DASH_BOOST_GROUND,  "name": "Power Slide",      "desc": "+30% ground dash speed\n(stacks)",             "is_active": false, "min_place": 0, "max_place": 9999 },
 	{ "id": PowerupIds.DASH_BOOST_AIR,     "name": "Rocket Boost",     "desc": "+30% air boost speed\n(stacks)",               "is_active": false, "min_place": 0, "max_place": 9999 },
-	{ "id": PowerupIds.SHIELD_SPIKE,       "name": "Thorns",           "desc": "Shield reflects 1 dmg\nper hit (stacks)",      "is_active": false, "min_place": 0, "max_place": 9999 },
-	{ "id": PowerupIds.PARRY_STUN,         "name": "Parry",            "desc": "Block melee → stuns\nattacker for 1s",         "is_active": false, "min_place": 0, "max_place": 9999 },
 	{ "id": PowerupIds.GHOST_HUNTER,       "name": "Ghost Hunter",     "desc": "See & hit ghost players",                      "is_active": false, "min_place": 0, "max_place": 9999 },
 	{ "id": PowerupIds.HEAVY_HITTER,       "name": "Heavyweight",      "desc": "+20% knockback\n−20% move speed (stacks)",    "is_active": false, "min_place": 0, "max_place": 9999 },
 	{ "id": PowerupIds.INVISIBLE,          "name": "Cloak",            "desc": "Press {key}: invisible\nto others for 3s",     "is_active": true,  "min_place": 0, "max_place": 9999 },

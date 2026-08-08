@@ -207,10 +207,11 @@ func register_player(peer_id: int) -> void:
 			_broadcast_lives()
 
 func sync_to_peer(peer_id: int) -> void:
-	_sync_state.rpc_id(peer_id, state, team_scores, _time_limit, lives, infinite_lives, lives_per_player, points_to_win)
+	# announce=false: a late joiner needs the state applied, not the "GO!" fanfare.
+	_sync_state.rpc_id(peer_id, state, team_scores, _time_limit, lives, infinite_lives, lives_per_player, points_to_win, false)
 
 func _broadcast_state(new_state: int) -> void:
-	_sync_state.rpc(new_state, team_scores, _time_limit, lives, infinite_lives, lives_per_player, points_to_win)
+	_sync_state.rpc(new_state, team_scores, _time_limit, lives, infinite_lives, lives_per_player, points_to_win, true)
 
 func _broadcast_team_scores() -> void:
 	_sync_team_scores.rpc(team_scores)
@@ -225,7 +226,7 @@ func _broadcast_game_over(winner_team_id: int) -> void:
 	_sync_game_over.rpc(winner_team_id)
 
 @rpc("authority", "call_local", "reliable")
-func _sync_state(new_state: int, new_team_scores: Dictionary, time_limit: float, new_lives: Dictionary, inf_lives: bool, lives_pp: int, win_score: int) -> void:
+func _sync_state(new_state: int, new_team_scores: Dictionary, time_limit: float, new_lives: Dictionary, inf_lives: bool, lives_pp: int, win_score: int, announce: bool = true) -> void:
 	state = new_state
 	team_scores = new_team_scores
 	_time_limit = time_limit
@@ -237,7 +238,8 @@ func _sync_state(new_state: int, new_team_scores: Dictionary, time_limit: float,
 		_round_active = true
 		_time_remaining = time_limit
 		_start_delay = ROUND_START_DELAY
-		round_started.emit(1)
+		if announce:
+			round_started.emit(1)
 		team_scores_changed.emit(team_scores)
 		lives_changed.emit(lives)
 

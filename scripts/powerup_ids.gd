@@ -17,8 +17,6 @@ const BIG_MELEE         := "big_melee"
 const SLOW_ON_HIT       := "slow_on_hit"
 const DASH_BOOST_GROUND := "dash_boost_ground"
 const DASH_BOOST_AIR    := "dash_boost_air"
-const SHIELD_SPIKE      := "shield_spike"
-const PARRY_STUN        := "parry_stun"
 const GHOST_HUNTER      := "ghost_hunter"
 const HEAVY_HITTER      := "heavy_hitter"
 
@@ -50,8 +48,6 @@ const MAX_STACKS: Dictionary = {
 	SLOW_ON_HIT:       1,
 	DASH_BOOST_GROUND: 2,
 	DASH_BOOST_AIR:    2,
-	SHIELD_SPIKE:      2,
-	PARRY_STUN:        1,
 	GHOST_HUNTER:      1,
 	HEAVY_HITTER:      3,
 	INVISIBLE:         1,
@@ -79,8 +75,6 @@ const DISPLAY_NAMES: Dictionary = {
 	SLOW_ON_HIT:       "Chilling Strikes",
 	DASH_BOOST_GROUND: "Power Slide",
 	DASH_BOOST_AIR:    "Rocket Boost",
-	SHIELD_SPIKE:      "Thorns",
-	PARRY_STUN:        "Parry",
 	GHOST_HUNTER:      "Ghost Hunter",
 	HEAVY_HITTER:      "Heavyweight",
 	SPEED_BOOST:       "Speed Surge",
