@@ -4,7 +4,7 @@ const CONNECT_TIMEOUT = 10.0
 
 const JOIN_ADDRESSES = {
 	"a": "127.0.0.1",
-	"b": "remember-absorption.gl.at.ply.gg:11557",
+	"b": "sutton-mentioned.tun.ply.gg:11557",
 	"c": "stank-entitled.tun.ply.gg:58175",
 }
 
