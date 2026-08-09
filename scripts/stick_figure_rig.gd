@@ -7,11 +7,21 @@ extends Node2D
 @export var line_width := 60
 
 @export_group("Outline")
-@export var outline_enabled := true
-@export var outline_color := Color(0.04, 0.04, 0.04, 1.0)
-## Thickness in on-screen pixels at the gameplay camera's default zoom
-## (Camera2D zoom = 3 in Player.tscn). Converted to rig units when built.
-@export var outline_width := 3.0
+@export var outline_enabled := true:
+	set(v):
+		outline_enabled = v
+		_rebuild_outline_if_ready()
+@export var outline_color := Color(0.04, 0.04, 0.04, 1.0):
+	set(v):
+		outline_color = v
+		_rebuild_outline_if_ready()
+## Thickness in on-screen pixels at the standard gameplay view (player base_scale
+## 0.05, camera zoom 3). The outline is part of the rig, so wardrobe preview,
+## editor viewport, camera zoom, and Grow/Shrink all scale it with the body.
+@export var outline_width := 3.0:
+	set(v):
+		outline_width = v
+		_rebuild_outline_if_ready()
 
 ## Editor-only: assign a CosmeticItem here to see it live on the rig in the
 ## scene editor while tuning its offset/rotation/scale. No effect at runtime.
@@ -35,8 +45,7 @@ var facing_direction := 1
 func _ready() -> void:
 	_animation_tree.active = true
 	play(current_animation)
-	if not Engine.is_editor_hint():
-		_build_outline()
+	_build_outline()
 
 
 func _process(_delta: float) -> void:
@@ -115,21 +124,28 @@ func set_accent_color(color: Color) -> void:
 # OUTLINE
 # ============================================================
 
-const _OUTLINE_REFERENCE_ZOOM := 3.0   # gameplay Camera2D zoom in Player.tscn
+const _OUTLINE_REFERENCE_ZOOM := 3.0    # gameplay Camera2D zoom in Player.tscn
+const _OUTLINE_REFERENCE_SCALE := 0.05  # PlayerStats.base_scale — the canonical in-game rig scale
 const _OUTLINE_NODE_PREFIX := "RigOutline"
-const _OUTLINE_TRACE_EPSILON := 2.0    # px; simplification of traced silhouettes
-
-var _outline_retry_pending := false
+const _OUTLINE_TRACE_EPSILON := 2.0     # px; simplification of traced silhouettes
+const _OUTLINE_SMOOTH_ITERATIONS := 2   # Chaikin corner-cutting passes on each loop
+## Fraction of the stroke tucked under the fill, as insurance against a hairline
+## gap where the alpha-traced edge sits a hair outside the drawn art. Keep small:
+## it is the only part of the stroke that shows through a translucent body.
+const _OUTLINE_FILL_OVERLAP := 0.15
 
 ## Builds a silhouette outline for the skin. Every part is rigidly weighted to a
 ## single bone, so instead of skinning we parent a closed Line2D per silhouette
 ## boundary directly to that bone — it follows every animation for free. The
 ## boundaries come from tracing the atlas texture's alpha (the polygon quads have
-## transparent padding, and the head is a ring with a hole), and each line is
-## centered on the boundary one z-index below the fills: the fill covers the
-## inner half, leaving a crisp outline of half the line width outside the
-## silhouette — including inside the head's hole rim.
-## Runtime-only — the editor viewport shows the rig without an outline.
+## transparent padding, and the head is a ring with a hole), and each stroke is
+## pushed off the edge so it lies essentially entirely OUTSIDE the solid, one
+## z-index below the fills — including inside the head's hole rim. Sitting
+## outside rather than straddling the edge is what keeps the outline correct
+## when the body is translucent (ghost mode, Cloak, Blink): a straddling stroke
+## would show its hidden inner half through the faded fill.
+## Runs in the editor too (@tool); the generated lines are unowned, so they show
+## in the viewport but are never saved into the scene.
 func _build_outline() -> void:
 	_clear_outline()
 	if not outline_enabled or _polygons == null:
@@ -137,17 +153,11 @@ func _build_outline() -> void:
 	var skeleton := get_node_or_null("Skeleton2D") as Skeleton2D
 	if skeleton == null:
 		return
-	var world_scale := absf(global_scale.x) if is_inside_tree() else 0.0
-	if world_scale < 0.0001:
-		# Global transform not valid yet — retry once on the next frame.
-		if not _outline_retry_pending:
-			_outline_retry_pending = true
-			_build_outline.call_deferred()
-		return
-	_outline_retry_pending = false
-	# Screen px -> rig units, sized at build time. Later scale changes (facing
-	# flips, Grow/Shrink) stretch the outline with the body, like a real edge.
-	var delta := outline_width / (world_scale * _OUTLINE_REFERENCE_ZOOM)
+	# Screen px at the reference gameplay view -> rig units. Sizing against the
+	# fixed reference (not this node's live scale) makes the outline part of the
+	# rig: wardrobe preview, editor, camera zoom, and Grow/Shrink scale it with
+	# the body, like a real edge.
+	var delta := outline_width / (_OUTLINE_REFERENCE_SCALE * _OUTLINE_REFERENCE_ZOOM)
 	var skel_inv := skeleton.global_transform.affine_inverse()
 	var bitmap_cache: Dictionary = {}
 	for part in _polygons.get_children():
@@ -161,24 +171,54 @@ func _build_outline() -> void:
 		# that it lands exactly where skinning would put it (rigid weight-1 bind).
 		var to_bone := _rest_in_skeleton(bone, skeleton).affine_inverse() \
 				* (skel_inv * src.global_transform)
-		var boundaries := _trace_visible_boundaries(src, bitmap_cache)
-		for bi in boundaries.size():
-			var boundary: PackedVector2Array = boundaries[bi]
+		var loops := _outline_loops(src, bitmap_cache, delta)
+		for li in loops.size():
+			var loop_points: PackedVector2Array = loops[li]
 			var line := Line2D.new()
 			# Explicit unique name — a duplicate name would get auto-renamed to
 			# "@RigOutline...@N", which _free_outline_nodes' prefix check misses.
-			line.name = "%s%s_%d" % [_OUTLINE_NODE_PREFIX, src.name, bi]
+			line.name = "%s%s_%d" % [_OUTLINE_NODE_PREFIX, src.name, li]
 			line.closed = true
-			line.width = delta * 2.0
+			# Spans from delta * _OUTLINE_FILL_OVERLAP inside the traced edge to
+			# delta outside it, so exactly `outline_width` px stay visible.
+			line.width = delta * (1.0 + _OUTLINE_FILL_OVERLAP)
 			line.default_color = outline_color
 			line.z_index = _polygons.z_index - 1
 			line.antialiased = false
 			line.joint_mode = Line2D.LINE_JOINT_ROUND
 			var pts := PackedVector2Array()
-			for v in boundary:
+			for v in loop_points:
 				pts.append(to_bone * v)
 			line.points = pts
 			bone.add_child(line)
+
+
+## Final outline paths for one part, in the part's local space: every traced
+## boundary smoothed, then pushed off the silhouette edge by half a stroke so the
+## stroke ends up outside the solid (see _build_outline).
+func _outline_loops(src: Polygon2D, bitmap_cache: Dictionary, delta: float) -> Array:
+	var push := delta * (0.5 - _OUTLINE_FILL_OVERLAP * 0.5)
+	var result: Array = []
+	for boundary in _trace_visible_boundaries(src, bitmap_cache):
+		var raw: PackedVector2Array = boundary["points"]
+		# Bitmap tracing leaves pixel stair-steps that the epsilon pass turns
+		# into visible facets on curves; corner-cutting rounds them off. Done
+		# before the offset so the parallel curve comes out smooth too.
+		var smoothed := _smooth_closed(raw, _OUTLINE_SMOOTH_ITERATIONS)
+		# A hole (the head ring's centre) is solid on the *outside*, so its
+		# stroke belongs within the hole — push the other way. offset_polygon
+		# grows on positive delta regardless of winding.
+		var is_hole: bool = boundary["hole"]
+		for loop in Geometry2D.offset_polygon(smoothed, -push if is_hole else push, Geometry2D.JOIN_ROUND):
+			var loop_points: PackedVector2Array = loop
+			if loop_points.size() >= 3:
+				result.append(loop_points)
+	return result
+
+
+func _rebuild_outline_if_ready() -> void:
+	if is_node_ready():
+		_build_outline()
 
 
 ## Outline nodes live scattered under the bones, so cleanup goes by name prefix
@@ -192,6 +232,10 @@ func _clear_outline() -> void:
 func _free_outline_nodes(node: Node) -> void:
 	for child in node.get_children():
 		if child.name.begins_with(_OUTLINE_NODE_PREFIX):
+			# Release the name before queue_free: the node lives until end of
+			# frame, and a same-frame rebuild must be able to reuse canonical
+			# names (an auto-renamed "@RigOutline...@N" would escape this sweep).
+			child.name = "_freed_outline"
 			child.queue_free()
 		else:
 			_free_outline_nodes(child)
@@ -218,9 +262,10 @@ static func _rest_in_skeleton(bone: Bone2D, skeleton: Skeleton2D) -> Transform2D
 
 
 ## Traces the opaque silhouette(s) of the part's texture region. Returns one
-## closed boundary per blob edge — the head ring yields two (outer + hole rim).
-## Assumes uv coords equal polygon coords (true for every part in Player.tscn),
-## so traced atlas-pixel coordinates map straight into the part's local space.
+## { "points": PackedVector2Array, "hole": bool } per blob edge — the head ring
+## yields two (outer contour + hole rim). Assumes uv coords equal polygon coords
+## (true for every part in Player.tscn), so traced atlas-pixel coordinates map
+## straight into the part's local space.
 func _trace_visible_boundaries(src: Polygon2D, bitmap_cache: Dictionary) -> Array:
 	var bm: BitMap = bitmap_cache.get(src.texture)
 	if bm == null:
@@ -238,7 +283,7 @@ func _trace_visible_boundaries(src: Polygon2D, bitmap_cache: Dictionary) -> Arra
 	if not region.has_area():
 		return []
 	var result: Array = []
-	_append_clipped(result, bm.opaque_to_polygons(region, _OUTLINE_TRACE_EPSILON), region.position, uv)
+	_append_clipped(result, bm.opaque_to_polygons(region, _OUTLINE_TRACE_EPSILON), region.position, uv, false)
 	# opaque_to_polygons only returns outer contours. Recover interior holes
 	# (e.g. the head ring's center) by tracing the inverted region and keeping
 	# the blobs that don't touch the region border (the border blob is just the
@@ -252,21 +297,39 @@ func _trace_visible_boundaries(src: Polygon2D, bitmap_cache: Dictionary) -> Arra
 	for hole in inverted.opaque_to_polygons(Rect2i(Vector2i.ZERO, region.size), _OUTLINE_TRACE_EPSILON):
 		if not _touches_border(hole, region.size):
 			holes.append(hole)
-	_append_clipped(result, holes, region.position, uv)
+	_append_clipped(result, holes, region.position, uv, true)
 	return result
 
 
 ## Offsets traced region-local polygons back into atlas space, clips them against
 ## the part's quad (so art bleeding in from neighboring atlas glyphs can't produce
-## stray outlines), and appends the survivors.
-static func _append_clipped(result: Array, polygons: Array, region_pos: Vector2i, uv: PackedVector2Array) -> void:
+## stray outlines), and appends the survivors tagged as outer contours or holes.
+static func _append_clipped(result: Array, polygons: Array, region_pos: Vector2i, uv: PackedVector2Array, is_hole: bool) -> void:
 	for traced in polygons:
 		var absolute := PackedVector2Array()
 		for p in traced:
 			absolute.append(p + Vector2(region_pos))
 		for clipped in Geometry2D.intersect_polygons(absolute, uv):
-			if clipped.size() >= 3:
-				result.append(clipped)
+			var clipped_points: PackedVector2Array = clipped
+			if clipped_points.size() >= 3:
+				result.append({ "points": clipped_points, "hole": is_hole })
+
+
+## Chaikin corner cutting for a closed loop: each pass replaces every vertex
+## with two points at 1/4 and 3/4 of its outgoing edge, converging on a smooth
+## curve. Flat runs stay flat; only corners get rounded.
+static func _smooth_closed(points: PackedVector2Array, iterations: int) -> PackedVector2Array:
+	var pts := points
+	for _i in iterations:
+		var out := PackedVector2Array()
+		var n := pts.size()
+		for j in n:
+			var a := pts[j]
+			var b := pts[(j + 1) % n]
+			out.append(a.lerp(b, 0.25))
+			out.append(a.lerp(b, 0.75))
+		pts = out
+	return pts
 
 
 static func _touches_border(points: PackedVector2Array, size: Vector2i) -> bool:
