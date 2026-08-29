@@ -700,4 +700,8 @@ target_level_path = "uid://mlbacrwj4boy"
 position = Vector2(71, -2)
 target_level_path = "uid://bskquujpfx0r3"
 
+[node name="Door5" parent="." unique_id=101150356 instance=ExtResource("16_l5fl4")]
+position = Vector2(176, 0)
+target_level_path = "uid://dg244rb4peg4o"
+
 [connection signal="body_entered" from="LevelTransition" to="LevelTransition" method="_on_body_entered"]

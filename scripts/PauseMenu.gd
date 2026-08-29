@@ -24,6 +24,10 @@ const PAGES := [
 
 const SLOTS := 3
 
+# InputMap actions intentionally left out of the keybinds menu: "pause" opens/closes this
+# menu (rebinding it from inside is a bad idea), "submit" is a text-input action, not gameplay.
+const EXCLUDED_FROM_KEYBINDS_MENU := ["pause", "submit"]
+
 var _keybinds_panel: Control
 var _action_buttons := {}  # action -> Array of Button, size SLOTS
 var _action_rows    := {}  # action -> HBoxContainer
@@ -76,6 +80,7 @@ func _ready():
 	_build_keybinds_panel()
 	_build_local_keybinds_panel()
 	_load_keybinds()
+	_warn_missing_keybind_actions()
 
 	_keybinds_panel.visible = false
 	$PauseMenu.visible = true
@@ -86,6 +91,22 @@ func _ready():
 # ============================================================
 # BINDINGS DATA
 # ============================================================
+
+func _warn_missing_keybind_actions() -> void:
+	var paged_actions := {}
+	for page in PAGES:
+		for action in page["actions"]:
+			paged_actions[action] = true
+
+	for action in ACTIONS:
+		if not paged_actions.has(action):
+			push_warning("PauseMenu: action '%s' is in ACTIONS but not assigned to any PAGES entry." % action)
+
+	for action in InputMap.get_actions():
+		if action.begins_with("ui_") or action in EXCLUDED_FROM_KEYBINDS_MENU:
+			continue
+		if not ACTIONS.has(action):
+			push_warning("PauseMenu: action '%s' is in the InputMap but missing from ACTIONS in the keybinds menu." % action)
 
 func _init_bindings() -> void:
 	for action in ACTIONS:
@@ -114,6 +135,9 @@ func _build_keybinds_panel() -> void:
 
 	var vbox := _keybinds_panel.get_node("PanelContainer/HBoxContainer/VBoxContainer")
 	_title_label = vbox.get_node("Title")
+
+	_keybinds_panel.get_node("PanelContainer/HBoxContainer/ArrowLeft").pressed.connect(_on_arrow_left_pressed)
+	_keybinds_panel.get_node("PanelContainer/HBoxContainer/ArrowRight").pressed.connect(_on_arrow_right_pressed)
 
 	# Column headers
 	var header := HBoxContainer.new()

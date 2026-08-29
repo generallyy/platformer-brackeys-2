@@ -56,6 +56,7 @@ var _state: PlayerState = PlayerState.GROUNDED
 @onready var _raycast_left:       RayCast2D         = $RayCastLeft
 @onready var _raycast_right:      RayCast2D         = $RayCastRight
 @onready var _movement_collision: CollisionShape2D  = $MovementCollision
+@onready var _rig_hitbox_shape:   CollisionShape2D  = get_node_or_null("StickRig/Skeleton2D/Torso/RigHitbox/CollisionShape2D")
 
 # ============================================================
 # SIGNALS
@@ -218,6 +219,21 @@ func _ready() -> void:
 	_shield_node = SHIELD_SCENE.instantiate()
 	add_child(_shield_node)
 	_shield_node.visible = false
+	_anchor_shield()
+
+
+## Keeps the shield centred on the rig hurtbox (the Area2D projectiles actually test
+## against) instead of the Player origin / movement capsule. Runs for every player, not
+## just locally-owned ones, because remote rigs animate locally between state syncs.
+## Position only: parenting to the bone would make the charge bar spin with the torso.
+func _process(_delta: float) -> void:
+	_anchor_shield()
+
+
+func _anchor_shield() -> void:
+	if _shield_node == null or _rig_hitbox_shape == null:
+		return
+	_shield_node.global_position = _rig_hitbox_shape.global_position
 
 
 func _physics_process(delta: float) -> void:
